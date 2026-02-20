@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1200" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" rx="32" fill="url(#g)"/>
+  <circle cx="1040" cy="120" r="150" fill="#F59E0B" fill-opacity="0.18"/>
+  <circle cx="180" cy="700" r="180" fill="#F59E0B" fill-opacity="0.18"/>
+  <rect x="84" y="96" width="220" height="40" rx="20" fill="white" fill-opacity="0.22"/>
+  <text x="110" y="122" fill="white" font-size="22" font-family="Arial, sans-serif" font-weight="700">NAMASTE BHARAT</text>
+  <rect x="84" y="176" width="700" height="420" rx="26" fill="white" fill-opacity="0.18"/>
+  <rect x="124" y="226" width="620" height="22" rx="11" fill="white" fill-opacity="0.52"/>
+  <rect x="124" y="270" width="560" height="18" rx="9" fill="white" fill-opacity="0.36"/>
+  <rect x="124" y="318" width="460" height="18" rx="9" fill="white" fill-opacity="0.36"/>
+  <rect x="124" y="390" width="160" height="56" rx="16" fill="white" fill-opacity="0.56"/>
+  <rect x="304" y="390" width="190" height="56" rx="16" fill="white" fill-opacity="0.24"/>
+  <rect x="844" y="208" width="280" height="330" rx="24" fill="white" fill-opacity="0.2"/>
+  <rect x="874" y="244" width="220" height="130" rx="18" fill="white" fill-opacity="0.35"/>
+  <text x="874" y="420" fill="white" font-size="42" font-family="Arial, sans-serif" font-weight="700">Electrical Services</text>
+  <text x="874" y="460" fill="white" fill-opacity="0.9" font-size="22" font-family="Arial, sans-serif">Trusted local experts</text>
+</svg>

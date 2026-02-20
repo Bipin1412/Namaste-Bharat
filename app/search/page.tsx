@@ -1,0 +1,204 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import BusinessCard, { type BusinessCardData } from "@/components/BusinessCard";
+import BusinessCardSkeleton from "@/components/BusinessCardSkeleton";
+import OfferBannerSlot from "@/components/OfferBannerSlot";
+import SmartSearchBar from "@/components/SmartSearchBar";
+
+type BusinessesApiResponse = {
+  data: BusinessCardData[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
+export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const urlQuery = searchParams.get("q") ?? "";
+
+  const [query, setQuery] = useState(urlQuery);
+  const [businesses, setBusinesses] = useState<BusinessCardData[]>([]);
+  const [resultCount, setResultCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setQuery((currentValue) => (currentValue === urlQuery ? currentValue : urlQuery));
+  }, [urlQuery]);
+
+  function syncQueryToUrl(nextQuery: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    const normalizedQuery = nextQuery.trim();
+
+    if (normalizedQuery) {
+      params.set("q", normalizedQuery);
+    } else {
+      params.delete("q");
+    }
+
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+  }
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams({
+          page: "1",
+          limit: "18",
+          sort: "rating_desc",
+        });
+
+        if (query.trim()) {
+          params.set("q", query.trim());
+        }
+
+        const response = await fetch(`/api/businesses?${params.toString()}`, {
+          method: "GET",
+          signal: controller.signal,
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not load business listings.");
+        }
+
+        const payload = (await response.json()) as BusinessesApiResponse;
+        setBusinesses(payload.data);
+        setResultCount(payload.meta.total);
+      } catch (fetchError) {
+        if (!controller.signal.aborted) {
+          setError(
+            fetchError instanceof Error
+              ? fetchError.message
+              : "Something went wrong while loading listings."
+          );
+          setBusinesses([]);
+          setResultCount(0);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  const statusText = useMemo(() => {
+    if (isLoading) {
+      return "Updating...";
+    }
+
+    if (error) {
+      return "Error";
+    }
+
+    return `${resultCount} found`;
+  }, [error, isLoading, resultCount]);
+
+  return (
+    <div className="min-h-dvh bg-slate-50">
+      <SmartSearchBar
+        value={query}
+        onChange={setQuery}
+        onSubmit={(value) => {
+          setQuery(value);
+          syncQueryToUrl(value);
+        }}
+        onVoiceSearch={() => {
+          const voiceQuery = "repair";
+          setQuery(voiceQuery);
+          syncQueryToUrl(voiceQuery);
+        }}
+      />
+
+      <section className="mx-auto max-w-7xl space-y-4 px-4 pb-24 pt-2 md:px-6 lg:px-8">
+        <OfferBannerSlot title="Search Results Offer Banner" />
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold tracking-[0.012em] text-slate-800">
+            Search Results
+          </p>
+          <p className="text-xs text-slate-500">
+            {statusText}
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[240px,1fr]">
+          <aside className="hidden h-fit rounded-2xl border border-slate-200 bg-white p-4 lg:block">
+            <p className="text-sm font-semibold tracking-[0.012em] text-slate-800">
+              Quick Filters
+            </p>
+            <div className="mt-3 space-y-2 text-sm text-slate-600">
+              <button
+                type="button"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+              >
+                Verified businesses
+              </button>
+              <button
+                type="button"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+              >
+                Open now
+              </button>
+              <button
+                type="button"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+              >
+                Top rated 4.5+
+              </button>
+              <button
+                type="button"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+              >
+                WhatsApp available
+              </button>
+            </div>
+          </aside>
+
+          <div className="space-y-3">
+            {isLoading ? (
+              <>
+                <BusinessCardSkeleton />
+                <BusinessCardSkeleton />
+                <BusinessCardSkeleton />
+              </>
+            ) : error ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm leading-relaxed tracking-[0.012em] text-red-700">
+                {error}
+              </div>
+            ) : businesses.length > 0 ? (
+              businesses.map((business) => (
+                <BusinessCard key={business.id} business={business} />
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm leading-relaxed tracking-[0.012em] text-slate-600">
+                No listings matched your search. Try category names like
+                plumber, clinic, or hardware.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
