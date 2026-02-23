@@ -6,7 +6,7 @@ dotenv.config({
 });
 
 const env = {
-  port: Number(process.env.BACKEND_PORT || 4000),
+  port: Number(process.env.BACKEND_PORT || process.env.PORT || 4000),
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",

@@ -1,44 +1,81 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import { getBackendBaseUrl, saveAuthToken } from "@/lib/auth-client";
 
 type LoginPopupProps = {
   open: boolean;
   onClose: () => void;
 };
 
-function normalizePhone(value: string) {
-  return value.replace(/\D/g, "");
-}
-
 export default function LoginPopup({ open, onClose }: LoginPopupProps) {
-  const [phone, setPhone] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(true);
-  const [feedback, setFeedback] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const numericPhone = useMemo(() => normalizePhone(phone), [phone]);
-  const canSubmit = acceptedTerms && numericPhone.length === 10;
+  const canSubmit = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length >= 6;
 
-  function handleSubmit() {
-    if (!acceptedTerms) {
-      setFeedback("Please accept terms and conditions.");
+  async function handleSubmit() {
+    if (!canSubmit || isSubmitting) {
       return;
     }
 
-    if (numericPhone.length !== 10) {
-      setFeedback("Enter a valid 10-digit mobile number.");
-      return;
-    }
+    setIsSubmitting(true);
+    setError("");
 
-    setFeedback("Redirecting to phone login...");
-    window.location.href = "/login?next=/profile";
+    try {
+      const response = await fetch(`${getBackendBaseUrl()}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            error?: { message?: string };
+            session?: { access_token?: string | null } | null;
+            profile?: { role?: string | null } | null;
+          }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message ?? "Login failed.");
+      }
+
+      const accessToken = payload?.session?.access_token ?? "";
+      if (!accessToken) {
+        throw new Error("Login succeeded but no access token was returned.");
+      }
+
+      saveAuthToken(accessToken);
+      onClose();
+
+      if (payload?.profile?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/profile");
+      }
+      router.refresh();
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error ? submitError.message : "Unable to login right now."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleClose() {
-    setFeedback("");
+    setError("");
     onClose();
   }
 
@@ -93,46 +130,43 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
             <div className="space-y-4">
               <div>
                 <label
-                  htmlFor="login-mobile"
+                  htmlFor="login-email"
                   className="mb-1 block text-sm font-medium text-slate-700"
                 >
-                  Enter Mobile Number
+                  Email
                 </label>
-                <div className="flex h-12 items-center rounded-xl border-2 border-slate-300 px-3">
-                  <span className="text-2xl font-medium text-slate-500">+91</span>
-                  <span className="mx-3 h-7 w-px bg-slate-300" />
-                  <input
-                    id="login-mobile"
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={phone}
-                    onChange={(event) => {
-                      setPhone(event.target.value);
-                      if (feedback) setFeedback("");
-                    }}
-                    placeholder="Enter mobile number"
-                    className="h-full w-full border-0 bg-transparent text-lg text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                  />
-                </div>
+                <input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="name@email.com"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+                />
               </div>
 
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+              <div>
+                <label
+                  htmlFor="login-password"
+                  className="mb-1 block text-sm font-medium text-slate-700"
+                >
+                  Password
+                </label>
                 <input
-                  type="checkbox"
-                  checked={acceptedTerms}
+                  id="login-password"
+                  type="password"
+                  value={password}
                   onChange={(event) => {
-                    setAcceptedTerms(event.target.checked);
-                    if (feedback) setFeedback("");
+                    setPassword(event.target.value);
+                    if (error) setError("");
                   }}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  placeholder="Enter password"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
                 />
-                I Agree to Terms and Conditions
-              </label>
-
-              <p className="-mt-2 text-center text-sm text-slate-500 underline">
-                T&amp;C&apos;s Privacy Policy
-              </p>
+              </div>
 
               <button
                 type="button"
@@ -140,7 +174,14 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
                 disabled={!canSubmit}
                 className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-blue-600 text-lg font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
               >
-                Login with OTP
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </button>
 
               <div className="flex items-center gap-3">
@@ -180,16 +221,9 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
                 Skip
               </button>
 
-              {feedback ? (
-                <p
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm ${
-                    feedback.toLowerCase().includes("success")
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-amber-50 text-amber-700"
-                  }`}
-                >
-                  <Check className="h-4 w-4" aria-hidden />
-                  {feedback}
+              {error ? (
+                <p className="rounded-md bg-red-50 px-2 py-1 text-sm text-red-700">
+                  {error}
                 </p>
               ) : null}
             </div>
