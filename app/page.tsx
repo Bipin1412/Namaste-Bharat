@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import BusinessCard from "@/components/BusinessCard";
 import OfferBannerSlot from "@/components/OfferBannerSlot";
-import VendorCardSubmissionForm from "@/components/VendorCardSubmissionForm";
 import VendorCardsSection, {
   buildVendorCardsFromBusinesses,
 } from "@/components/VendorCardsSection";
@@ -163,7 +162,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="grid gap-2 lg:grid-cols-[2fr,1fr,1fr,1fr]">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[2fr,1fr,1fr,1fr]">
           <div className="rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 p-5 text-white">
             <p className="text-xs uppercase tracking-[0.14em] text-blue-100">
               Explore and Book
@@ -233,7 +232,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 md:grid-cols-5 lg:grid-cols-10">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10">
             {renderedCategories.map(({ label, Icon, count }) => (
               <Link
                 key={label}
@@ -259,12 +258,10 @@ export default async function HomePage() {
           subtitle="Use this area for festival campaigns, sponsored ads, or partner promotions."
         />
 
-        <VendorCardSubmissionForm />
-
         <VendorCardsSection vendors={vendorCards} />
 
-        <div className="grid gap-4 lg:grid-cols-[1.4fr,1fr]">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr,1fr]">
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold text-slate-800">
                 Popular searches
@@ -276,7 +273,7 @@ export default async function HomePage() {
                 See results
               </Link>
             </div>
-            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+            <div className="flex flex-wrap gap-2 pb-1 md:no-scrollbar md:flex-nowrap md:overflow-x-auto">
               {quickFilters.map((item) => (
                 <Link
                   key={item}
@@ -289,16 +286,16 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4">
             <p className="text-sm font-semibold text-slate-800">
               Quick collections
             </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-2">
               {homeShowcaseCards.map((item) => (
                 <Link
                   key={item.title}
                   href={item.href}
-                  className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50 transition-colors hover:border-blue-200"
+                  className="min-w-0 w-full overflow-hidden rounded-xl border border-slate-100 bg-slate-50 transition-colors hover:border-blue-200"
                 >
                   <div className="relative h-28 w-full">
                     <Image
@@ -308,9 +305,9 @@ export default async function HomePage() {
                       className="object-cover"
                     />
                   </div>
-                  <div className="p-2">
-                    <p className="text-sm font-semibold text-slate-800">{item.title}</p>
-                    <p className="text-xs text-slate-500">{item.subtitle}</p>
+                  <div className="min-w-0 p-2">
+                    <p className="break-words text-sm font-semibold text-slate-800">{item.title}</p>
+                    <p className="break-words text-xs text-slate-500">{item.subtitle}</p>
                   </div>
                 </Link>
               ))}

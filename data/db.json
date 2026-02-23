@@ -305,9 +305,9 @@
     },
     {
       "name": "Ayushree entarprizess",
-      "category": "Product Seller",
-      "locality": "pune",
-      "city": "pune",
+      "category": "Service",
+      "locality": "C. Sambhajinagar",
+      "city": "C. Sambhajinagar",
       "rating": 0,
       "reviewCount": 0,
       "isOpenNow": true,
@@ -321,16 +321,1841 @@
       "pincode": "431001",
       "email": "ajinkyakulkarni.kulkarni@gmail.com",
       "serviceAreas": [
-        "pune"
+        "C. Sambhajinagar"
       ],
       "keywords": [
         "vendor-card",
         "Ayushree entarprizess",
-        "pune"
+        "service",
+        "bhadhakam",
+        "C. Sambhajinagar"
       ],
       "id": "8c9c975c-cda0-435f-8efb-9a844052391b",
       "createdAt": "2026-02-20T11:52:04.146Z",
-      "updatedAt": "2026-02-20T11:52:04.146Z"
+      "updatedAt": "2026-02-22T08:52:38.642Z",
+      "website": "",
+      "highlights": [
+        "Service"
+      ]
+    },
+    {
+      "name": "SaP IT Solutions",
+      "category": "Product Seller",
+      "locality": "Kothrud",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919822042064",
+      "whatsappNumber": "919822042064",
+      "tagline": "Owner: Santosh Deshpande",
+      "description": "Computers Laptops Sales Services, Rental, Antivirus Distribution, original Microsoft Windows and Microsoft Office, Computer Networking, CAD, Adobe softwares, Tally, Computer Networking & storage, backup solutions",
+      "ownerName": "Santosh Deshpande",
+      "addressLine1": "Sr No 98, 5, Shweta Residency, Right Bhusari Opp Zcon, Kothrud Pune",
+      "pincode": "411038",
+      "email": "sapitsolutions@yahoo.com",
+      "website": "https://www.sapitsolutions.com",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "SaP IT Solutions",
+        "computers",
+        "laptops",
+        "antivirus",
+        "microsoft office",
+        "networking",
+        "pune",
+        "kothrud"
+      ],
+      "highlights": [
+        "Sales",
+        "Services",
+        "Rental",
+        "Backup solutions"
+      ],
+      "id": "2b6d0401-bdb6-4cc3-80e7-0893fed952c9",
+      "createdAt": "2026-02-22T08:48:12.937Z",
+      "updatedAt": "2026-02-22T08:48:12.937Z"
+    },
+    {
+      "name": "SSJ Consultant.Pune",
+      "category": "Other",
+      "locality": "Warje Highway",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919881212012",
+      "whatsappNumber": "919881212012",
+      "tagline": "Owner: Shobha Javalgikar",
+      "description": "Business Consultant, Psycho Counselor & Translator English Hindi and Marathi vice versa.",
+      "ownerName": "Shobha Javalgikar",
+      "addressLine1": "Warje Highway, Pune",
+      "pincode": "411058",
+      "email": "ssj.con11@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "SSJ Consultant.Pune",
+        "consultant",
+        "counselor",
+        "translator",
+        "other",
+        "pune"
+      ],
+      "highlights": [
+        "Business Consultant",
+        "Psycho Counselor",
+        "Translator"
+      ],
+      "id": "67fcaa4c-e582-46ae-817b-028d0da034d5",
+      "createdAt": "2026-02-22T08:55:42.081Z",
+      "updatedAt": "2026-02-22T08:55:42.081Z"
+    },
+    {
+      "name": "SN Digital Marketing",
+      "category": "Digital Marketing",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919921265043",
+      "whatsappNumber": "919921265043",
+      "tagline": "Owner: Sneha",
+      "description": "Graphic designer, Digital Marketing",
+      "ownerName": "Sneha",
+      "addressLine1": "Nashik",
+      "pincode": "411009",
+      "email": "snehasn@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "SN Digital Marketing",
+        "digital marketing",
+        "graphic designer",
+        "service",
+        "nashik"
+      ],
+      "highlights": [
+        "Graphic Designer",
+        "Digital Marketing"
+      ],
+      "id": "4b63fc06-e356-4963-8d7c-fa0d1c6ed370",
+      "createdAt": "2026-02-22T08:57:54.761Z",
+      "updatedAt": "2026-02-22T08:57:54.761Z"
+    },
+    {
+      "name": "Neerai Interiors and turnkey contractor",
+      "category": "Interior Design & Turnkey",
+      "locality": "Thane West",
+      "city": "Thane (Mumbai), Maharashtra",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919594712517",
+      "whatsappNumber": "919594712517",
+      "tagline": "Owner: Harish N Hajare",
+      "description": "Interior designs and turnkey contract services",
+      "ownerName": "Harish N Hajare",
+      "addressLine1": "Office no B 06 Surydashn tower Nitin company junction Eastern express Highway Ramchandra Nagar 1 Thane West 400604",
+      "pincode": "400604",
+      "email": "neeraiinteriors@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Thane (Mumbai), Maharashtra"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Neerai Interiors",
+        "interior design",
+        "turnkey contractor",
+        "service",
+        "thane"
+      ],
+      "highlights": [
+        "Interior Design",
+        "Turnkey Contractor"
+      ],
+      "id": "432505a3-8a2a-40d4-bc84-9288b77509e2",
+      "createdAt": "2026-02-22T09:00:20.203Z",
+      "updatedAt": "2026-02-22T09:00:20.203Z"
+    },
+    {
+      "name": "We Buy",
+      "category": "Computer Sales & Repair",
+      "locality": "Pimpri Sai Chowk",
+      "city": "Pimpri Chinchwad",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918957575798",
+      "whatsappNumber": "918957575798",
+      "tagline": "Owner: Kalpesh waghmare",
+      "description": "Laptop desktop sell repair",
+      "ownerName": "Kalpesh waghmare",
+      "addressLine1": "V R MARKET, PIMPRI SAI CHOWK, SHOP NO 1, NEAR RAJ MOBILE",
+      "pincode": "411017",
+      "email": "kalpesh.waghmare@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pimpri Chinchwad"
+      ],
+      "keywords": [
+        "vendor-card",
+        "We Buy",
+        "laptop",
+        "desktop",
+        "sell",
+        "repair",
+        "product seller",
+        "pimpri"
+      ],
+      "highlights": [
+        "Laptop Repair",
+        "Desktop Repair",
+        "Sales"
+      ],
+      "id": "f9a95bf0-812e-4038-8a5e-d13cf0b850fd",
+      "createdAt": "2026-02-22T09:03:08.198Z",
+      "updatedAt": "2026-02-22T09:03:08.198Z"
+    },
+    {
+      "name": "अहिल्या कलेक्शन",
+      "category": "Handloom Saree Seller",
+      "locality": "धायरी",
+      "city": "पुणे",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918888083186",
+      "whatsappNumber": "918888083186",
+      "tagline": "Owner: संपदा गोसावी",
+      "description": "हॅन्डलूम साडी व्यवसाय.. इरकल, माहेश्वरी, खण, नारायण पेठ..",
+      "ownerName": "संपदा गोसावी",
+      "addressLine1": "नंदनवन रो हाऊस no 9, साई समर्थ शिल्प so, धायरी",
+      "pincode": "411041",
+      "email": "sampadagosavi978@gmail.com",
+      "website": "https://instagram.com/ahilyahandloom_collection2025",
+      "serviceAreas": [
+        "पुणे"
+      ],
+      "keywords": [
+        "vendor-card",
+        "अहिल्या कलेक्शन",
+        "हॅन्डलूम",
+        "साडी",
+        "इरकल",
+        "माहेश्वरी",
+        "नारायण पेठ",
+        "वस्तू विक्रेते",
+        "handloom saree"
+      ],
+      "highlights": [
+        "हॅन्डलूम साडी",
+        "इरकल",
+        "माहेश्वरी",
+        "नारायण पेठ"
+      ],
+      "id": "c1ab4c4a-cf1a-41c9-8b80-f7ddb6ff413c",
+      "createdAt": "2026-02-22T09:04:01.499Z",
+      "updatedAt": "2026-02-23T04:05:26.764Z"
+    },
+    {
+      "name": "Spell Nest",
+      "category": "Spiritual Healing & Astrology",
+      "locality": "Pune / Online",
+      "city": "Pune / Online",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917798373146",
+      "whatsappNumber": "917798373146",
+      "tagline": "Owner: Sai Jog",
+      "description": "Energy worker - reiki and mantra healing, Akashik reader, spell caster, charged crystals, personalized sigil creator, astrologer and many more",
+      "ownerName": "Sai Jog",
+      "addressLine1": "Pune / Online",
+      "pincode": "411016",
+      "email": "saijog@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune",
+        "Online"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Spell Nest",
+        "reiki",
+        "mantra healing",
+        "akashik reader",
+        "spell caster",
+        "charged crystals",
+        "sigil creator",
+        "astrologer"
+      ],
+      "highlights": [
+        "Reiki",
+        "Mantra Healing",
+        "Astrology",
+        "Online Sessions"
+      ],
+      "id": "f02d61c4-eb48-42e6-a90d-39734834787a",
+      "createdAt": "2026-02-23T04:07:13.994Z",
+      "updatedAt": "2026-02-23T04:07:13.994Z"
+    },
+    {
+      "name": "Loan Agency",
+      "category": "Loan Services",
+      "locality": "Kolhapur",
+      "city": "Kolhapur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919270838483",
+      "whatsappNumber": "919270838483",
+      "tagline": "Owner: Vikas Kumar",
+      "description": "All types of loan",
+      "ownerName": "Vikas Kumar",
+      "addressLine1": "Kolhapur",
+      "pincode": "411023",
+      "email": "rajshinde@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Kolhapur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Loan Agency",
+        "loan",
+        "finance",
+        "all types of loan",
+        "kolhapur"
+      ],
+      "highlights": [
+        "Loan Services"
+      ],
+      "id": "33f635b2-65e8-428e-b6b8-1588437dced2",
+      "createdAt": "2026-02-23T04:08:12.539Z",
+      "updatedAt": "2026-02-23T04:08:12.539Z"
+    },
+    {
+      "name": "Financial Planner",
+      "category": "Financial Planning",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919371275252",
+      "whatsappNumber": "919371275252",
+      "tagline": "Owner: Rajesh Joshi",
+      "description": "Financial Planner",
+      "ownerName": "Rajesh Joshi",
+      "addressLine1": "Pune",
+      "pincode": "411057",
+      "email": "onlyva@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Financial Planner",
+        "financial planning",
+        "finance",
+        "advisor",
+        "pune"
+      ],
+      "highlights": [
+        "Financial Planning"
+      ],
+      "id": "e98e8e7c-0914-4b52-9a9f-1e518a617b0e",
+      "createdAt": "2026-02-23T04:09:05.367Z",
+      "updatedAt": "2026-02-23T04:09:05.367Z"
+    },
+    {
+      "name": "Tectigon",
+      "category": "Website Development",
+      "locality": "Bhusaval",
+      "city": "Bhusaval",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919960360155",
+      "whatsappNumber": "919960360155",
+      "tagline": "Owner: Abheejeet Coolkarni",
+      "description": "Website Development Company",
+      "ownerName": "Abheejeet Coolkarni",
+      "addressLine1": "Bhusaval",
+      "pincode": "410052",
+      "email": "abhi@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Bhusaval"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Tectigon",
+        "website development",
+        "web development",
+        "company",
+        "service",
+        "bhusaval"
+      ],
+      "highlights": [
+        "Website Development"
+      ],
+      "id": "8828f7c6-e9ec-451c-865e-8924e6843ede",
+      "createdAt": "2026-02-23T04:09:49.487Z",
+      "updatedAt": "2026-02-23T04:09:49.487Z"
+    },
+    {
+      "name": "Megha Mahajan",
+      "category": "Organic Product Seller",
+      "locality": "Mumbai",
+      "city": "Mumbai",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917506506930",
+      "whatsappNumber": "917506506930",
+      "tagline": "Owner: Megha Mahajan",
+      "description": "Organic Products",
+      "ownerName": "Megha Mahajan",
+      "addressLine1": "Mumbai",
+      "pincode": "400656",
+      "email": "haircare@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Mumbai"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Megha Mahajan",
+        "organic products",
+        "organic",
+        "product seller",
+        "mumbai"
+      ],
+      "highlights": [
+        "Organic Products"
+      ],
+      "id": "90b7baf6-088c-48e5-941a-3c374c51a4f5",
+      "createdAt": "2026-02-23T04:10:26.937Z",
+      "updatedAt": "2026-02-23T04:10:26.937Z"
+    },
+    {
+      "name": "Safar Tourism",
+      "category": "Tourism & Car Rental",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919823059704",
+      "whatsappNumber": "919823059704",
+      "tagline": "Owner: Nitin Kulkarni",
+      "description": "Tourism, Rental Car",
+      "ownerName": "Nitin Kulkarni",
+      "addressLine1": "Nashik",
+      "pincode": "411009",
+      "email": "safartourisom@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Safar Tourism",
+        "tourism",
+        "rental car",
+        "travel",
+        "nashik"
+      ],
+      "highlights": [
+        "Tourism",
+        "Rental Car"
+      ],
+      "id": "144ff98b-f0b8-477e-b2d9-37a72f177ba0",
+      "createdAt": "2026-02-23T04:11:20.286Z",
+      "updatedAt": "2026-02-23T04:11:20.286Z"
+    },
+    {
+      "name": "Pooja Kitchen Appliances",
+      "category": "Kitchen Appliance Seller",
+      "locality": "Akola",
+      "city": "Akola",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919673964350",
+      "whatsappNumber": "919673964350",
+      "tagline": "Owner: Pooja Kokate",
+      "description": "Kitchen Appliances",
+      "ownerName": "Pooja Kokate",
+      "addressLine1": "Akola",
+      "pincode": "411002",
+      "email": "poojakitchen@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Akola"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Pooja Kitchen Appliances",
+        "kitchen appliances",
+        "appliance seller",
+        "akola"
+      ],
+      "highlights": [
+        "Kitchen Appliances"
+      ],
+      "id": "91b359a7-b0b3-4753-8efd-2b31984727cd",
+      "createdAt": "2026-02-23T04:12:31.381Z",
+      "updatedAt": "2026-02-23T04:12:31.381Z"
+    },
+    {
+      "name": "A K Reality",
+      "category": "Real Estate Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919765613166",
+      "whatsappNumber": "919765613166",
+      "tagline": "Owner: Amit Dixit",
+      "description": "Real Estate Agent",
+      "ownerName": "Amit Dixit",
+      "addressLine1": "Pune",
+      "pincode": "411041",
+      "email": "amitdixit2049@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "A K Reality",
+        "real estate",
+        "property agent",
+        "service",
+        "pune"
+      ],
+      "highlights": [
+        "Real Estate Agent"
+      ],
+      "id": "39b95bb8-7076-40b0-a800-f5194c4b10d5",
+      "createdAt": "2026-02-23T04:13:58.768Z",
+      "updatedAt": "2026-02-23T04:13:58.768Z"
+    },
+    {
+      "name": "Metro Property",
+      "category": "Real Estate Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919270051013",
+      "whatsappNumber": "919270051013",
+      "tagline": "Owner: Pallavi Inamdar",
+      "description": "Real Estate Agent",
+      "ownerName": "Pallavi Inamdar",
+      "addressLine1": "Pune",
+      "pincode": "411024",
+      "email": "metroproperty@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Metro Property",
+        "real estate",
+        "property agent",
+        "service",
+        "pune"
+      ],
+      "highlights": [
+        "Real Estate Agent"
+      ],
+      "id": "7719b66a-2cf1-46d7-9cc6-f60e48d571da",
+      "createdAt": "2026-02-23T04:15:46.509Z",
+      "updatedAt": "2026-02-23T04:15:46.509Z"
+    },
+    {
+      "name": "Devendra Paranjape",
+      "category": "Garments Seller",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919762428541",
+      "whatsappNumber": "919762428541",
+      "tagline": "Owner: Devendra Paranjape",
+      "description": "Garments Seller",
+      "ownerName": "Devendra Paranjape",
+      "addressLine1": "Pune",
+      "pincode": "411021",
+      "email": "dvgarments@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Devendra Paranjape",
+        "garments seller",
+        "clothing",
+        "pune"
+      ],
+      "highlights": [
+        "Garments Seller"
+      ],
+      "id": "8ae14be9-adfc-4256-a626-f53b39fce8a0",
+      "createdAt": "2026-02-23T04:16:32.923Z",
+      "updatedAt": "2026-02-23T04:16:32.923Z"
+    },
+    {
+      "name": "Shitalfoods",
+      "category": "Healthy Food Seller",
+      "locality": "Mudra Nagar, Besa Road, Manewada",
+      "city": "Nagpur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919422714975",
+      "whatsappNumber": "919422714975",
+      "tagline": "Owner: Shital Diwakar Bhakare",
+      "description": "Millet food, jaggery cookies, healthy cookies",
+      "ownerName": "Shital Diwakar Bhakare",
+      "addressLine1": "Mudra Nagar, Besa Road Manewada Nagpur",
+      "pincode": "440034",
+      "email": "sdb1981976@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nagpur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Shitalfoods",
+        "millet food",
+        "jaggery cookies",
+        "healthy cookies",
+        "healthy food",
+        "nagpur"
+      ],
+      "highlights": [
+        "Millet Food",
+        "Jaggery Cookies",
+        "Healthy Cookies"
+      ],
+      "id": "1ab29b34-555d-4bc8-a133-4a3685c8c60f",
+      "createdAt": "2026-02-23T04:17:16.438Z",
+      "updatedAt": "2026-02-23T04:17:16.438Z"
+    },
+    {
+      "name": "Candle kokan product puse resin art",
+      "category": "Candle Product Seller",
+      "locality": "Karvenagar",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917709048819",
+      "whatsappNumber": "917709048819",
+      "tagline": "Owner: Mrs Archana Yeolekar",
+      "description": "Candle manufacturing",
+      "ownerName": "Mrs Archana Yeolekar",
+      "addressLine1": "43/4 navasahydri society, akshay bungalow, karvenagar",
+      "pincode": "411052",
+      "email": "amy2012sep@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Candle kokan product puse resin art",
+        "candle",
+        "candle manufacturing",
+        "resin art",
+        "pune"
+      ],
+      "highlights": [
+        "Candle Manufacturing",
+        "Resin Art"
+      ],
+      "id": "25cd04f3-149b-4fc3-badd-e782fe516525",
+      "createdAt": "2026-02-23T04:18:39.373Z",
+      "updatedAt": "2026-02-23T04:18:39.373Z"
+    },
+    {
+      "name": "प्राची टूर्स व प्राची मार्केटिंग",
+      "category": "Tourism & Car Rental",
+      "locality": "मंगळवार पेठ",
+      "city": "Kolhapur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919766083144",
+      "whatsappNumber": "919766083144",
+      "tagline": "Owner: प्रमोद देशपांडे व सौ प्राची देशपांडे",
+      "description": "पर्यटन, कोकणी उत्पादन विक्रेते",
+      "ownerName": "प्रमोद देशपांडे व सौ प्राची देशपांडे",
+      "addressLine1": "प्लॉट नं 11 श्री दत्त कॉलनी विश्वपंढरी मठामागे हॉकी स्टेडियम रोड मंगळवार पेठ कोल्हापूर",
+      "pincode": "416012",
+      "email": "pdeshpande9720@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Kolhapur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "प्राची टूर्स व प्राची मार्केटिंग",
+        "पर्यटन",
+        "कोकणी उत्पादन",
+        "tourism",
+        "kokan products",
+        "kolhapur"
+      ],
+      "highlights": [
+        "पर्यटन सेवा",
+        "कोकणी उत्पादन विक्री"
+      ],
+      "id": "66977bef-a6b9-4f85-81b9-6abffa37b581",
+      "createdAt": "2026-02-23T04:20:36.853Z",
+      "updatedAt": "2026-02-23T04:20:36.853Z"
+    },
+    {
+      "name": "Urja Industries",
+      "category": "Industrial Products",
+      "locality": "Chanakyapuri",
+      "city": "Chh. Sambhaji Nagar",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919326201433",
+      "whatsappNumber": "919326201433",
+      "tagline": "Owner: Kiran Saraf",
+      "description": "Diesel/FO fuel saving products, automatic puncture sealant product, manufacturing.",
+      "ownerName": "Kiran Saraf",
+      "addressLine1": "Chanakyapuri",
+      "pincode": "431005",
+      "email": "ksaraf24@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Chh. Sambhaji Nagar"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Urja Industries",
+        "diesel fuel saving",
+        "FO fuel saving",
+        "automatic puncture sealant",
+        "manufacturing",
+        "industrial products",
+        "chh sambhaji nagar"
+      ],
+      "highlights": [
+        "Fuel Saving Products",
+        "Automatic Puncture Sealant",
+        "Manufacturing"
+      ],
+      "id": "04e38394-6279-4609-873b-a11d30411dba",
+      "createdAt": "2026-02-23T04:28:25.175Z",
+      "updatedAt": "2026-02-23T04:28:25.175Z"
+    },
+    {
+      "name": "Asmita Jwellery",
+      "category": "Jewellery Seller",
+      "locality": "Satara",
+      "city": "Satara",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919403290070",
+      "whatsappNumber": "919403290070",
+      "tagline": "Owner: Asmita Kulkarni",
+      "description": "Handicraft jewellery items",
+      "ownerName": "Asmita Kulkarni",
+      "addressLine1": "Satara",
+      "pincode": "411001",
+      "email": "asmita.jwells@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Satara"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Asmita Jwellery",
+        "handicraft jewellery",
+        "jewellery items",
+        "ornaments",
+        "satara"
+      ],
+      "highlights": [
+        "Handicraft Jewellery",
+        "Jewellery Items"
+      ],
+      "id": "d8140af2-e863-4995-8bc0-0eef57d722c1",
+      "createdAt": "2026-02-23T04:29:10.984Z",
+      "updatedAt": "2026-02-23T04:29:10.984Z"
+    },
+    {
+      "name": "Damle Flowers",
+      "category": "Flower Seller",
+      "locality": "Thane",
+      "city": "Thane",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919137389017",
+      "whatsappNumber": "919137389017",
+      "tagline": "Owner: Sonali Damle",
+      "description": "Flower pots and flowers",
+      "ownerName": "Sonali Damle",
+      "addressLine1": "Thane",
+      "pincode": "411241",
+      "email": "sonaliflowers@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Thane"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Damle Flowers",
+        "flower pots",
+        "flowers",
+        "florist",
+        "thane"
+      ],
+      "highlights": [
+        "Flower Pots",
+        "Fresh Flowers"
+      ],
+      "id": "f9f6852b-79ad-4c3f-8827-16c412074f42",
+      "createdAt": "2026-02-23T04:30:16.988Z",
+      "updatedAt": "2026-02-23T04:30:16.988Z"
+    },
+    {
+      "name": "Asawari Collection",
+      "category": "Saree Seller",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917038164836",
+      "whatsappNumber": "917038164836",
+      "tagline": "Owner: Asawari Safai",
+      "description": "Saree business",
+      "ownerName": "Asawari Safai",
+      "addressLine1": "Pune",
+      "pincode": "411041",
+      "email": "asawarisafai@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Asawari Collection",
+        "saree",
+        "saree business",
+        "clothing",
+        "pune"
+      ],
+      "highlights": [
+        "Saree Business"
+      ],
+      "id": "31ee3cc5-d367-4383-b37d-4ac397139212",
+      "createdAt": "2026-02-23T04:32:10.644Z",
+      "updatedAt": "2026-02-23T04:32:10.644Z"
+    },
+    {
+      "name": "Pushkar Lakhote",
+      "category": "Real Estate Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917276505569",
+      "whatsappNumber": "917276505569",
+      "tagline": "Owner: Pushkar Lakhote",
+      "description": "Real Estate Agent",
+      "ownerName": "Pushkar Lakhote",
+      "addressLine1": "Pune",
+      "pincode": "411024",
+      "email": "punerealestate@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Pushkar Lakhote",
+        "real estate",
+        "real estate agent",
+        "property dealer",
+        "pune"
+      ],
+      "highlights": [
+        "Real Estate Agent"
+      ],
+      "id": "78dce21c-7543-4c49-81c7-62a1e062379c",
+      "createdAt": "2026-02-23T04:32:36.738Z",
+      "updatedAt": "2026-02-23T04:32:36.738Z"
+    },
+    {
+      "name": "Vardayani Services",
+      "category": "Insurance Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919175524526",
+      "whatsappNumber": "919175524526",
+      "tagline": "Owner: Pradnya Kulkarni",
+      "description": "Insurance Business",
+      "ownerName": "Pradnya Kulkarni",
+      "addressLine1": "Pune",
+      "pincode": "411036",
+      "email": "pradnyakfp@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Vardayani Services",
+        "insurance",
+        "insurance business",
+        "policy services",
+        "pune"
+      ],
+      "highlights": [
+        "Insurance Business"
+      ],
+      "id": "0663dd6c-0849-4d1d-844f-fbfc02181a96",
+      "createdAt": "2026-02-23T04:33:05.419Z",
+      "updatedAt": "2026-02-23T04:33:05.419Z"
+    },
+    {
+      "name": "Yeolekar Garments",
+      "category": "Saree Seller",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919403193041",
+      "whatsappNumber": "919403193041",
+      "tagline": "Owner: Rajani Yeolekar",
+      "description": "Paithanee Saree",
+      "ownerName": "Rajani Yeolekar",
+      "addressLine1": "Nashik",
+      "pincode": "400853",
+      "email": "paithanisareenashik@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Yeolekar Garments",
+        "paithanee saree",
+        "paithani",
+        "saree seller",
+        "nashik"
+      ],
+      "highlights": [
+        "Paithanee Saree"
+      ],
+      "id": "1208d8ee-39e5-474a-a702-ddcf94d1f870",
+      "createdAt": "2026-02-23T04:33:54.236Z",
+      "updatedAt": "2026-02-23T04:33:54.236Z"
+    },
+    {
+      "name": "में.भाग्यलक्ष्मि गिफ्ट शाँप",
+      "category": "Gift Product Seller",
+      "locality": "शनिवार पेठ",
+      "city": "Pune City",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919359258301",
+      "whatsappNumber": "919359258301",
+      "tagline": "Owner: में.भाग्यलक्ष्मी मँनिफँक्चरिंग युनिट",
+      "description": "ऐन्टिक अँन्ड युनिक गिफ्ट प्रोडक्ट, पी.एम.विश्वकमाँ लाभाथिँ, माँप, ग्लास-किचन वायपर, पोछा, मँनिफँक्चरिंग युनिट",
+      "ownerName": "में.भाग्यलक्ष्मी मँनिफँक्चरिंग युनिट",
+      "addressLine1": "३२० शनिवार पेठ, चिंतामणी कोटँ, शाँप नं.०८ ऐ",
+      "pincode": "411030",
+      "email": "rohandeshpande1111@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune City"
+      ],
+      "keywords": [
+        "vendor-card",
+        "में.भाग्यलक्ष्मि गिफ्ट शाँप",
+        "वस्तू विक्रेते",
+        "गिफ्ट प्रोडक्ट",
+        "ऐन्टिक गिफ्ट",
+        "manufacturing unit",
+        "मँनिफँक्चरिंग युनिट",
+        "pune city"
+      ],
+      "highlights": [
+        "ऐन्टिक अँन्ड युनिक गिफ्ट प्रोडक्ट",
+        "मँनिफँक्चरिंग युनिट"
+      ],
+      "id": "78d7d6e1-babb-44af-971c-9fd30874dabb",
+      "createdAt": "2026-02-23T04:34:26.625Z",
+      "updatedAt": "2026-02-23T04:34:26.625Z"
+    },
+    {
+      "name": "Kamat Misal House",
+      "category": "Restaurant",
+      "locality": "Saswad",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918451881247",
+      "whatsappNumber": "918451881247",
+      "tagline": "Owner: Sameer Kamat",
+      "description": "Restaurant",
+      "ownerName": "Sameer Kamat",
+      "addressLine1": "Saswad Pune",
+      "pincode": "411560",
+      "email": "kamatmisal@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Kamat Misal House",
+        "restaurant",
+        "misal",
+        "food",
+        "saswad",
+        "pune"
+      ],
+      "highlights": [
+        "Restaurant"
+      ],
+      "id": "28c35ae9-aa4f-40ff-a799-275477ce656e",
+      "createdAt": "2026-02-23T04:34:52.251Z",
+      "updatedAt": "2026-02-23T04:34:52.251Z"
+    },
+    {
+      "name": "Moto Racer",
+      "category": "Auto Garage Services",
+      "locality": "Solapur",
+      "city": "Solapur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918888228074",
+      "whatsappNumber": "918888228074",
+      "tagline": "Owner: Nachiket Kelkar",
+      "description": "Garage",
+      "ownerName": "Nachiket Kelkar",
+      "addressLine1": "Solapur",
+      "pincode": "422078",
+      "email": "motoracer@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Solapur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Moto Racer",
+        "garage",
+        "auto garage",
+        "vehicle service",
+        "solapur"
+      ],
+      "highlights": [
+        "Garage Services"
+      ],
+      "id": "facf104b-4b62-441b-ae5f-ba9ac32881b0",
+      "createdAt": "2026-02-23T04:35:15.625Z",
+      "updatedAt": "2026-02-23T04:35:15.625Z"
+    },
+    {
+      "name": "Tilekar Marriage Buero",
+      "category": "Matrimonial Services",
+      "locality": "Aurangabad",
+      "city": "Aurangabad",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917385614280",
+      "whatsappNumber": "917385614280",
+      "tagline": "Owner: Ankush Tilekar",
+      "description": "Matrimonial services",
+      "ownerName": "Ankush Tilekar",
+      "addressLine1": "Aurangabad",
+      "pincode": "422078",
+      "email": "tmb@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Aurangabad"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Tilekar Marriage Buero",
+        "matrimonial",
+        "marriage bureau",
+        "wedding match",
+        "aurangabad"
+      ],
+      "highlights": [
+        "Matrimonial Services"
+      ],
+      "id": "0c813e62-3ad9-415d-9e3b-1fd34f0ff5f5",
+      "createdAt": "2026-02-23T04:35:48.989Z",
+      "updatedAt": "2026-02-23T04:35:48.989Z"
+    },
+    {
+      "name": "Samartha Dairy",
+      "category": "Dairy Product Seller",
+      "locality": "Kolhapur",
+      "city": "Kolhapur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "916380059635",
+      "whatsappNumber": "916380059635",
+      "tagline": "Owner: Sandip Kashid",
+      "description": "Dairy Products",
+      "ownerName": "Sandip Kashid",
+      "addressLine1": "Kolhapur",
+      "pincode": "435505",
+      "email": "samarthadairy@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Kolhapur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Samartha Dairy",
+        "dairy products",
+        "milk products",
+        "dairy seller",
+        "kolhapur"
+      ],
+      "highlights": [
+        "Dairy Products"
+      ],
+      "id": "be20b1c0-688c-4f37-9ce4-16cf6386b647",
+      "createdAt": "2026-02-23T04:36:14.083Z",
+      "updatedAt": "2026-02-23T04:36:14.083Z"
+    },
+    {
+      "name": "Peshwa Restaurant",
+      "category": "Restaurant",
+      "locality": "Akola",
+      "city": "Akola",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918459551423",
+      "whatsappNumber": "918459551423",
+      "tagline": "Owner: Vinay Thakur",
+      "description": "Restaurant",
+      "ownerName": "Vinay Thakur",
+      "addressLine1": "Akola",
+      "pincode": "444002",
+      "email": "peshwarestaurant@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Akola"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Peshwa Restaurant",
+        "restaurant",
+        "food",
+        "dining",
+        "akola"
+      ],
+      "highlights": [
+        "Restaurant"
+      ],
+      "id": "7a8b60f7-36b2-486c-bff6-84c3c2f86219",
+      "createdAt": "2026-02-23T04:36:47.402Z",
+      "updatedAt": "2026-02-23T04:36:47.402Z"
+    },
+    {
+      "name": "HV ASSOCIATES",
+      "category": "Healthy Food Seller",
+      "locality": "Dombivali MIDC",
+      "city": "Dombivali",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919967504303",
+      "whatsappNumber": "919967504303",
+      "tagline": "Owner: HEMA THAKAR / HARSHVARDHAN THAKAR",
+      "description": "SHREE DHANYA ANI SHREE DHANYA YANCHE PRAKRIYA KELELI UTPADANE",
+      "ownerName": "HEMA THAKAR/HARSHVARDHAN THAKAR",
+      "addressLine1": "30 GNP SOLITAIRE INDUSTRIAL ESTATE PREMISES, VICO NAKA, MIDC DOMBIVALI 421203",
+      "pincode": "421203",
+      "email": "thakar.hema@gmail.com",
+      "website": "milletfuldiet.com",
+      "serviceAreas": [
+        "Dombivali"
+      ],
+      "keywords": [
+        "vendor-card",
+        "HV ASSOCIATES",
+        "shree dhanya",
+        "millet products",
+        "processed grain products",
+        "healthy food",
+        "dombivali"
+      ],
+      "highlights": [
+        "Millet Products",
+        "Processed Grain Products"
+      ],
+      "id": "8bf65725-d4d6-4249-8d08-ac9794998e04",
+      "createdAt": "2026-02-23T04:37:22.336Z",
+      "updatedAt": "2026-02-23T04:37:22.336Z"
+    },
+    {
+      "name": "RK Jwellery",
+      "category": "Jewellery Seller",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919767133094",
+      "whatsappNumber": "919767133094",
+      "tagline": "Owner: Roshni Kulkarni",
+      "description": "Gold Plated jwellery",
+      "ownerName": "Roshni Kulkarni",
+      "addressLine1": "Nashik",
+      "pincode": "422680",
+      "email": "rkjwellers@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "RK Jwellery",
+        "gold plated jewellery",
+        "jewellery",
+        "ornaments",
+        "nashik"
+      ],
+      "highlights": [
+        "Gold Plated Jewellery"
+      ],
+      "id": "a3f2a533-cf53-498e-8c03-8479a2656af0",
+      "createdAt": "2026-02-23T04:37:54.880Z",
+      "updatedAt": "2026-02-23T04:37:54.880Z"
+    },
+    {
+      "name": "Pooja sahitya",
+      "category": "Pooja Product Seller",
+      "locality": "Wardha",
+      "city": "Wardha",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917262918714",
+      "whatsappNumber": "917262918714",
+      "tagline": "Owner: Sarita Kelkar",
+      "description": "Pooja Sahitya",
+      "ownerName": "Sarita Kelkar",
+      "addressLine1": "Wardha",
+      "pincode": "421474",
+      "email": "poojasahitya@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Wardha"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Pooja sahitya",
+        "pooja sahitya",
+        "pooja products",
+        "religious items",
+        "wardha"
+      ],
+      "highlights": [
+        "Pooja Sahitya"
+      ],
+      "id": "a1193b71-5000-468d-9c47-4921a05deb23",
+      "createdAt": "2026-02-23T04:38:21.823Z",
+      "updatedAt": "2026-02-23T04:38:21.823Z"
+    },
+    {
+      "name": "National Travels",
+      "category": "Tourism & Car Rental",
+      "locality": "Mumbai",
+      "city": "Mumbai",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919820545642",
+      "whatsappNumber": "919820545642",
+      "tagline": "Owner: Rajesh",
+      "description": "Tourist",
+      "ownerName": "Rajesh",
+      "addressLine1": "Mumbai",
+      "pincode": "400411",
+      "email": "national.travels@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Mumbai"
+      ],
+      "keywords": [
+        "vendor-card",
+        "National Travels",
+        "tourist",
+        "travel services",
+        "tourism",
+        "mumbai"
+      ],
+      "highlights": [
+        "Tourism Services"
+      ],
+      "id": "31616b66-ccec-4807-82ee-2704ba6a75ac",
+      "createdAt": "2026-02-23T04:38:53.230Z",
+      "updatedAt": "2026-02-23T04:38:53.230Z"
+    },
+    {
+      "name": "Vimoh Arts",
+      "category": "Fashion Accessories Seller",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919923918897",
+      "whatsappNumber": "919923918897",
+      "tagline": "Owner: Sneha Deshpande",
+      "description": "Purses",
+      "ownerName": "Sneha Deshpande",
+      "addressLine1": "Nashik",
+      "pincode": "413525",
+      "email": "vimoh.arts@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Vimoh Arts",
+        "purses",
+        "bags",
+        "fashion accessories",
+        "nashik"
+      ],
+      "highlights": [
+        "Purses"
+      ],
+      "id": "1060ba24-82cf-4723-a6f4-46d795a68a83",
+      "createdAt": "2026-02-23T04:39:15.234Z",
+      "updatedAt": "2026-02-23T04:39:15.234Z"
+    },
+    {
+      "name": "Rahul Coldpressed Oil",
+      "category": "Healthy Food Seller",
+      "locality": "Jalgaon",
+      "city": "Jalgaon",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919766844332",
+      "whatsappNumber": "919766844332",
+      "tagline": "Owner: Rahul Awari",
+      "description": "All types of Coldpressed Oil",
+      "ownerName": "Rahul Awari",
+      "addressLine1": "Jalgaon",
+      "pincode": "437541",
+      "email": "ra.coldpressedoil@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Jalgaon"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Rahul Coldpressed Oil",
+        "coldpressed oil",
+        "edible oil",
+        "healthy oil",
+        "jalgaon"
+      ],
+      "highlights": [
+        "Coldpressed Oil"
+      ],
+      "id": "e7a06c66-a051-4705-868b-cdd82908892a",
+      "createdAt": "2026-02-23T04:39:53.576Z",
+      "updatedAt": "2026-02-23T04:39:53.576Z"
+    },
+    {
+      "name": "Amrutkar Financial services",
+      "category": "Insurance Services",
+      "locality": "Thane",
+      "city": "Thane",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919224386277",
+      "whatsappNumber": "919224386277",
+      "tagline": "Owner: Narendra Amrutkar",
+      "description": "Insurance Business",
+      "ownerName": "Narendra Amrutkar",
+      "addressLine1": "Thane",
+      "pincode": "400861",
+      "email": "narendraamrutkar67@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Thane"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Amrutkar Financial services",
+        "insurance",
+        "insurance business",
+        "policy services",
+        "thane"
+      ],
+      "highlights": [
+        "Insurance Business"
+      ],
+      "id": "8bca7702-59e3-4b58-9ec3-f57700f57b8b",
+      "createdAt": "2026-02-23T04:40:19.610Z",
+      "updatedAt": "2026-02-23T04:40:19.610Z"
+    },
+    {
+      "name": "Karve Foods",
+      "category": "Healthy Food Seller",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919820765661",
+      "whatsappNumber": "919820765661",
+      "tagline": "Owner: Vaishali Karve",
+      "description": "Vegetarian Food",
+      "ownerName": "Vaishali Karve",
+      "addressLine1": "Pune",
+      "pincode": "411022",
+      "email": "vaishalikarve@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Karve Foods",
+        "vegetarian food",
+        "veg food",
+        "healthy food",
+        "pune"
+      ],
+      "highlights": [
+        "Vegetarian Food"
+      ],
+      "id": "7c67f1c9-1c10-4eb8-85b4-e884232d70cb",
+      "createdAt": "2026-02-23T04:40:47.931Z",
+      "updatedAt": "2026-02-23T04:40:47.931Z"
+    },
+    {
+      "name": "Vipra krushi udyog",
+      "category": "Healthy Food Seller",
+      "locality": "Prabhat Road, Lane No 14",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917709007306",
+      "whatsappNumber": "917709007306",
+      "tagline": "Owner: Apurva Amarendra Sathe",
+      "description": "Natural products, milk ghee A2, poison free pack food products like amla papdi, khajur pickle, kharik bites, natural fruits (Anjir, grapes).",
+      "ownerName": "Apurva Amarendra Sathe",
+      "addressLine1": "107/9 Jaygad Bharati Niwas, flat no 202, opp Income Tax, Prabhat Rd, Lane no 14, Pune",
+      "pincode": "411004",
+      "email": "apurvasathe27@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Vipra krushi udyog",
+        "natural products",
+        "A2 milk ghee",
+        "pack food products",
+        "amla papdi",
+        "khajur pickle",
+        "kharik bites",
+        "healthy food",
+        "pune"
+      ],
+      "highlights": [
+        "Natural Products",
+        "A2 Milk & Ghee",
+        "Pack Food Products"
+      ],
+      "id": "c58ca080-a5c4-4865-b3d4-4e6716f861a8",
+      "createdAt": "2026-02-23T04:41:18.310Z",
+      "updatedAt": "2026-02-23T04:41:18.310Z"
+    },
+    {
+      "name": "Prajakta Beauty Parlour",
+      "category": "Beauty Parlour Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919175184154",
+      "whatsappNumber": "919175184154",
+      "tagline": "Owner: Prajakta Zagde",
+      "description": "Ladies Beauty Parlour",
+      "ownerName": "Prajakta Zagde",
+      "addressLine1": "Pune",
+      "pincode": "411589",
+      "email": "prajaktaparlour@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Prajakta Beauty Parlour",
+        "ladies beauty parlour",
+        "beauty parlour",
+        "salon",
+        "pune"
+      ],
+      "highlights": [
+        "Ladies Beauty Parlour"
+      ],
+      "id": "9c291c71-7a34-4e75-a1d8-1af397e5b1f6",
+      "createdAt": "2026-02-23T04:41:53.763Z",
+      "updatedAt": "2026-02-23T04:41:53.763Z"
+    },
+    {
+      "name": "Balaji Guest House",
+      "category": "Hotel & Guest House",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919922780849",
+      "whatsappNumber": "919922780849",
+      "tagline": "Owner: Akash",
+      "description": "Hotel, Guest House, Rooms",
+      "ownerName": "Akash",
+      "addressLine1": "Nashik",
+      "pincode": "422681",
+      "email": "balajiguesthouse@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Balaji Guest House",
+        "hotel",
+        "guest house",
+        "rooms",
+        "hospitality",
+        "nashik"
+      ],
+      "highlights": [
+        "Hotel",
+        "Guest House",
+        "Rooms"
+      ],
+      "id": "2a96a814-bb55-4637-b857-87018c08b55d",
+      "createdAt": "2026-02-23T04:43:34.415Z",
+      "updatedAt": "2026-02-23T04:43:34.415Z"
+    },
+    {
+      "name": "Urban Money Pvt Ltd",
+      "category": "Loan Services",
+      "locality": "Kolhapur",
+      "city": "Kolhapur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919028041009",
+      "whatsappNumber": "919028041009",
+      "tagline": "Owner: Kaviraj Jadhav",
+      "description": "Loan Services",
+      "ownerName": "Kaviraj Jadhav",
+      "addressLine1": "Kolhapur",
+      "pincode": "453208",
+      "email": "urbanmoney@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Kolhapur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Urban Money Pvt Ltd",
+        "loan services",
+        "finance",
+        "lending",
+        "kolhapur"
+      ],
+      "highlights": [
+        "Loan Services"
+      ],
+      "id": "71d02338-bebb-4c03-9f9e-fc4bc08467f0",
+      "createdAt": "2026-02-23T04:44:08.513Z",
+      "updatedAt": "2026-02-23T04:44:08.513Z"
+    },
+    {
+      "name": "Ruloans",
+      "category": "Loan Services",
+      "locality": "Thane",
+      "city": "Thane",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919925749441",
+      "whatsappNumber": "919925749441",
+      "tagline": "Owner: Ankita",
+      "description": "Loans Service",
+      "ownerName": "Ankita",
+      "addressLine1": "Thane",
+      "pincode": "400867",
+      "email": "ruloans@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Thane"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Ruloans",
+        "loan services",
+        "loans",
+        "finance",
+        "thane"
+      ],
+      "highlights": [
+        "Loans Service"
+      ],
+      "id": "a7319e76-afb3-43a0-989e-474e7a833a88",
+      "createdAt": "2026-02-23T04:44:38.625Z",
+      "updatedAt": "2026-02-23T04:44:38.625Z"
+    },
+    {
+      "name": "Om Dental Lab",
+      "category": "Dental Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918421136928",
+      "whatsappNumber": "918421136928",
+      "tagline": "Owner: Arun",
+      "description": "Dental Clinic",
+      "ownerName": "Arun",
+      "addressLine1": "Pune",
+      "pincode": "400899",
+      "email": "omdental@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Om Dental Lab",
+        "dental clinic",
+        "dental services",
+        "dentist",
+        "pune"
+      ],
+      "highlights": [
+        "Dental Clinic"
+      ],
+      "id": "02a0595f-26c3-47f9-b079-ee5288d1b97e",
+      "createdAt": "2026-02-23T04:45:23.031Z",
+      "updatedAt": "2026-02-23T04:45:23.031Z"
+    },
+    {
+      "name": "Atal Publication",
+      "category": "Printing Services",
+      "locality": "Pune",
+      "city": "Pune",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "919309483175",
+      "whatsappNumber": "919309483175",
+      "tagline": "Owner: Atal Publication",
+      "description": "Printing Business",
+      "ownerName": "Atal Publication",
+      "addressLine1": "Pune",
+      "pincode": "411024",
+      "email": "atalpublications@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Pune"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Atal Publication",
+        "printing business",
+        "printing services",
+        "publication",
+        "pune"
+      ],
+      "highlights": [
+        "Printing Business"
+      ],
+      "id": "fa921b18-8120-404c-8b7f-3dd833abfc66",
+      "createdAt": "2026-02-23T04:45:58.178Z",
+      "updatedAt": "2026-02-23T04:45:58.178Z"
+    },
+    {
+      "name": "Birla Guest House",
+      "category": "Hotel & Guest House",
+      "locality": "Nashik",
+      "city": "Nashik",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "917276197637",
+      "whatsappNumber": "917276197637",
+      "tagline": "Owner: Birla",
+      "description": "Guest house",
+      "ownerName": "Birla",
+      "addressLine1": "Nashik",
+      "pincode": "422085",
+      "email": "birlaguesthouse@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Nashik"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Birla Guest House",
+        "guest house",
+        "hotel",
+        "rooms",
+        "nashik"
+      ],
+      "highlights": [
+        "Guest House"
+      ],
+      "id": "07e2c948-18e1-459a-81dc-6720956ac08f",
+      "createdAt": "2026-02-23T04:46:37.801Z",
+      "updatedAt": "2026-02-23T04:46:37.801Z"
+    },
+    {
+      "name": "Deshpande Tours",
+      "category": "Tourism & Car Rental",
+      "locality": "Kolhapur",
+      "city": "Kolhapur",
+      "rating": 0,
+      "reviewCount": 0,
+      "isOpenNow": true,
+      "verified": false,
+      "phone": "918010909303",
+      "whatsappNumber": "918010909303",
+      "tagline": "Owner: Deshpande",
+      "description": "Tourism",
+      "ownerName": "Deshpande",
+      "addressLine1": "Kolhapur",
+      "pincode": "450011",
+      "email": "deshpandetours71@gmail.com",
+      "website": "",
+      "serviceAreas": [
+        "Kolhapur"
+      ],
+      "keywords": [
+        "vendor-card",
+        "Deshpande Tours",
+        "tourism",
+        "travel services",
+        "tours",
+        "kolhapur"
+      ],
+      "highlights": [
+        "Tourism Services"
+      ],
+      "id": "76460b7f-3650-40a4-96c6-c91dc94f1be3",
+      "createdAt": "2026-02-23T04:47:01.764Z",
+      "updatedAt": "2026-02-23T04:47:01.764Z"
     }
   ],
   "reels": [
@@ -457,6 +2282,42 @@
       "source": "profile",
       "id": "c8095966-c27e-4f3e-a37b-f9d53ae446bb",
       "createdAt": "2026-02-20T07:42:57.919Z"
+    },
+    {
+      "businessId": "2b6d0401-bdb6-4cc3-80e7-0893fed952c9",
+      "name": "Anonymous Visitor",
+      "phone": "919822042064",
+      "message": "Interested in SaP IT Solutions",
+      "source": "profile",
+      "id": "42d5a37b-3f4c-43e1-80b3-b1dd927a739f",
+      "createdAt": "2026-02-22T08:51:14.731Z"
+    },
+    {
+      "businessId": "4b63fc06-e356-4963-8d7c-fa0d1c6ed370",
+      "name": "Anonymous Visitor",
+      "phone": "919921265043",
+      "message": "Interested in SN Digital Marketing",
+      "source": "profile",
+      "id": "b236236a-658f-498c-a53c-9d28f096e341",
+      "createdAt": "2026-02-22T09:04:04.152Z"
+    },
+    {
+      "businessId": "78d7d6e1-babb-44af-971c-9fd30874dabb",
+      "name": "Anonymous Visitor",
+      "phone": "919359258301",
+      "message": "Interested in में.भाग्यलक्ष्मि गिफ्ट शाँप",
+      "source": "profile",
+      "id": "76901b0c-c06e-4c63-904c-edd851aa6c7c",
+      "createdAt": "2026-02-23T05:33:10.099Z"
+    },
+    {
+      "businessId": "76460b7f-3650-40a4-96c6-c91dc94f1be3",
+      "name": "Anonymous Visitor",
+      "phone": "918010909303",
+      "message": "Interested in Deshpande Tours",
+      "source": "profile",
+      "id": "8df11783-5787-42a0-a8c3-fdfb1a4f22b1",
+      "createdAt": "2026-02-23T08:00:09.100Z"
     }
   ]
 }

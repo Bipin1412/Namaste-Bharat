@@ -35,7 +35,7 @@ const fallbackVendors: VendorCard[] = [
       "Sr No 98, 5, Shweta Residency, Right Bhusari Opp Zcon, Kothrud, Pune 411038",
     city: "Pune",
     pincode: "411038",
-    businessType: "वस्तू विक्रेते",
+    businessType: "Product Seller",
     businessInfo:
       "Computers and laptops sales, services, rental, antivirus distribution, Microsoft Windows and Office, networking, CAD, Adobe software, Tally, storage and backup solutions.",
   },
