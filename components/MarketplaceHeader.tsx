@@ -16,7 +16,7 @@ import {
   UserRound,
 } from "lucide-react";
 import LoginPopup from "./LoginPopup";
-import namasteBharatLogo from "@/assests/namaste-bharat-logo.jpeg";
+import namasteBharatLogo from "@/assests/nameste-bharat-logo.jpeg";
 
 type HeaderItem = {
   href: string;
@@ -50,12 +50,14 @@ export default function MarketplaceHeader() {
       <header className="sticky top-0 z-40 hidden border-b border-slate-200 bg-white/95 backdrop-blur-md md:block">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 lg:gap-6 lg:px-8">
           <Link href="/" className="inline-flex items-center">
-            <Image
-              src={namasteBharatLogo}
-              alt="Namaste Bharat"
-              priority
-              className="h-11 w-auto rounded-md bg-white p-1 lg:h-16 xl:h-20"
-            />
+            <div className="rounded-md bg-white p-1">
+              <Image
+                src={namasteBharatLogo}
+                alt="Namaste Bharat"
+                priority
+                className="h-9 w-auto bg-white lg:h-11 xl:h-12"
+              />
+            </div>
           </Link>
 
           <nav aria-label="Desktop primary navigation">

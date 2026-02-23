@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
 import { getBackendBaseUrl, saveAuthToken } from "@/lib/auth-client";
+import namasteBharatLogo from "@/assests/nameste-bharat-logo.jpeg";
 
 type LoginPopupProps = {
   open: boolean;
@@ -98,33 +100,29 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="w-full max-w-[520px] rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.45)] md:p-6"
           >
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div className="grid w-full grid-cols-[130px,1px,1fr] items-center gap-4">
-                <div>
-                  <p className="text-[34px] font-bold leading-none tracking-tight">
-                    <span className="text-blue-700">Namaste</span>
-                    <span className="text-orange-500">Bharat</span>
-                  </p>
-                </div>
-                <div className="h-12 w-px bg-slate-200" />
-                <div>
-                  <p className="text-[34px] font-semibold leading-none text-slate-900">
-                    Welcome
-                  </p>
-                  <p className="mt-1 text-[24px] leading-snug text-slate-700">
-                    Login for a seamless experience
-                  </p>
-                </div>
-              </div>
-
+            <div className="relative mb-5">
               <button
                 type="button"
                 onClick={handleClose}
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                className="absolute right-0 top-0 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
                 aria-label="Close login popup"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="rounded-md bg-white p-1">
+                  <Image
+                    src={namasteBharatLogo}
+                    alt="Namaste Bharat"
+                    className="h-16 w-auto bg-white md:h-20"
+                    priority
+                  />
+                </div>
+                <p className="mt-2 text-lg font-medium text-slate-700 whitespace-nowrap">
+                  Login for a seamless experience
+                </p>
+              </div>
             </div>
 
             <div className="space-y-4">
