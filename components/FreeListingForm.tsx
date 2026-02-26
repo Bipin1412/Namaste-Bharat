@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 type ListingPayload = {
@@ -28,23 +28,82 @@ export default function FreeListingForm() {
   const [businessName, setBusinessName] = useState("");
   const [mobile, setMobile] = useState("");
   const [city, setCity] = useState("");
-  const [category, setCategory] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [locality, setLocality] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const categoryMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadCategories() {
+      try {
+        const response = await fetch("/api/categories", {
+          cache: "no-store",
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | { data?: Array<{ name?: string }> }
+          | null;
+
+        const names = (payload?.data || [])
+          .map((entry) => String(entry.name || "").trim())
+          .filter(Boolean);
+
+        if (!mounted) return;
+        setAvailableCategories(Array.from(new Set(names)));
+      } catch {
+        if (!mounted) return;
+        setAvailableCategories([]);
+      } finally {
+        if (mounted) {
+          setIsCategoriesLoading(false);
+        }
+      }
+    }
+
+    void loadCategories();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      if (!categoryMenuRef.current) return;
+      if (categoryMenuRef.current.contains(event.target as Node)) return;
+      setIsCategoryMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
+
+  const selectedCategoryText = useMemo(() => {
+    if (selectedCategories.length === 0) {
+      return "Select category/categories";
+    }
+    return selectedCategories.join(", ");
+  }, [selectedCategories]);
 
   const canSubmit = useMemo(() => {
     return (
       businessName.trim().length > 2 &&
       mobile.replace(/\D/g, "").length >= 10 &&
       city.trim().length > 1 &&
-      category.trim().length > 1 &&
+      selectedCategories.length > 0 &&
       locality.trim().length > 1 &&
       agreeTerms
     );
-  }, [agreeTerms, businessName, category, city, locality, mobile]);
+  }, [agreeTerms, businessName, city, locality, mobile, selectedCategories.length]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,7 +118,7 @@ export default function FreeListingForm() {
     const phone = normalizeIndianPhone(mobile);
     const payload: ListingPayload = {
       name: businessName.trim(),
-      category: category.trim(),
+      category: selectedCategories.join(", "),
       locality: locality.trim(),
       city: city.trim(),
       rating: 0,
@@ -93,7 +152,7 @@ export default function FreeListingForm() {
       setBusinessName("");
       setMobile("");
       setCity("");
-      setCategory("");
+      setSelectedCategories([]);
       setLocality("");
     } catch (error) {
       setIsSuccess(false);
@@ -149,12 +208,59 @@ export default function FreeListingForm() {
             className="h-11 rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
           />
         </div>
-        <input
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          placeholder="Category (e.g. AC Repair, Catering)"
-          className="h-11 rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
-        />
+        <div ref={categoryMenuRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setIsCategoryMenuOpen((current) => !current)}
+            className="flex h-11 w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-left text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+          >
+            <span
+              className={
+                selectedCategories.length > 0 ? "text-slate-900" : "text-slate-400"
+              }
+            >
+              {selectedCategoryText}
+            </span>
+            <span className="text-xs text-slate-500">{isCategoryMenuOpen ? "Hide" : "Select"}</span>
+          </button>
+
+          {isCategoryMenuOpen ? (
+            <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+              {isCategoriesLoading ? (
+                <p className="px-2 py-1 text-sm text-slate-500">Loading categories...</p>
+              ) : availableCategories.length === 0 ? (
+                <p className="px-2 py-1 text-sm text-slate-500">No categories available.</p>
+              ) : (
+                <div className="max-h-52 space-y-1 overflow-y-auto">
+                  {availableCategories.map((option) => {
+                    const checked = selectedCategories.includes(option);
+                    return (
+                      <label
+                        key={option}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(event) => {
+                            setSelectedCategories((current) => {
+                              if (event.target.checked) {
+                                return [...current, option];
+                              }
+                              return current.filter((item) => item !== option);
+                            });
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>{option}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600">

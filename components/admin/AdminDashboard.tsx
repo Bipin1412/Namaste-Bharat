@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2, ShieldAlert, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Pencil, ShieldAlert, Trash2, XCircle } from "lucide-react";
 import { getAuthToken, getBackendBaseUrl } from "@/lib/auth-client";
 
 type SessionPayload = {
@@ -21,7 +21,13 @@ type AdminListing = {
   verified: boolean;
   createdAt: string;
   rejectedReason?: string | null;
+  media?: {
+    coverImages?: string[];
+    gallery?: string[];
+  };
 };
+
+type StatusFilter = "all" | "pending" | "active" | "rejected";
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,8 +37,58 @@ export default function AdminDashboard() {
   const [listings, setListings] = useState<AdminListing[]>([]);
   const [workingId, setWorkingId] = useState("");
   const [usingLocalFallback, setUsingLocalFallback] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [searchText, setSearchText] = useState("");
+  const [editId, setEditId] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editLocality, setEditLocality] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editCoverImage, setEditCoverImage] = useState("");
 
   const token = useMemo(() => getAuthToken(), []);
+  const missingBusinessesTableMsg = "could not find the table 'public.businesses'";
+
+  function shouldUseLocalFallback(message: string): boolean {
+    return message.toLowerCase().includes(missingBusinessesTableMsg);
+  }
+
+  async function localPatchBusiness(id: string, body: Record<string, unknown>) {
+    if (!token) {
+      throw new Error("Missing auth token.");
+    }
+    const response = await fetch(`/api/businesses/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+      throw new Error(payload?.error?.message || "Could not update listing.");
+    }
+  }
+
+  async function localDeleteBusiness(id: string) {
+    if (!token) {
+      throw new Error("Missing auth token.");
+    }
+    const response = await fetch(`/api/businesses/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+      throw new Error(payload?.error?.message || "Could not delete listing.");
+    }
+  }
 
   const loadListings = useCallback(async () => {
     if (!token) {
@@ -40,7 +96,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    const response = await fetch(`${getBackendBaseUrl()}/api/admin/listings?status=pending`, {
+    const response = await fetch(`${getBackendBaseUrl()}/api/admin/listings?page=1&limit=500`, {
       headers: { Authorization: `Bearer ${token}` },
     }).catch(() => null);
 
@@ -67,8 +123,7 @@ export default function AdminDashboard() {
       | { data?: Array<Record<string, unknown>> }
       | null;
 
-    const localPending = (localPayload?.data || [])
-      .filter((entry) => !entry.verified)
+    const localAll = (localPayload?.data || [])
       .map((entry) => ({
         id: String(entry.id || ""),
         name: String(entry.name || "Unnamed"),
@@ -76,13 +131,25 @@ export default function AdminDashboard() {
         locality: String(entry.locality || ""),
         city: String(entry.city || ""),
         phone: String(entry.phone || ""),
-        listingStatus: "pending" as const,
-        verified: false,
+        listingStatus:
+          String(entry.listingStatus || "").toLowerCase() === "active"
+            ? ("active" as const)
+            : String(entry.listingStatus || "").toLowerCase() === "rejected"
+            ? ("rejected" as const)
+            : Boolean(entry.verified)
+            ? ("active" as const)
+            : ("pending" as const),
+        verified: Boolean(entry.verified),
         createdAt: String(entry.createdAt || new Date().toISOString()),
+        rejectedReason: String(entry.rejectedReason || ""),
+        media:
+          entry.media && typeof entry.media === "object"
+            ? (entry.media as { coverImages?: string[]; gallery?: string[] })
+            : undefined,
       }))
       .filter((entry) => entry.id);
 
-    setListings(localPending);
+    setListings(localAll);
     setUsingLocalFallback(true);
   }, [token]);
 
@@ -142,20 +209,17 @@ export default function AdminDashboard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
-        if (usingLocalFallback) {
-          const localUpdate = await fetch(`/api/businesses/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ verified: true }),
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        const backendMessage = payload?.error?.message || "Could not activate listing.";
+        if (shouldUseLocalFallback(backendMessage)) {
+          await localPatchBusiness(id, {
+            verified: true,
+            listingStatus: "active",
           });
-          if (!localUpdate.ok) {
-            throw new Error("Could not activate listing.");
-          }
         } else {
-          const payload = (await response.json().catch(() => null)) as
-            | { error?: { message?: string } }
-            | null;
-          throw new Error(payload?.error?.message || "Could not activate listing.");
+          throw new Error(backendMessage);
         }
       }
 
@@ -186,18 +250,18 @@ export default function AdminDashboard() {
         body: JSON.stringify({ reason: reason.trim() }),
       });
       if (!response.ok) {
-        if (usingLocalFallback) {
-          const localDelete = await fetch(`/api/businesses/${id}`, {
-            method: "DELETE",
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        const backendMessage = payload?.error?.message || "Could not reject listing.";
+        if (shouldUseLocalFallback(backendMessage)) {
+          await localPatchBusiness(id, {
+            verified: false,
+            listingStatus: "rejected",
+            rejectedReason: reason.trim() || "Rejected by admin",
           });
-          if (!localDelete.ok) {
-            throw new Error("Could not reject listing.");
-          }
         } else {
-          const payload = (await response.json().catch(() => null)) as
-            | { error?: { message?: string } }
-            | null;
-          throw new Error(payload?.error?.message || "Could not reject listing.");
+          throw new Error(backendMessage);
         }
       }
 
@@ -209,6 +273,145 @@ export default function AdminDashboard() {
       setWorkingId("");
     }
   }
+
+  function startEdit(item: AdminListing) {
+    setEditId(item.id);
+    setEditName(item.name);
+    setEditCategory(item.category);
+    setEditCity(item.city);
+    setEditLocality(item.locality);
+    setEditPhone(item.phone);
+    setEditCoverImage(item.media?.coverImages?.[0] || "");
+  }
+
+  async function onPickImageFile(file: File | null) {
+    if (!file) return;
+    const reader = new FileReader();
+    const loaded = await new Promise<string>((resolve, reject) => {
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not read image file."));
+      reader.readAsDataURL(file);
+    }).catch(() => "");
+
+    if (!loaded) return;
+    setEditCoverImage(loaded);
+  }
+
+  async function saveEdit(id: string) {
+    if (!token || workingId) return;
+    setWorkingId(id);
+    setMessage("");
+
+    try {
+      const response = await fetch(`${getBackendBaseUrl()}/api/businesses/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editName.trim(),
+          category: editCategory.trim(),
+          city: editCity.trim(),
+          locality: editLocality.trim(),
+          phone: editPhone.trim(),
+          whatsappNumber: editPhone.trim(),
+          media: editCoverImage.trim()
+            ? {
+                coverImages: [editCoverImage.trim()],
+                gallery: [editCoverImage.trim()],
+              }
+            : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        const backendMessage = payload?.error?.message || "Could not update listing.";
+        if (shouldUseLocalFallback(backendMessage)) {
+          await localPatchBusiness(id, {
+            name: editName.trim(),
+            category: editCategory.trim(),
+            city: editCity.trim(),
+            locality: editLocality.trim(),
+            phone: editPhone.trim(),
+            whatsappNumber: editPhone.trim(),
+            media: editCoverImage.trim()
+              ? {
+                  coverImages: [editCoverImage.trim()],
+                  gallery: [editCoverImage.trim()],
+                }
+              : undefined,
+          });
+        } else {
+          throw new Error(backendMessage);
+        }
+      }
+
+      setEditId("");
+      setMessage("Listing updated successfully.");
+      await loadListings();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update listing.");
+    } finally {
+      setWorkingId("");
+    }
+  }
+
+  async function deleteListing(id: string) {
+    if (!token || workingId) return;
+    if (!window.confirm("Delete this listing permanently?")) return;
+
+    setWorkingId(id);
+    setMessage("");
+
+    try {
+      const response = await fetch(`${getBackendBaseUrl()}/api/businesses/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        const backendMessage = payload?.error?.message || "Could not delete listing.";
+        if (shouldUseLocalFallback(backendMessage)) {
+          await localDeleteBusiness(id);
+        } else {
+          throw new Error(backendMessage);
+        }
+      }
+
+      setMessage("Listing deleted.");
+      await loadListings();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not delete listing.");
+    } finally {
+      setWorkingId("");
+    }
+  }
+
+  const filteredListings = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    return listings.filter((item) => {
+      if (statusFilter !== "all" && item.listingStatus !== statusFilter) {
+        return false;
+      }
+      if (!query) return true;
+      const haystack = `${item.name} ${item.category} ${item.locality} ${item.city} ${item.phone}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [listings, searchText, statusFilter]);
+
+  const counts = useMemo(() => {
+    const pending = listings.filter((item) => item.listingStatus === "pending").length;
+    const active = listings.filter((item) => item.listingStatus === "active").length;
+    const rejected = listings.filter((item) => item.listingStatus === "rejected").length;
+    return { pending, active, rejected, total: listings.length };
+  }, [listings]);
 
   if (isLoading) {
     return (
@@ -249,7 +452,7 @@ export default function AdminDashboard() {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-lg font-semibold text-slate-900">Pending Listings ({listings.length})</p>
+          <p className="text-lg font-semibold text-slate-900">All Listings ({filteredListings.length})</p>
           <button
             type="button"
             onClick={() => void loadListings()}
@@ -260,40 +463,145 @@ export default function AdminDashboard() {
         </div>
         {usingLocalFallback ? (
           <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Showing local pending requests fallback. Run Supabase marketplace SQL tables to use central admin queue.
+            Showing local fallback listing data. Approve/reject/update/delete actions require backend admin APIs.
           </p>
         ) : null}
 
-        {listings.length === 0 ? (
+        <div className="mb-3 grid gap-2 sm:grid-cols-4">
+          <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">Total: {counts.total}</div>
+          <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Pending: {counts.pending}</div>
+          <div className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Active: {counts.active}</div>
+          <div className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">Rejected: {counts.rejected}</div>
+        </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {(["all", "pending", "active", "rejected"] as StatusFilter[]).map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              className={`h-8 rounded-full px-3 text-xs font-semibold ${
+                statusFilter === status
+                  ? "bg-slate-900 text-white"
+                  : "border border-slate-300 bg-white text-slate-700"
+              }`}
+            >
+              {status[0].toUpperCase() + status.slice(1)}
+            </button>
+          ))}
+          <input
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder="Search name, category, city, phone"
+            className="h-9 min-w-[220px] rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+          />
+        </div>
+
+        {filteredListings.length === 0 ? (
           <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">No pending requests.</p>
         ) : (
           <div className="space-y-2">
-            {listings.map((item) => (
+            {filteredListings.map((item) => (
               <article key={item.id} className="rounded-xl border border-slate-200 p-3">
-                <p className="text-sm font-semibold text-slate-900">{item.name}</p>
-                <p className="text-xs text-slate-600">
-                  {item.category} | {item.locality}, {item.city} | {item.phone}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Submitted: {new Date(item.createdAt).toLocaleString("en-IN")}
-                </p>
+                {editId === item.id ? (
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <input value={editName} onChange={(event) => setEditName(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm" />
+                    <input value={editCategory} onChange={(event) => setEditCategory(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm" />
+                    <input value={editLocality} onChange={(event) => setEditLocality(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm" />
+                    <input value={editCity} onChange={(event) => setEditCity(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm" />
+                    <input value={editPhone} onChange={(event) => setEditPhone(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm md:col-span-2" />
+                    <input
+                      value={editCoverImage}
+                      onChange={(event) => setEditCoverImage(event.target.value)}
+                      placeholder="Cover image URL/path"
+                      className="h-9 rounded-lg border border-slate-300 px-3 text-sm md:col-span-2"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => void onPickImageFile(event.target.files?.[0] || null)}
+                      className="h-9 rounded-lg border border-slate-300 px-2 text-xs md:col-span-2"
+                    />
+                    {editCoverImage ? (
+                      <img
+                        src={editCoverImage}
+                        alt="Preview"
+                        className="h-24 w-24 rounded-lg border border-slate-200 object-cover md:col-span-2"
+                      />
+                    ) : null}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                    <p className="text-xs text-slate-600">
+                      {item.category} | {item.locality}, {item.city} | {item.phone}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Status: <span className="font-semibold">{item.listingStatus}</span> | Submitted: {new Date(item.createdAt).toLocaleString("en-IN")}
+                    </p>
+                  </>
+                )}
+
                 <div className="mt-3 flex gap-2">
+                  {item.listingStatus !== "active" ? (
+                    <button
+                      type="button"
+                      disabled={workingId === item.id}
+                      onClick={() => void activateListing(item.id)}
+                      className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                    >
+                      {workingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                      Activate
+                    </button>
+                  ) : null}
+
+                  {item.listingStatus !== "rejected" ? (
+                    <button
+                      type="button"
+                      disabled={workingId === item.id}
+                      onClick={() => void rejectListing(item.id)}
+                      className="inline-flex h-9 items-center gap-1 rounded-lg bg-rose-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                    >
+                      <XCircle className="h-3.5 w-3.5" /> Reject
+                    </button>
+                  ) : null}
+
+                  {editId === item.id ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={workingId === item.id}
+                        onClick={() => void saveEdit(item.id)}
+                        className="inline-flex h-9 items-center gap-1 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditId("")}
+                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={workingId === item.id}
+                      onClick={() => startEdit(item)}
+                      className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 disabled:opacity-60"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     disabled={workingId === item.id}
-                    onClick={() => void activateListing(item.id)}
-                    className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                    onClick={() => void deleteListing(item.id)}
+                    className="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white disabled:opacity-60"
                   >
-                    {workingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                    Activate
-                  </button>
-                  <button
-                    type="button"
-                    disabled={workingId === item.id}
-                    onClick={() => void rejectListing(item.id)}
-                    className="inline-flex h-9 items-center gap-1 rounded-lg bg-rose-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
-                  >
-                    <XCircle className="h-3.5 w-3.5" /> Reject
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
                 </div>
               </article>

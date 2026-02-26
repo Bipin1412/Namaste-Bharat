@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { mutateDatabase, readDatabase } from "./store";
+import masterCategories from "@/data/master-categories.json";
 import type {
   Business,
   DatabaseShape,
@@ -337,8 +338,22 @@ export async function getHomeSnapshot(): Promise<{
     );
   }
 
-  const categories = [...categoryCounter.entries()]
-    .map(([name, count]) => ({ name, count }))
+  const mergedCategories = new Map<string, { name: string; count: number }>();
+  for (const [name, count] of categoryCounter.entries()) {
+    const key = normalizeText(name);
+    if (!key) continue;
+    mergedCategories.set(key, { name, count });
+  }
+
+  for (const category of masterCategories) {
+    const key = normalizeText(category);
+    if (!key || mergedCategories.has(key)) {
+      continue;
+    }
+    mergedCategories.set(key, { name: category, count: 0 });
+  }
+
+  const categories = [...mergedCategories.values()]
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   const quickFilters = [

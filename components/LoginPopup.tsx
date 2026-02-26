@@ -115,7 +115,7 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
                   <Image
                     src={namasteBharatLogo}
                     alt="Namaste Bharat"
-                    className="h-16 w-auto bg-white md:h-20"
+                    className="h-20 w-auto bg-white md:h-24"
                     priority
                   />
                 </div>

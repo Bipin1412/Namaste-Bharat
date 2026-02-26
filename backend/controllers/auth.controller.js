@@ -38,10 +38,13 @@ async function signup(req, res) {
       return res.status(400).json({ error: { message: "Password must be at least 6 characters." } });
     }
 
+    const emailRedirectTo = `${env.frontendUrl.replace(/\/+$/, "")}/login?verified=1`;
+
     const { data, error } = await supabaseAuthClient.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo,
         data: {
           full_name: fullName,
           phone,

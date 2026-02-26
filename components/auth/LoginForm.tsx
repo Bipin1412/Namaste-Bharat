@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Loader2, LogIn } from "lucide-react";
 import { getBackendBaseUrl, saveAuthToken } from "@/lib/auth-client";
 
@@ -20,6 +20,13 @@ export default function LoginForm() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "1") {
+      setError("");
+      setMessage("Email verified successfully. Please login.");
+    }
+  }, [searchParams]);
 
   const canPasswordSubmit = useMemo(
     () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length >= 6,

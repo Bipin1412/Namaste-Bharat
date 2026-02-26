@@ -1,5 +1,6 @@
 const { supabaseAdminClient } = require("../config/supabase");
 const { normalizeText } = require("../utils/listing.validators");
+const masterCategories = require("../data/master-categories.json");
 
 function ensureAdminClient() {
   if (!supabaseAdminClient) {
@@ -485,8 +486,22 @@ async function getHomeSnapshot() {
     );
   }
 
-  const categories = [...categoriesMap.entries()]
-    .map(([name, count]) => ({ name, count }))
+  const mergedCategories = new Map();
+  for (const [name, count] of categoriesMap.entries()) {
+    const key = normalizeText(name);
+    if (!key) continue;
+    mergedCategories.set(key, { name, count });
+  }
+
+  for (const category of masterCategories) {
+    const key = normalizeText(category);
+    if (!key || mergedCategories.has(key)) {
+      continue;
+    }
+    mergedCategories.set(key, { name: category, count: 0 });
+  }
+
+  const categories = [...mergedCategories.values()]
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   return {

@@ -55,7 +55,7 @@ export default function MarketplaceHeader() {
                 src={namasteBharatLogo}
                 alt="Namaste Bharat"
                 priority
-                className="h-9 w-auto bg-white lg:h-11 xl:h-12"
+                className="h-20 w-auto bg-white lg:h-12 xl:h-14"
               />
             </div>
           </Link>

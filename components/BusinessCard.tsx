@@ -18,6 +18,9 @@ export type BusinessCardData = {
   verified?: boolean;
   phone: string;
   whatsappNumber: string;
+  media?: {
+    coverImages?: string[];
+  };
 };
 
 type BusinessCardProps = {
@@ -35,6 +38,7 @@ function formatWhatsappUrl(number: string, businessName: string) {
 
 export default function BusinessCard({ business }: BusinessCardProps) {
   const whatsappUrl = formatWhatsappUrl(business.whatsappNumber, business.name);
+  const cardImage = business.media?.coverImages?.[0] || getBusinessImage(business.id);
 
   function captureLead(source: "search" | "profile") {
     void fetch("/api/leads", {
@@ -59,7 +63,7 @@ export default function BusinessCard({ business }: BusinessCardProps) {
       <div className="grid grid-cols-[88px,1fr] gap-3 md:grid-cols-[104px,1fr] md:gap-4">
         <div className="relative h-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 md:h-28">
           <Image
-            src={getBusinessImage(business.id)}
+            src={cardImage}
             alt={business.name}
             fill
             className="object-cover"

@@ -13,6 +13,37 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+async function ensureAdmin(request: NextRequest): Promise<null | NextResponse> {
+  const authHeader = request.headers.get("authorization") || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+
+  if (!token) {
+    return jsonError(401, "Missing bearer token.");
+  }
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  const response = await fetch(`${backendUrl}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  }).catch(() => null);
+
+  if (!response || !response.ok) {
+    return jsonError(401, "Unauthorized.");
+  }
+
+  const payload = (await response.json().catch(() => null)) as
+    | { profile?: { role?: string | null } }
+    | null;
+
+  if (String(payload?.profile?.role || "").toLowerCase() !== "admin") {
+    return jsonError(403, "Admin access required.");
+  }
+
+  return null;
+}
+
 export async function GET(_: NextRequest, context: RouteContext) {
   const { id } = await context.params;
   const business = await getBusinessById(id);
@@ -25,6 +56,11 @@ export async function GET(_: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  const authError = await ensureAdmin(request);
+  if (authError) {
+    return authError;
+  }
+
   const { id } = await context.params;
 
   try {
@@ -47,6 +83,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(_: NextRequest, context: RouteContext) {
+  const authError = await ensureAdmin(_);
+  if (authError) {
+    return authError;
+  }
+
   const { id } = await context.params;
   const removed = await deleteBusiness(id);
 
