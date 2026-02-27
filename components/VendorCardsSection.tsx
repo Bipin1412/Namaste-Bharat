@@ -94,7 +94,7 @@ export default function VendorCardsSection({ vendors = [] }: VendorCardsSectionP
             Vendor Spotlight
           </p>
           <h2 className="mt-1 text-lg font-semibold text-slate-900">
-            Registered Vendor Cards
+            Registered Vendors
           </h2>
         </div>
       </div>
