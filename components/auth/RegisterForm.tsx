@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { Loader2, UserPlus } from "lucide-react";
-import { getBackendBaseUrl, saveAuthToken } from "@/lib/auth-client";
+import { saveAuthToken } from "@/lib/auth-client";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function RegisterForm() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/signup`, {
+      const response = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

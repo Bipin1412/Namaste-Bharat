@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { getBackendBaseUrl } from "@/lib/auth-client";
 
 function getRecoveryTokenFromHash() {
   if (typeof window === "undefined") {
@@ -48,7 +47,7 @@ export default function ResetPasswordForm() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/password/reset/confirm`, {
+      const response = await fetch(`/api/auth/password/reset/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

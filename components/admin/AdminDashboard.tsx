@@ -164,7 +164,7 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/me`, {
+      const response = await fetch(`/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       }).catch(() => null);
 

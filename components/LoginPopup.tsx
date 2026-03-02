@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
-import { getBackendBaseUrl, saveAuthToken } from "@/lib/auth-client";
+import { saveAuthToken } from "@/lib/auth-client";
 import namasteBharatLogo from "@/assests/nameste-bharat-logo.jpeg";
 
 type LoginPopupProps = {
@@ -32,7 +32,7 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
     setError("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

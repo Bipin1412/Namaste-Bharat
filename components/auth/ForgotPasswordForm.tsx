@@ -3,7 +3,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { Loader2, Mail } from "lucide-react";
-import { getBackendBaseUrl } from "@/lib/auth-client";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -27,7 +26,7 @@ export default function ForgotPasswordForm() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/password/reset/request`, {
+      const response = await fetch(`/api/auth/password/reset/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase() }),

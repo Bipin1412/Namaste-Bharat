@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Loader2, LogIn } from "lucide-react";
-import { getBackendBaseUrl, saveAuthToken } from "@/lib/auth-client";
+import { saveAuthToken } from "@/lib/auth-client";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function LoginForm() {
 
   async function completeLogin(endpoint: string, body: Record<string, string>) {
     try {
-      const response = await fetch(`${getBackendBaseUrl()}${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -120,7 +120,7 @@ export default function LoginForm() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/login/otp/send`, {
+      const response = await fetch(`/api/auth/login/otp/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: normalizedPhone }),

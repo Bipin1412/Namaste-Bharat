@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, LogOut } from "lucide-react";
-import { clearAuthToken, getAuthToken, getBackendBaseUrl } from "@/lib/auth-client";
+import { clearAuthToken, getAuthToken } from "@/lib/auth-client";
 
 export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +15,7 @@ export default function LogoutButton() {
 
     try {
       const token = getAuthToken();
-      await fetch(`${getBackendBaseUrl()}/api/auth/logout`, {
+      await fetch(`/api/auth/logout`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       }).catch(() => null);

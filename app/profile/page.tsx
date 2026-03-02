@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import LogoutButton from "@/components/auth/LogoutButton";
 import OfferBannerSlot from "@/components/OfferBannerSlot";
-import { getAuthToken, getBackendBaseUrl } from "@/lib/auth-client";
+import { getAuthToken } from "@/lib/auth-client";
 
 type Profile = {
   full_name: string | null;
@@ -42,7 +42,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const response = await fetch(`${getBackendBaseUrl()}/api/auth/me`, {
+      const response = await fetch("/api/auth/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
