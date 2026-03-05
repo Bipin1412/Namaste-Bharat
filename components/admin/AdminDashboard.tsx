@@ -28,6 +28,14 @@ type AdminListing = {
 };
 
 type StatusFilter = "all" | "pending" | "active" | "rejected";
+type DailyInquiry = {
+  id: string;
+  cityName: string;
+  inquiryDate: string;
+  shortDescription: string;
+  phoneNumber: string;
+  createdAt: string;
+};
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +44,9 @@ export default function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [listings, setListings] = useState<AdminListing[]>([]);
   const [workingId, setWorkingId] = useState("");
+  const [dailyWorkingId, setDailyWorkingId] = useState("");
   const [usingLocalFallback, setUsingLocalFallback] = useState(false);
+  const [dailyInquiries, setDailyInquiries] = useState<DailyInquiry[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchText, setSearchText] = useState("");
   const [editId, setEditId] = useState("");
@@ -153,6 +163,28 @@ export default function AdminDashboard() {
     setUsingLocalFallback(true);
   }, [token]);
 
+  const loadDailyInquiries = useCallback(async () => {
+    if (!token) {
+      setDailyInquiries([]);
+      return;
+    }
+
+    const response = await fetch("/api/admin/daily-inquiries", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    }).catch(() => null);
+
+    if (!response || !response.ok) {
+      setDailyInquiries([]);
+      return;
+    }
+
+    const payload = (await response.json().catch(() => null)) as
+      | { data?: DailyInquiry[] }
+      | null;
+    setDailyInquiries(Array.isArray(payload?.data) ? payload.data : []);
+  }, [token]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -189,6 +221,7 @@ export default function AdminDashboard() {
       setAdminName(payload?.profile?.full_name || "Admin");
       setIsAdmin(true);
       await loadListings();
+      await loadDailyInquiries();
       setIsLoading(false);
     }
 
@@ -196,7 +229,7 @@ export default function AdminDashboard() {
     return () => {
       mounted = false;
     };
-  }, [loadListings, token]);
+  }, [loadDailyInquiries, loadListings, token]);
 
   async function activateListing(id: string) {
     if (!token || workingId) return;
@@ -391,6 +424,35 @@ export default function AdminDashboard() {
       setMessage(error instanceof Error ? error.message : "Could not delete listing.");
     } finally {
       setWorkingId("");
+    }
+  }
+
+  async function deleteDailyInquiryItem(id: string) {
+    if (!token || dailyWorkingId) return;
+    if (!window.confirm("Delete this daily inquiry?")) return;
+
+    setDailyWorkingId(id);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/daily-inquiries/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        throw new Error(payload?.error?.message || "Could not delete daily inquiry.");
+      }
+
+      setMessage("Daily inquiry deleted.");
+      await loadDailyInquiries();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not delete daily inquiry.");
+    } finally {
+      setDailyWorkingId("");
     }
   }
 
@@ -610,6 +672,53 @@ export default function AdminDashboard() {
         )}
 
         {message ? <p className="mt-3 text-sm text-slate-700">{message}</p> : null}
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-lg font-semibold text-slate-900">
+            Daily Inquiries ({dailyInquiries.length})
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadDailyInquiries()}
+            className="h-9 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700"
+          >
+            Refresh
+          </button>
+        </div>
+
+        {dailyInquiries.length === 0 ? (
+          <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+            No daily inquiries available.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {dailyInquiries.map((item) => (
+              <article key={item.id} className="rounded-xl border border-slate-200 p-3">
+                <p className="text-sm font-semibold text-slate-900">
+                  {item.cityName} | {item.inquiryDate}
+                </p>
+                <p className="mt-1 text-sm text-slate-700">{item.shortDescription}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Phone: {item.phoneNumber} | Submitted:{" "}
+                  {new Date(item.createdAt).toLocaleString("en-IN")}
+                </p>
+
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    disabled={dailyWorkingId === item.id}
+                    onClick={() => void deleteDailyInquiryItem(item.id)}
+                    className="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

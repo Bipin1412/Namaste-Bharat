@@ -1,39 +1,675 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
+import { getHomeSnapshot } from "@/lib/backend/service";
 
-const footerLinks = [
-  { label: "Design Review", href: "/design-review" },
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/namasteybharat24?igsh=dWJ0OWIyaWhxdWZ4",
+    Icon: Instagram,
+    hoverClass:
+      "hover:border-transparent hover:bg-gradient-to-tr hover:from-[rgb(249,206,52)] hover:via-[rgb(238,42,123)] hover:to-[rgb(98,40,215)] hover:text-white",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/share/17FgTvrZSY/",
+    Icon: Facebook,
+    hoverClass:
+      "hover:border-[rgb(24,119,242)] hover:bg-[rgb(24,119,242)] hover:text-white",
+  },
+  {
+    label: "LinkedIn",
+    href: "#",
+    Icon: Linkedin,
+    hoverClass:
+      "hover:border-[rgb(10,102,194)] hover:bg-[rgb(10,102,194)] hover:text-white",
+  },
+  {
+    label: "YouTube",
+    href: "#",
+    Icon: Youtube,
+    hoverClass:
+      "hover:border-[rgb(255,0,0)] hover:bg-[rgb(255,0,0)] hover:text-white",
+  },
+];
+
+const quickLinks = [
+  { label: "Home", href: "/" },
+  { label: "Daily Inquiry", href: "/daily-inquiry" },
+  { label: "Search Businesses", href: "/search" },
   { label: "Free Listing", href: "/free-listing" },
   { label: "Offers", href: "/offers" },
   { label: "Stories", href: "/stories" },
-  { label: "About", href: "/about" },
+  { label: "About Us", href: "/about" },
   { label: "Contact", href: "/contact" },
+  { label: "Terms & Conditions", href: "#terms-and-conditions" },
+  { label: "Privacy Policy", href: "#privacy-policy" },
 ];
 
-export default function SiteFooter() {
-  return (
-    <footer className="mt-6 border-t border-slate-200 bg-white">
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
-        <p className="text-sm font-semibold text-slate-900">Namaste Bharat</p>
-        <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-600">
-          Bharat-first local business discovery platform for MSMEs. Built for
-          fast discovery, verified listings, and direct WhatsApp engagement.
-        </p>
+const popularCities = [
+  "Mumbai City",
+  "Mumbai Suburban",
+  "Thane",
+  "Palghar",
+  "Raigad",
+  "Ratnagiri",
+  "Sindhudurg",
+  "Pune",
+  "Satara",
+  "Sangli",
+  "Kolhapur",
+  "Solapur",
+  "Nashik",
+  "Dhule",
+  "Nandurbar",
+  "Jalgaon",
+  "Ahmednagar",
+  "Chhatrapati Sambhaji Nagar (Aurangabad)",
+  "Jalna",
+  "Parbhani",
+  "Hingoli",
+  "Beed",
+  "Dharashiv (Osmanabad)",
+  "Nanded",
+  "Latur",
+  "Amravati",
+  "Akola",
+  "Buldhana",
+  "Washim",
+  "Yavatmal",
+  "Nagpur",
+  "Wardha",
+  "Bhandara",
+  "Gondia",
+  "Chandrapur",
+  "Gadchiroli",
+];
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {footerLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex h-8 items-center rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-            >
-              {link.label}
-            </Link>
-          ))}
+export default async function SiteFooter() {
+  const snapshot = await getHomeSnapshot();
+  const businessCategories = snapshot.categories
+    .filter((category) => category.count > 0)
+    .map((category) => category.name);
+
+  return (
+    <footer className="mt-10 min-h-screen w-full border-t border-teal-900/20 bg-[#0f4f4a] text-slate-100">
+      <div className="h-full w-full px-4 py-10 md:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl ring-1 ring-amber-200/40">
+                <Image
+                  src="/branding/namaste-bharat-logo.jpeg"
+                  alt="Namaste Bharat logo"
+                  width={52}
+                  height={52}
+                  className="rounded-md object-cover"
+                />
+              </div>
+              <div>
+                <p className="text-xl font-semibold tracking-wide">NAMASTE BHARAT</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-100/80">
+                  Search Engine of Aatmanirbhar Bharat
+                </p>
+              </div>
+            </div>
+
+            <p className="max-w-xl text-sm font-bold leading-relaxed text-teal-50/90">
+               
+            </p>
+
+            <div className="space-y-3 text-sm text-teal-50/95">
+              <p className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                <span>201, Kolhewadi Sinhagad Road Pune 24</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone className="h-4 w-4 shrink-0 text-amber-300" />
+                <a href="tel:8459608568" className="hover:text-white hover:underline">
+                  8459608568
+                </a>
+              </p>
+              <p className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0 text-amber-300" />
+                <a
+                  href="mailto:namastebharat2810@gmail.com"
+                  className="break-all hover:text-white hover:underline"
+                >
+                  namastebharat2810@gmail.com
+                </a>
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {socialLinks.map((social) => (
+                <Link
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-teal-200/25 bg-teal-700/40 text-teal-50 transition ${social.hoverClass}`}
+                >
+                  <social.Icon className="h-4 w-4" />
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-teal-100/20 bg-teal-900/30 p-2 shadow-lg">
+            <iframe
+              title="Namaste Bharat Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3784.8560573514333!2d73.78330417385729!3d18.44484357148569!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc295a5098c7c17%3A0x7cd4fe66bd707e09!2s24%2C%20Sinhgad%20Rd%2C%20Central%20Water%20and%20Power%20Research%20Station%20Colony%2C%20Kolhewadi%2C%20Pune%2C%20Maharashtra%20411024!5e0!3m2!1sen!2sin!4v1772601403131!5m2!1sen!2sin"
+              className="h-64 w-full rounded-xl md:h-72"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
         </div>
 
-        <p className="mt-4 text-xs text-slate-500">
-          Copyright {new Date().getFullYear()} Namaste Bharat. Demo build for
-          client testing and design review.
+        <div className="mt-8 grid gap-8 border-t border-teal-100/20 pt-8 lg:grid-cols-[1fr_1.8fr]">
+          <div>
+            <p className="text-lg font-semibold text-white">Quick Links</p>
+            <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              {quickLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-teal-50/90 transition hover:text-white hover:underline"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-lg font-semibold text-white">Business Categories</p>
+            <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3 xl:grid-cols-4">
+              {businessCategories.map((category) => (
+                <Link
+                  key={category}
+                  href={`/search?q=${encodeURIComponent(category)}`}
+                  className="text-teal-50/85 transition hover:text-white hover:underline"
+                >
+                  {category}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-teal-100/20 pt-6">
+          <p className="text-lg font-semibold text-white">Popular Cities</p>
+          <div className="mt-3 flex flex-wrap text-sm text-teal-50/90">
+            {popularCities.map((city, index) => (
+              <span key={city} className="mb-1">
+                <Link
+                  href={`/search?q=${encodeURIComponent(city)}`}
+                  className="hover:text-white hover:underline"
+                >
+                  {city}
+                </Link>
+                {index < popularCities.length - 1 ? (
+                  <span className="px-2 text-teal-200/70">|</span>
+                ) : null}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div id="terms-and-conditions" className="mt-8 border-t border-teal-100/20 pt-6">
+          <details className="group rounded-xl border border-teal-100/20 bg-teal-900/20 p-4">
+            <summary className="cursor-pointer list-none text-lg font-semibold text-white">
+              Terms and Conditions
+            </summary>
+            <div className="mt-4 space-y-3 text-xs leading-6 text-teal-50/90 md:text-sm">
+              <p>
+                This document is an electronic record in terms of Information Technology
+                Act, 2000 and rules there under as applicable and the amended provisions
+                pertaining to electronic records in various statutes as amended by the
+                Information Technology Act, 2000. This electronic record is generated by a
+                computer system and does not require any physical or digital signatures.
+              </p>
+              <p>
+                This document is published in accordance with the provisions of Rule 3 (1)
+                of the Information Technology (Intermediaries guidelines) Rules, 2011 that
+                require publishing the rules and regulations, privacy policy and Terms of
+                Use for access or usage of domain name www.namastebharat24.com
+                (&apos;Website&apos;), including the related mobile site and mobile
+                application (hereinafter referred to as &apos;Platform&apos;).
+              </p>
+              <p>
+                The Platform is owned by 8459608568, a company incorporated under the
+                Companies Act, 1956 with its registered office at 201, Kolhe Building
+                Kolhewadi Sinhagad Road Pune (hereinafter referred to as ?Platform Owner?,
+                &apos;we&apos;, &apos;us&apos;, &apos;our&apos;).
+              </p>
+              <p>
+                Your use of the Platform and services and tools are governed by the
+                following terms and conditions (?Terms of Use?) as applicable to the
+                Platform including the applicable policies which are incorporated herein by
+                way of reference. If You transact on the Platform, You shall be subject to
+                the policies that are applicable to the Platform for such transaction. By
+                mere use of the Platform, You shall be contracting with the Platform Owner
+                and these terms and conditions including the policies constitute Your binding
+                obligations, with Platform Owner. These Terms of Use relate to your use of
+                our website, goods (as applicable) or services (as applicable) (collectively,
+                &apos;Services&apos;). Any terms and conditions proposed by You which are in
+                addition to or which conflict with these Terms of Use are expressly rejected
+                by the Platform Owner and shall be of no force or effect. These Terms of Use
+                can be modified at any time without assigning any reason. It is your
+                responsibility to periodically review these Terms of Use to stay informed of
+                updates.
+              </p>
+              <p>
+                For the purpose of these Terms of Use, wherever the context so requires
+                ?you?, &apos;your&apos; or ?user? shall mean any natural or legal person who
+                has agreed to become a user/buyer on the Platform.
+              </p>
+              <p className="font-semibold uppercase text-white">
+                ACCESSING, BROWSING OR OTHERWISE USING THE PLATFORM INDICATES YOUR AGREEMENT
+                TO ALL THE TERMS AND CONDITIONS UNDER THESE TERMS OF USE, SO PLEASE READ THE
+                TERMS OF USE CAREFULLY BEFORE PROCEEDING.
+              </p>
+              <p>
+                The use of Platform and/or availing of our Services is subject to the
+                following Terms of Use:
+              </p>
+              <p>
+                To access and use the Services, you agree to provide true, accurate and
+                complete information to us during and after registration, and you shall be
+                responsible for all acts done through the use of your registered account on
+                the Platform.
+              </p>
+              <p>
+                Neither we nor any third parties provide any warranty or guarantee as to the
+                accuracy, timeliness, performance, completeness or suitability of the
+                information and materials offered on this website or through the Services,
+                for any specific purpose. You acknowledge that such information and materials
+                may contain inaccuracies or errors and we expressly exclude liability for any
+                such inaccuracies or errors to the fullest extent permitted by law.
+              </p>
+              <p>
+                Your use of our Services and the Platform is solely and entirely at your own
+                risk and discretion for which we shall not be liable to you in any manner.
+                You are required to independently assess and ensure that the Services meet
+                your requirements.
+              </p>
+              <p>
+                The contents of the Platform and the Services are proprietary to us and are
+                licensed to us. You will not have any authority to claim any intellectual
+                property rights, title, or interest in its contents. The contents includes
+                and is not limited to the design, layout, look and graphics.
+              </p>
+              <p>
+                You acknowledge that unauthorized use of the Platform and/or the Services may
+                lead to action against you as per these Terms of Use and/or applicable laws.
+              </p>
+              <p>You agree to pay us the charges associated with availing the Services.</p>
+              <p>
+                You agree not to use the Platform and/ or Services for any purpose that is
+                unlawful, illegal or forbidden by these Terms, or Indian or local laws that
+                might apply to you.
+              </p>
+              <p>
+                You agree and acknowledge that website and the Services may contain links to
+                other third party websites. On accessing these links, you will be governed
+                by the terms of use, privacy policy and such other policies of such third
+                party websites. These links are provided for your convenience for provide
+                further information.
+              </p>
+              <p>
+                You understand that upon initiating a transaction for availing the Services
+                you are entering into a legally binding and enforceable contract with the
+                Platform Owner for the Services.
+              </p>
+              <p>
+                You shall indemnify and hold harmless Platform Owner, its affiliates, group
+                companies (as applicable) and their respective officers, directors, agents,
+                and employees, from any claim or demand, or actions including reasonable
+                attorney&apos;s fees, made by any third party or penalty imposed due to or
+                arising out of Your breach of this Terms of Use, privacy Policy and other
+                Policies, or Your violation of any law, rules or regulations or the rights
+                (including infringement of intellectual property rights) of a third party.
+              </p>
+              <p>
+                Notwithstanding anything contained in these Terms of Use, the parties shall
+                not be liable for any failure to perform an obligation under these Terms if
+                performance is prevented or delayed by a force majeure event.
+              </p>
+              <p>
+                These Terms and any dispute or claim relating to it, or its enforceability,
+                shall be governed by and construed in accordance with the laws of India.
+              </p>
+              <p>
+                All disputes arising out of or in connection with these Terms shall be
+                subject to the exclusive jurisdiction of the courts in and .
+              </p>
+              <p>
+                All concerns or communications relating to these Terms must be communicated
+                to us using the contact information provided on this website.
+              </p>
+            </div>
+          </details>
+        </div>
+
+        <div id="privacy-policy" className="mt-8 border-t border-teal-100/20 pt-6">
+          <details className="group rounded-xl border border-teal-100/20 bg-teal-900/20 p-4">
+            <summary className="cursor-pointer list-none text-lg font-semibold text-white">
+              Privacy Policy
+            </summary>
+            <div className="mt-4 space-y-3 text-xs leading-6 text-teal-50/90 md:text-sm">
+              <p className="font-semibold text-white">Introduction</p>
+              <p>
+                This Privacy Policy describes how 8459608568 and its affiliates
+                (collectively &quot;8459608568, we, our, us&quot;) collect, use,
+                share, protect or otherwise process your information / personal
+                data through our website www.namastebharat24.com (hereinafter
+                referred to as Platform). Please note that you may be able to
+                browse certain sections of the Platform without registering with
+                us. We do not offer any product/service under this Platform
+                outside India and your personal data will primarily be stored
+                and processed in India. By visiting this Platform, providing
+                your information or availing any product/service offered on the
+                Platform, you expressly agree to be bound by the terms and
+                conditions of this Privacy Policy, the Terms of Use and the
+                applicable service/product terms and conditions, and agree to be
+                governed by the laws of India including but not limited to the
+                laws applicable to data protection and privacy. If you do not
+                agree please do not use or access our Platform.
+              </p>
+
+              <p className="font-semibold text-white">Collection</p>
+              <p>
+                We collect your personal data when you use our Platform,
+                services or otherwise interact with us during the course of our
+                relationship and related information provided from time to time.
+                Some of the information that we may collect includes but is not
+                limited to personal data / information provided to us during
+                sign-up/registering or using our Platform such as name, date of
+                birth, address, telephone/mobile number, email ID and/or any
+                such information shared as proof of identity or address.
+              </p>
+              <p>
+                Some of the sensitive personal data may be collected with your
+                consent, such as your bank account or credit or debit card or
+                other payment instrument information or biometric information
+                such as your facial features or physiological information (in
+                order to enable use of certain features when opted for,
+                available on the Platform) etc., all of the above being in
+                accordance with applicable law(s). You always have the option to
+                not provide information, by choosing not to use a particular
+                service or feature on the Platform.
+              </p>
+              <p>
+                We may track your behaviour, preferences, and other information
+                that you choose to provide on our Platform. This information is
+                compiled and analysed on an aggregated basis. We will also
+                collect your information related to your transactions on
+                Platform and such third-party business partner platforms. When
+                such a third-party business partner collects your personal data
+                directly from you, you will be governed by their privacy
+                policies.
+              </p>
+              <p>
+                We shall not be responsible for the third-party business
+                partner&apos;s privacy practices or the content of their privacy
+                policies, and we request you to read their privacy policies
+                prior to disclosing any information. If you receive an email, a
+                call from a person/association claiming to be 8459608568 seeking
+                any personal data like debit/credit card PIN, net-banking or
+                mobile banking password, we request you to never provide such
+                information. If you have already revealed such information,
+                report it immediately to an appropriate law enforcement agency.
+              </p>
+
+              <p className="font-semibold text-white">Usage</p>
+              <p>
+                We use personal data to provide the services you request. To the
+                extent we use your personal data to market to you, we will
+                provide you the ability to opt-out of such uses. We use your
+                personal data to assist sellers and business partners in
+                handling and fulfilling orders; enhancing customer experience; to
+                resolve disputes; troubleshoot problems; inform you about online
+                and offline offers, products, services, and updates; customise
+                your experience; detect and protect us against error, fraud and
+                other criminal activity; enforce our terms and conditions;
+                conduct marketing research, analysis and surveys; and as
+                otherwise described to you at the time of collection of
+                information. You understand that your access to these
+                products/services may be affected in the event permission is not
+                provided to us.
+              </p>
+
+              <p className="font-semibold text-white">Sharing</p>
+              <p>
+                We may share your personal data internally within our group
+                entities, our other corporate entities, and affiliates to
+                provide you access to the services and products offered by them.
+                These entities and affiliates may market to you as a result of
+                such sharing unless you explicitly opt-out. We may disclose
+                personal data to third parties such as sellers, business
+                partners, third party service providers including logistics
+                partners, prepaid payment instrument issuers, third-party reward
+                programs and other payment opted by you.
+              </p>
+              <p>
+                These disclosure may be required for us to provide you access to
+                our services and products offered to you, to comply with our
+                legal obligations, to enforce our user agreement, to facilitate
+                our marketing and advertising activities, to prevent, detect,
+                mitigate, and investigate fraudulent or illegal activities
+                related to our services. We may disclose personal and sensitive
+                personal data to government agencies or other authorised law
+                enforcement agencies if required to do so by law or in the good
+                faith belief that such disclosure is reasonably necessary to
+                respond to subpoenas, court orders, or other legal process.
+              </p>
+              <p>
+                We may disclose personal data to law enforcement offices, third
+                party rights owners, or others in the good faith belief that
+                such disclosure is reasonably necessary to: enforce our Terms of
+                Use or Privacy Policy; respond to claims that an advertisement,
+                posting or other content violates the rights of a third party;
+                or protect the rights, property or personal safety of our users
+                or the general public.
+              </p>
+
+              <p className="font-semibold text-white">Security Precautions</p>
+              <p>
+                To protect your personal data from unauthorised access or
+                disclosure, loss or misuse we adopt reasonable security
+                practices and procedures. Once your information is in our
+                possession or whenever you access your account information, we
+                adhere to our security guidelines to protect it against
+                unauthorised access and offer the use of a secure server.
+                However, the transmission of information is not completely
+                secure for reasons beyond our control. By using the Platform,
+                the users accept the security implications of data transmission
+                over the internet and the World Wide Web which cannot always be
+                guaranteed as completely secure, and therefore, there would
+                always remain certain inherent risks regarding use of the
+                Platform. Users are responsible for ensuring the protection of
+                login and password records for their account.
+              </p>
+
+              <p className="font-semibold text-white">Data Deletion and Retention</p>
+              <p>
+                You have an option to delete your account by visiting your
+                profile and settings on our Platform, this action would result
+                in you losing all information related to your account. You may
+                also write to us at the contact information provided below to
+                assist you with these requests. We may in event of any pending
+                grievance, claims, pending shipments or any other services we
+                may refuse or delay deletion of the account. Once the account is
+                deleted, you will lose access to the account.
+              </p>
+              <p>
+                We retain your personal data information for a period no longer
+                than is required for the purpose for which it was collected or
+                as required under any applicable law. However, we may retain
+                data related to you if we believe it may be necessary to prevent
+                fraud or future abuse or for other legitimate purposes. We may
+                continue to retain your data in anonymised form for analytical
+                and research purposes.
+              </p>
+
+              <p className="font-semibold text-white">Your Rights</p>
+              <p>
+                You may access, rectify, and update your personal data directly
+                through the functionalities provided on the Platform.
+              </p>
+
+              <p className="font-semibold text-white">Consent</p>
+              <p>
+                By visiting our Platform or by providing your information, you
+                consent to the collection, use, storage, disclosure and
+                otherwise processing of your information on the Platform in
+                accordance with this Privacy Policy. If you disclose to us any
+                personal data relating to other people, you represent that you
+                have the authority to do so and permit us to use the information
+                in accordance with this Privacy Policy.
+              </p>
+              <p>
+                You, while providing your personal data over the Platform or any
+                partner platforms or establishments, consent to us (including
+                our other corporate entities, affiliates, lending partners,
+                technology partners, marketing channels, business partners and
+                other third parties) to contact you through SMS, instant
+                messaging apps, call and/or e-mail for the purposes specified in
+                this Privacy Policy.
+              </p>
+              <p>
+                You have an option to withdraw your consent that you have
+                already provided by writing to the Grievance Officer at the
+                contact information provided below. Please mention
+                &quot;Withdrawal of consent for processing personal data&quot; in
+                your subject line of your communication. We may verify such
+                requests before acting on our request. However, please note that
+                your withdrawal of consent will not be retrospective and will be
+                in accordance with the Terms of Use, this Privacy Policy, and
+                applicable laws. In the event you withdraw consent given to us
+                under this Privacy Policy, we reserve the right to restrict or
+                deny the provision of our services for which we consider such
+                information to be necessary.
+              </p>
+
+              <p className="font-semibold text-white">Changes to this Privacy Policy</p>
+              <p>
+                Please check our Privacy Policy periodically for changes. We may
+                update this Privacy Policy to reflect changes to our information
+                practices. We may alert / notify you about the significant
+                changes to the Privacy Policy, in the manner as may be required
+                under applicable laws.
+              </p>
+
+              <p className="font-semibold text-white">Grievance Officer</p>
+              <p>Insert Name of the Office:</p>
+              <p>Designation:</p>
+              <p>Insert Name and Address of the Company:</p>
+              <p>Contact us:</p>
+              <p>Phone: Time: Monday - Friday (9:00 - 18:00)</p>
+
+              <p className="font-semibold text-white">Refund and Cancellation Policy</p>
+              <p>
+                This refund and cancellation policy outlines how you can cancel
+                or seek a refund for a product / service that you have purchased
+                through the Platform. Under this policy:
+              </p>
+              <p>
+                Cancellations will only be considered if the request is made 2
+                days of placing the order. However, cancellation requests may
+                not be entertained if the orders have been communicated to such
+                sellers / merchant(s) listed on the Platform and they have
+                initiated the process of shipping them, or the product is out
+                for delivery. In such an event, you may choose to reject the
+                product at the doorstep.
+              </p>
+              <p>
+                8459608568 does not accept cancellation requests for perishable
+                items like flowers, eatables, etc. However, the refund /
+                replacement can be made if the user establishes that the quality
+                of the product delivered is not good.
+              </p>
+              <p>
+                In case of receipt of damaged or defective items, please report
+                to our customer service team. The request would be entertained
+                once the seller/merchant listed on the Platform, has checked and
+                determined the same at its own end. This should be reported
+                within 2 days of receipt of products. In case you feel that the
+                product received is not as shown on the site or as per your
+                expectations, you must bring it to the notice of our customer
+                service within 2 days of receiving the product. The customer
+                service team after looking into your complaint will take an
+                appropriate decision.
+              </p>
+              <p>
+                In case of complaints regarding the products that come with a
+                warranty from the manufacturers, please refer the issue to them.
+              </p>
+              <p>
+                In case of any refunds approved by 8459608568, it will take 7
+                days for the refund to be processed to you.
+              </p>
+
+              <p className="font-semibold text-white">Return Policy</p>
+              <p>
+                We offer refund / exchange within first 2 days from the date of
+                your purchase. If 2 days have passed since your purchase, you
+                will not be offered a return, exchange or refund of any kind. In
+                order to become eligible for a return or an exchange, (i) the
+                purchased item should be unused and in the same condition as you
+                received it, (ii) the item must have original packaging, (iii)
+                if the item that you purchased on a sale, then the item may not
+                be eligible for a return / exchange.
+              </p>
+              <p>
+                Further, only such items are replaced by us (based on an
+                exchange request), if such items are found defective or damaged.
+                You agree that there may be a certain category of products /
+                items that are exempted from returns or refunds. Such categories
+                of the products would be identified to you at the item of
+                purchase.
+              </p>
+              <p>
+                For exchange / return accepted request(s) (as applicable), once
+                your returned product / item is received and inspected by us, we
+                will send you an email to notify you about receipt of the
+                returned / exchanged product. Further, if the same has been
+                approved after the quality check at our end, your request (i.e.
+                return / exchange) will be processed in accordance with our
+                policies.
+              </p>
+
+              <p className="font-semibold text-white">Shipping Policy</p>
+              <p>
+                The orders for the user are shipped through registered domestic
+                courier companies and/or speed post only. Orders are shipped
+                within 1 days from the date of the order and/or payment or as
+                per the delivery date agreed at the time of order confirmation
+                and delivering of the shipment, subject to courier company / post
+                office norms. Platform Owner shall not be liable for any delay
+                in delivery by the courier company / postal authority.
+              </p>
+              <p>
+                Delivery of all orders will be made to the address provided by
+                the buyer at the time of purchase. Delivery of our services will
+                be confirmed on your email ID as specified at the time of
+                registration. If there are any shipping cost(s) levied by the
+                seller or the Platform Owner (as the case be), the same is not
+                refundable.
+              </p>
+            </div>
+          </details>
+        </div>
+
+        <p className="mt-8 border-t border-teal-100/20 pt-5 text-xs text-teal-50/80">
+          Copyright {new Date().getFullYear()} NamasteBharat24. All rights reserved. |{" "}
+          Design and maintain by Webakoof
         </p>
       </div>
     </footer>

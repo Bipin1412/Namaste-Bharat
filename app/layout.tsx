@@ -60,8 +60,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <MarketplaceHeader />
         <div className="mx-auto flex min-h-dvh w-full max-w-7xl flex-col">
           <main className="flex-1 pb-20 md:pb-8">{children}</main>
-          <SiteFooter />
         </div>
+        <SiteFooter />
         <BottomNav />
       </body>
     </html>

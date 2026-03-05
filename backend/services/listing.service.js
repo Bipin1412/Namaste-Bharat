@@ -186,6 +186,23 @@ function mapReview(row) {
   };
 }
 
+function mapDailyInquiry(row) {
+  return {
+    id: row.id,
+    cityName: row.city_name,
+    inquiryDate: row.inquiry_date,
+    shortDescription: row.short_description,
+    phoneNumber: row.phone_number,
+    createdAt: row.created_at,
+  };
+}
+
+function maskPhoneNumber(phoneNumber) {
+  const digits = String(phoneNumber || "").replace(/\D/g, "");
+  if (digits.length <= 4) return digits;
+  return `${digits.slice(0, 2)}${"*".repeat(digits.length - 4)}${digits.slice(-2)}`;
+}
+
 async function listBusinesses(filters) {
   ensureAdminClient();
   const { data, error } = await supabaseAdminClient.from("businesses").select("*");
@@ -558,6 +575,44 @@ async function getSellerAnalytics(businessId) {
   };
 }
 
+async function listDailyInquiries() {
+  ensureAdminClient();
+  const { data, error } = await supabaseAdminClient
+    .from("daily_inquiries")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map(mapDailyInquiry);
+}
+
+async function createDailyInquiry(input) {
+  ensureAdminClient();
+  const { data, error } = await supabaseAdminClient
+    .from("daily_inquiries")
+    .insert({
+      city_name: input.cityName,
+      inquiry_date: input.inquiryDate,
+      short_description: input.shortDescription,
+      phone_number: input.phoneNumber,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return mapDailyInquiry(data);
+}
+
+async function deleteDailyInquiry(id) {
+  ensureAdminClient();
+  const { error, count } = await supabaseAdminClient
+    .from("daily_inquiries")
+    .delete({ count: "exact" })
+    .eq("id", id);
+
+  if (error) throw error;
+  return Boolean(count);
+}
+
 module.exports = {
   listBusinesses,
   listAdminListings,
@@ -575,4 +630,8 @@ module.exports = {
   createReview,
   getHomeSnapshot,
   getSellerAnalytics,
+  listDailyInquiries,
+  createDailyInquiry,
+  deleteDailyInquiry,
+  maskPhoneNumber,
 };

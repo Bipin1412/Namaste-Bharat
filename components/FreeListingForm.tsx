@@ -8,6 +8,7 @@ type ListingPayload = {
   category: string;
   locality: string;
   city: string;
+  email: string;
   rating: number;
   reviewCount: number;
   isOpenNow: boolean;
@@ -15,6 +16,45 @@ type ListingPayload = {
   phone: string;
   whatsappNumber: string;
 };
+
+const supportedCities = [
+  "Mumbai City",
+  "Mumbai Suburban",
+  "Thane",
+  "Palghar",
+  "Raigad",
+  "Ratnagiri",
+  "Sindhudurg",
+  "Pune",
+  "Satara",
+  "Sangli",
+  "Kolhapur",
+  "Solapur",
+  "Nashik",
+  "Dhule",
+  "Nandurbar",
+  "Jalgaon",
+  "Ahmednagar",
+  "Chhatrapati Sambhaji Nagar (Aurangabad)",
+  "Jalna",
+  "Parbhani",
+  "Hingoli",
+  "Beed",
+  "Dharashiv (Osmanabad)",
+  "Nanded",
+  "Latur",
+  "Amravati",
+  "Akola",
+  "Buldhana",
+  "Washim",
+  "Yavatmal",
+  "Nagpur",
+  "Wardha",
+  "Bhandara",
+  "Gondia",
+  "Chandrapur",
+  "Gadchiroli",
+];
 
 function normalizeIndianPhone(value: string): string {
   const digits = value.replace(/\D/g, "").slice(-10);
@@ -27,7 +67,9 @@ function normalizeIndianPhone(value: string): string {
 export default function FreeListingForm() {
   const [businessName, setBusinessName] = useState("");
   const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
+  const [isCityConfirmed, setIsCityConfirmed] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
@@ -56,7 +98,11 @@ export default function FreeListingForm() {
           .filter(Boolean);
 
         if (!mounted) return;
-        setAvailableCategories(Array.from(new Set(names)));
+        setAvailableCategories(
+          Array.from(new Set(names)).sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: "base" })
+          )
+        );
       } catch {
         if (!mounted) return;
         setAvailableCategories([]);
@@ -98,12 +144,23 @@ export default function FreeListingForm() {
     return (
       businessName.trim().length > 2 &&
       mobile.replace(/\D/g, "").length >= 10 &&
+      email.trim().length > 4 &&
       city.trim().length > 1 &&
+      isCityConfirmed &&
       selectedCategories.length > 0 &&
       locality.trim().length > 1 &&
       agreeTerms
     );
-  }, [agreeTerms, businessName, city, locality, mobile, selectedCategories.length]);
+  }, [
+    agreeTerms,
+    businessName,
+    city,
+    email,
+    isCityConfirmed,
+    locality,
+    mobile,
+    selectedCategories.length,
+  ]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -127,6 +184,7 @@ export default function FreeListingForm() {
       verified: false,
       phone,
       whatsappNumber: phone,
+      email: email.trim(),
     };
 
     try {
@@ -151,7 +209,9 @@ export default function FreeListingForm() {
       setMessage("Listing request submitted. Our team will verify and activate it.");
       setBusinessName("");
       setMobile("");
+      setEmail("");
       setCity("");
+      setIsCityConfirmed(false);
       setSelectedCategories([]);
       setLocality("");
     } catch (error) {
@@ -194,13 +254,41 @@ export default function FreeListingForm() {
           inputMode="numeric"
           className="h-11 rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
         />
+        <input
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="Email ID"
+          type="email"
+          className="h-11 rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+        />
         <div className="grid gap-2 sm:grid-cols-2">
-          <input
-            value={city}
-            onChange={(event) => setCity(event.target.value)}
-            placeholder="City"
-            className="h-11 rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
-          />
+          <div className="space-y-2">
+            <select
+              value={city}
+              onChange={(event) => {
+                setCity(event.target.value);
+                setIsCityConfirmed(false);
+              }}
+              className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Select city</option>
+              {supportedCities.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <label className="inline-flex items-center gap-2 text-xs text-slate-600">
+              <input
+                type="checkbox"
+                checked={isCityConfirmed}
+                onChange={(event) => setIsCityConfirmed(event.target.checked)}
+                disabled={!city}
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              Confirm selected city
+            </label>
+          </div>
           <input
             value={locality}
             onChange={(event) => setLocality(event.target.value)}

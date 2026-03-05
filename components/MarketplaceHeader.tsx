@@ -27,7 +27,7 @@ type HeaderItem = {
 const headerItems: HeaderItem[] = [
   { href: "/", label: "Home", Icon: Home },
   { href: "/free-listing", label: "Free Listing", Icon: BriefcaseBusiness },
-  { href: "/discover", label: "Discover", Icon: Compass },
+  { href: "/daily-inquiry", label: "Daily Inquiry", Icon: Compass },
   { href: "/stories", label: "Stories", Icon: Sparkles },
   { href: "/search", label: "Search", Icon: Search },
   { href: "/profile", label: "Account", Icon: UserRound },

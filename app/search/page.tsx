@@ -22,6 +22,15 @@ export default function SearchPage() {
   const router = useRouter();
   const pathname = usePathname();
   const urlQuery = searchParams.get("q") ?? "";
+  const urlVerified = (searchParams.get("verified") ?? "").toLowerCase() === "true";
+  const urlOpenNow = (searchParams.get("openNow") ?? "").toLowerCase() === "true";
+  const urlSort =
+    (searchParams.get("sort") as
+      | "rating_desc"
+      | "rating_asc"
+      | "reviews_desc"
+      | "newest"
+      | null) ?? "rating_desc";
 
   const [query, setQuery] = useState(urlQuery);
   const [businesses, setBusinesses] = useState<BusinessCardData[]>([]);
@@ -49,6 +58,33 @@ export default function SearchPage() {
     });
   }
 
+  function syncFilterToUrl(nextFilters: {
+    verified?: boolean;
+    openNow?: boolean;
+    sort?: "rating_desc" | "rating_asc" | "reviews_desc" | "newest";
+  }) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (typeof nextFilters.verified === "boolean") {
+      if (nextFilters.verified) params.set("verified", "true");
+      else params.delete("verified");
+    }
+
+    if (typeof nextFilters.openNow === "boolean") {
+      if (nextFilters.openNow) params.set("openNow", "true");
+      else params.delete("openNow");
+    }
+
+    if (nextFilters.sort) {
+      params.set("sort", nextFilters.sort);
+    }
+
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+  }
+
   useEffect(() => {
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -59,11 +95,17 @@ export default function SearchPage() {
         const params = new URLSearchParams({
           page: "1",
           limit: "18",
-          sort: "rating_desc",
+          sort: urlSort,
         });
 
         if (query.trim()) {
           params.set("q", query.trim());
+        }
+        if (urlVerified) {
+          params.set("verified", "true");
+        }
+        if (urlOpenNow) {
+          params.set("openNow", "true");
         }
 
         const response = await fetch(`/api/businesses?${params.toString()}`, {
@@ -100,7 +142,7 @@ export default function SearchPage() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, urlOpenNow, urlSort, urlVerified]);
 
   const statusText = useMemo(() => {
     if (isLoading) {
@@ -150,24 +192,31 @@ export default function SearchPage() {
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <button
                 type="button"
+                onClick={() => syncFilterToUrl({ verified: !urlVerified })}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
               >
-                Verified businesses
+                {urlVerified ? "Verified businesses (On)" : "Verified businesses"}
               </button>
               <button
                 type="button"
+                onClick={() => syncFilterToUrl({ openNow: !urlOpenNow })}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
               >
-                Open now
+                {urlOpenNow ? "Open now (On)" : "Open now"}
               </button>
               <button
                 type="button"
+                onClick={() => syncFilterToUrl({ sort: "rating_desc" })}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
               >
                 Top rated 4.5+
               </button>
               <button
                 type="button"
+                onClick={() => {
+                  setQuery("whatsapp");
+                  syncQueryToUrl("whatsapp");
+                }}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
               >
                 WhatsApp available

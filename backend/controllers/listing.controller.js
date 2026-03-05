@@ -5,6 +5,7 @@ const {
   validateUpdateBusinessPayload,
   validateCreateLeadPayload,
   validateCreateReviewPayload,
+  validateCreateDailyInquiryPayload,
 } = require("../utils/listing.validators");
 const {
   listBusinesses,
@@ -23,6 +24,10 @@ const {
   createReview,
   getHomeSnapshot,
   getSellerAnalytics,
+  listDailyInquiries,
+  createDailyInquiry,
+  deleteDailyInquiry,
+  maskPhoneNumber,
 } = require("../services/listing.service");
 
 function handleError(res, error, fallbackMessage) {
@@ -300,6 +305,65 @@ async function sellerAnalytics(req, res) {
   }
 }
 
+async function dailyInquiries(_req, res) {
+  try {
+    const data = await listDailyInquiries();
+    const publicData = data.map((entry) => ({
+      ...entry,
+      phoneNumber: maskPhoneNumber(entry.phoneNumber),
+    }));
+    return res.json({
+      data: publicData,
+      meta: { total: publicData.length },
+    });
+  } catch (error) {
+    return handleError(res, error, "Could not load daily inquiries.");
+  }
+}
+
+async function createDailyInquiryHandler(req, res) {
+  const validation = validateCreateDailyInquiryPayload(req.body);
+  if (!validation.ok) {
+    return res.status(400).json({
+      error: { message: "Invalid daily inquiry payload.", details: validation.errors },
+    });
+  }
+
+  try {
+    const created = await createDailyInquiry(validation.data);
+    return res.status(201).json({
+      ...created,
+      phoneNumber: maskPhoneNumber(created.phoneNumber),
+    });
+  } catch (error) {
+    return handleError(res, error, "Could not create daily inquiry.");
+  }
+}
+
+async function adminDailyInquiries(_req, res) {
+  try {
+    const data = await listDailyInquiries();
+    return res.json({
+      data,
+      meta: { total: data.length },
+    });
+  } catch (error) {
+    return handleError(res, error, "Could not load admin daily inquiries.");
+  }
+}
+
+async function deleteDailyInquiryHandler(req, res) {
+  try {
+    const removed = await deleteDailyInquiry(req.params.id);
+    if (!removed) {
+      return res.status(404).json({ error: { message: "Daily inquiry not found." } });
+    }
+    return res.json({ ok: true });
+  } catch (error) {
+    return handleError(res, error, "Could not delete daily inquiry.");
+  }
+}
+
 module.exports = {
   home,
   categories,
@@ -318,4 +382,8 @@ module.exports = {
   reviews,
   createReviewHandler,
   sellerAnalytics,
+  dailyInquiries,
+  createDailyInquiryHandler,
+  adminDailyInquiries,
+  deleteDailyInquiryHandler,
 };

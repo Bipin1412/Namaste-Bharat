@@ -18,9 +18,9 @@ const reviewRoutes = [
     href: "/search",
   },
   {
-    title: "Discovery Reels",
-    description: "Vertical reels feed with snap scrolling and interaction CTAs.",
-    href: "/discover",
+    title: "Daily Inquiry",
+    description: "Daily inquiry dashboard page placeholder.",
+    href: "/daily-inquiry",
   },
   {
     title: "Business Profile",

@@ -245,10 +245,10 @@ export default function ProfilePage() {
             Client Demo Pack
           </Link>
           <Link
-            href="/discover"
+            href="/daily-inquiry"
             className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Go to Discovery Feed
+            Go to Daily Inquiry
           </Link>
         </div>
       </div>

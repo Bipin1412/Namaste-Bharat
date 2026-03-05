@@ -1142,10 +1142,10 @@
       "updatedAt": "2026-02-26T05:01:16.108Z",
       "media": {
         "coverImages": [
-          "/product-images/shitalfoods.png"
+          "/product-images/shitalfoods.jpeg"
         ],
         "gallery": [
-          "/product-images/shitalfoods.png"
+          "/product-images/shitalfoods.jpeg"
         ]
       }
     },
@@ -2153,10 +2153,10 @@
       "updatedAt": "2026-02-26T05:00:15.585Z",
       "media": {
         "coverImages": [
-          "/product-images/vegetarian-food.png"
+          "/product-images/karve-logo.jpeg"
         ],
         "gallery": [
-          "/product-images/vegetarian-food.png"
+          "/product-images/karve-logo.jpeg"
         ]
       }
     },
@@ -3185,6 +3185,43 @@
       "source": "profile",
       "id": "173b6303-7807-4c27-bf7f-e4161ea62b59",
       "createdAt": "2026-02-27T04:11:16.190Z"
+    },
+    {
+      "businessId": "b-4",
+      "name": "Anonymous Visitor",
+      "phone": "919200334455",
+      "message": "Interested in Ganraj Caterers",
+      "source": "profile",
+      "id": "f3f3d6dd-c76c-415f-ae68-87fac6727b06",
+      "createdAt": "2026-03-05T04:52:16.997Z"
+    },
+    {
+      "businessId": "b-4",
+      "name": "Anonymous Visitor",
+      "phone": "919200334455",
+      "message": "Interested in Ganraj Caterers",
+      "source": "profile",
+      "id": "7fcbe128-89aa-4971-9262-be9674a556a9",
+      "createdAt": "2026-03-05T04:55:41.598Z"
+    },
+    {
+      "businessId": "8e75fa47-d0a3-404b-8f28-65177d5f6f98",
+      "name": "Anonymous Visitor",
+      "phone": "917757994416",
+      "message": "Interested in Praavi Consultants",
+      "source": "profile",
+      "id": "a31da99d-793b-4373-ba11-90e61e4143d8",
+      "createdAt": "2026-03-05T05:04:44.669Z"
+    },
+    {
+      "businessId": "1ab29b34-555d-4bc8-a133-4a3685c8c60f",
+      "name": "Anonymous Visitor",
+      "phone": "919422714975",
+      "message": "Interested in Shitalfoods",
+      "source": "profile",
+      "id": "3b136140-49e1-417f-ad89-97d4d4d9e145",
+      "createdAt": "2026-03-05T06:33:32.544Z"
     }
   ]
 }
+

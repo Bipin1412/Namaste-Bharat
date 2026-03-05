@@ -53,12 +53,12 @@ const fallbackCategories: CategoryTile[] = [
 ];
 
 const quickShortcuts = [
-  "B2B",
-  "B2C",
-  "Open Now",
-  "Top Rated",
-  "Near Me",
-  "Verified Only",
+  { label: "B2B", href: "/search?q=B2B" },
+  { label: "B2C", href: "/search?q=B2C" },
+  { label: "Open Now", href: "/search?openNow=true&sort=rating_desc" },
+  { label: "Top Rated", href: "/search?sort=rating_desc" },
+  { label: "Near Me", href: "/search?q=near me" },
+  { label: "Verified Only", href: "/search?verified=true&sort=rating_desc" },
 ];
 
 function pickIconForCategory(label: string): LucideIcon {
@@ -152,11 +152,11 @@ export default async function HomePage() {
           <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
             {quickShortcuts.map((item) => (
               <Link
-                key={item}
-                href={`/search?q=${encodeURIComponent(item)}`}
+                key={item.label}
+                href={item.href}
                 className="whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               >
-                {item}
+                {item.label}
               </Link>
             ))}
           </div>
@@ -182,10 +182,10 @@ export default async function HomePage() {
                 Start Search
               </Link>
               <Link
-                href="/discover"
+                href="/daily-inquiry"
                 className="inline-flex h-9 items-center rounded-lg border border-blue-300/50 bg-blue-600/40 px-3 text-sm font-medium text-white"
               >
-                Open Reels
+                Open Daily Inquiry
               </Link>
             </div>
           </div>
