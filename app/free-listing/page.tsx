@@ -54,9 +54,9 @@ const listingSteps = [
 
 const faqs = [
   {
-    question: "Is free listing really free on Namaste Bharat?",
+    question: "Is listing available on Namaste Bharat?",
     answer:
-      "Yes. Creating and publishing your basic business profile is free. Paid promotional slots are optional.",
+      "Yes. Creating and publishing your basic business profile is available without signup charge. Paid promotional slots are optional.",
   },
   {
     question: "How long does verification take?",
@@ -93,7 +93,7 @@ const learningCards = [
   },
 ];
 
-export default function FreeListingPage() {
+export default function ListingPage() {
   return (
     <div className="min-h-dvh bg-slate-50">
       <section className="mx-auto max-w-7xl space-y-6 px-4 pb-24 pt-4 md:px-6 lg:px-8">
@@ -101,10 +101,10 @@ export default function FreeListingPage() {
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_34px_-24px_rgba(15,23,42,0.4)] md:p-6">
             <p className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">
               <Megaphone className="h-3.5 w-3.5" aria-hidden />
-              Free Listing
+              Listing
             </p>
             <h1 className="text-3xl font-semibold leading-tight tracking-[0.01em] text-slate-900 md:text-4xl">
-              List Your Business for FREE on Namaste Bharat
+              List Your Business on Namaste Bharat
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
               Build trust, get discovered by nearby customers, and receive
@@ -203,7 +203,7 @@ export default function FreeListingPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
           <p className="mb-4 text-lg font-semibold text-slate-900">
-            Get a FREE Business Listing in 3 Simple Steps
+            Get a Business Listing in 3 Simple Steps
           </p>
           <div className="grid gap-3 md:grid-cols-3">
             {listingSteps.map(({ title, description, Icon }, index) => (
@@ -319,3 +319,4 @@ export default function FreeListingPage() {
     </div>
   );
 }
+

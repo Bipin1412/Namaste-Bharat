@@ -2172,7 +2172,7 @@
       "phone": "917709007306",
       "whatsappNumber": "917709007306",
       "tagline": "Owner: Apurva Amarendra Sathe",
-      "description": "Natural products, milk ghee A2, poison free pack food products like amla papdi, khajur pickle, kharik bites, natural fruits (Anjir, grapes).",
+      "description": "Natural products, milk ghee A2, poison-safe pack food products like amla papdi, khajur pickle, kharik bites, natural fruits (Anjir, grapes).",
       "ownerName": "Apurva Amarendra Sathe",
       "addressLine1": "107/9 Jaygad Bharati Niwas, flat no 202, opp Income Tax, Prabhat Rd, Lane no 14, Pune",
       "pincode": "411004",
@@ -2610,7 +2610,7 @@
     },
     {
       "id": "o-2",
-      "title": "Free Quote on Bulk Orders",
+      "title": "Quote on Bulk Orders",
       "subtitle": "Manufacturing and logistics suppliers can respond within 15 mins.",
       "badge": "B2B",
       "active": true,
@@ -3224,4 +3224,5 @@
     }
   ]
 }
+
 

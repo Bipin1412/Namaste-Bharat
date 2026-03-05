@@ -201,7 +201,7 @@ export default function FreeListingForm() {
           | { error?: { message?: string } }
           | null;
         throw new Error(
-          errorPayload?.error?.message ?? "Could not submit free listing."
+          errorPayload?.error?.message ?? "Could not submit listing."
         );
       }
 
@@ -233,7 +233,7 @@ export default function FreeListingForm() {
     >
       <div className="mb-3">
         <p className="text-lg font-semibold text-slate-900">
-          List Your Business for FREE
+          List Your Business
         </p>
         <p className="text-sm text-slate-600">
           Reach local customers on search, reels, and WhatsApp.
@@ -372,7 +372,7 @@ export default function FreeListingForm() {
             Submitting...
           </>
         ) : (
-          "Start Free Listing"
+          "Start Listing"
         )}
       </button>
 
@@ -389,3 +389,4 @@ export default function FreeListingForm() {
     </form>
   );
 }
+

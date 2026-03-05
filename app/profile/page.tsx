@@ -175,7 +175,7 @@ export default function ProfilePage() {
                 profile area.
               </p>
               <p className="leading-relaxed tracking-[0.012em]">
-                For seller onboarding, use Free Listing and update your details
+                For seller onboarding, use Listing and update your details
                 after verification.
               </p>
             </div>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
             href="/free-listing"
             className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Go to Free Listing
+            Go to Listing
           </Link>
           <Link
             href="/seller/dashboard"
@@ -255,3 +255,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

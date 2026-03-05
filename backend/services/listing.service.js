@@ -26,14 +26,123 @@ function paginate(items, page, limit) {
   };
 }
 
+function normalizeSearchText(value) {
+  return normalizeText(value).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function tokenizeQuery(query) {
+  const tokens = normalizeSearchText(query).split(" ").filter((token) => token.length >= 2);
+  return [...new Set(tokens)];
+}
+
+function scoreField(fieldValue, tokens, weight) {
+  const normalized = normalizeSearchText(fieldValue);
+  if (!normalized) return 0;
+  const words = normalized.split(" ").filter(Boolean);
+  let score = 0;
+
+  for (const token of tokens) {
+    if (words.some((word) => word === token)) {
+      score += weight * 3;
+      continue;
+    }
+    if (token.length <= 3) {
+      continue;
+    }
+    if (words.some((word) => word.startsWith(token))) {
+      score += weight * 2;
+      continue;
+    }
+    if (token.length >= 4 && normalized.includes(token)) {
+      score += weight;
+    }
+  }
+
+  return score;
+}
+
+function tokenMatchesRow(entry, token) {
+  const fields = [
+    entry.name,
+    entry.category,
+    ...(entry.keywords || []),
+    ...(entry.highlights || []),
+    entry.tagline || "",
+    entry.description || "",
+    entry.locality,
+    entry.city,
+    entry.address_line_1,
+    entry.address_line_2,
+    entry.owner_name,
+  ];
+
+  return fields.some((field) => {
+    const normalized = normalizeSearchText(field);
+    if (!normalized) return false;
+    const words = normalized.split(" ").filter(Boolean);
+    if (words.some((word) => word === token)) {
+      return true;
+    }
+    if (token.length <= 3) {
+      return false;
+    }
+    if (words.some((word) => word.startsWith(token))) {
+      return true;
+    }
+    return token.length >= 4 && normalized.includes(token);
+  });
+}
+
+function getBusinessRelevanceScore(entry, tokens) {
+  const servicesText = (entry.services || [])
+    .map((service) => String(service?.name || ""))
+    .join(" ");
+
+  return (
+    scoreField(entry.name, tokens, 8) +
+    scoreField(entry.category, tokens, 7) +
+    scoreField((entry.keywords || []).join(" "), tokens, 6) +
+    scoreField(servicesText, tokens, 5) +
+    scoreField((entry.highlights || []).join(" "), tokens, 4) +
+    scoreField(entry.tagline || "", tokens, 3) +
+    scoreField(entry.description || "", tokens, 2) +
+    scoreField(entry.locality || "", tokens, 2) +
+    scoreField(entry.city || "", tokens, 2) +
+    scoreField(entry.address_line_1 || "", tokens, 1) +
+    scoreField(entry.address_line_2 || "", tokens, 1) +
+    scoreField(entry.owner_name || "", tokens, 1)
+  );
+}
+
+function compareBySort(a, b, sort) {
+  switch (sort) {
+    case "rating_asc":
+      return Number(a.rating || 0) - Number(b.rating || 0);
+    case "reviews_desc":
+      return Number(b.review_count || 0) - Number(a.review_count || 0);
+    case "newest":
+      return String(b.created_at).localeCompare(String(a.created_at));
+    default:
+      return Number(b.rating || 0) - Number(a.rating || 0);
+  }
+}
+
 function applyBusinessFilters(businesses, filters) {
   const query = normalizeText(filters.q);
+  const queryTokens = tokenizeQuery(query);
   const category = normalizeText(filters.category);
   const city = normalizeText(filters.city);
 
-  let filtered = businesses.filter((entry) => {
+  const scored = businesses.flatMap((entry) => {
     if (!filters.includeInactive && entry.listing_status && entry.listing_status !== "active") {
-      return false;
+      return [];
+    }
+
+    if (queryTokens.length > 0) {
+      const allTokensMatch = queryTokens.every((token) => tokenMatchesRow(entry, token));
+      if (!allTokensMatch) {
+        return [];
+      }
     }
 
     if (query) {
@@ -58,42 +167,41 @@ function applyBusinessFilters(businesses, filters) {
         .toLowerCase();
 
       if (!haystack.includes(query)) {
-        return false;
+        return [];
       }
     }
 
     if (category && normalizeText(entry.category) !== category) {
-      return false;
+      return [];
     }
     if (city && normalizeText(entry.city) !== city) {
-      return false;
+      return [];
     }
     if (typeof filters.verified === "boolean" && Boolean(entry.verified) !== filters.verified) {
-      return false;
+      return [];
     }
     if (typeof filters.openNow === "boolean" && Boolean(entry.is_open_now) !== filters.openNow) {
-      return false;
+      return [];
     }
 
-    return true;
+    const relevanceScore =
+      queryTokens.length > 0 ? getBusinessRelevanceScore(entry, queryTokens) : 0;
+    if (queryTokens.length > 0 && relevanceScore < 3) {
+      return [];
+    }
+
+    return [{ entry, relevanceScore }];
   });
 
-  switch (filters.sort) {
-    case "rating_asc":
-      filtered.sort((a, b) => Number(a.rating || 0) - Number(b.rating || 0));
-      break;
-    case "reviews_desc":
-      filtered.sort((a, b) => Number(b.review_count || 0) - Number(a.review_count || 0));
-      break;
-    case "newest":
-      filtered.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-      break;
-    default:
-      filtered.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
-      break;
-  }
+  const sort = filters.sort || "rating_desc";
+  const sorted = scored.sort((a, b) => {
+    if (queryTokens.length > 0 && b.relevanceScore !== a.relevanceScore) {
+      return b.relevanceScore - a.relevanceScore;
+    }
+    return compareBySort(a.entry, b.entry, sort);
+  });
 
-  return filtered;
+  return sorted.map((item) => item.entry);
 }
 
 function mapBusiness(row) {

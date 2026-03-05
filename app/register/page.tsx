@@ -20,14 +20,14 @@ export default function RegisterPage() {
               manage your profile.
             </p>
             <div className="mt-5 rounded-xl bg-white/15 p-3 text-sm text-emerald-50">
-              Business owners can use this account and then submit free listing
+              Business owners can use this account and then submit listing
               details from the onboarding page.
             </div>
             <Link
               href="/free-listing"
               className="mt-4 inline-flex text-sm font-semibold text-white underline"
             >
-              Go to Free Listing page
+              Go to Listing page
             </Link>
           </div>
 
@@ -43,3 +43,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

@@ -38,7 +38,7 @@ const reviewRoutes = [
     href: "/free-listing/detailed",
   },
   {
-    title: "Free Listing",
+    title: "Listing",
     description: "Lead capture + onboarding funnel for seller acquisition.",
     href: "/free-listing",
   },
@@ -98,7 +98,7 @@ const qaChecks = [
   "Mobile and desktop navigation",
   "Search listing and filtering behavior",
   "Reels loading and interaction actions",
-  "Free listing form submission",
+  "Listing form submission",
   "Seller dashboard and leads inbox flow",
   "Admin moderation review flow",
   "Map plus list discovery behavior",
@@ -172,3 +172,4 @@ export default function DesignReviewPage() {
     </div>
   );
 }
+

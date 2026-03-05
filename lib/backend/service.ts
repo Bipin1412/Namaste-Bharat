@@ -47,6 +47,15 @@ function normalizeText(value?: string): string {
   return (value ?? "").trim().toLowerCase();
 }
 
+function normalizeSearchText(value?: string): string {
+  return normalizeText(value).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function tokenizeQuery(query: string): string[] {
+  const tokens = normalizeSearchText(query).split(" ").filter((token) => token.length >= 2);
+  return [...new Set(tokens)];
+}
+
 function getPageAndLimit(input: PaginationInput): { page: number; limit: number } {
   const page = Number.isFinite(input.page) && input.page && input.page > 0
     ? Math.floor(input.page)
@@ -128,54 +137,159 @@ function buildBusinessSearchText(entry: Business): string {
     .toLowerCase();
 }
 
+function scoreField(fieldValue: string, tokens: string[], weight: number): number {
+  const normalized = normalizeSearchText(fieldValue);
+  if (!normalized) return 0;
+  const words = normalized.split(" ").filter(Boolean);
+  let score = 0;
+
+  for (const token of tokens) {
+    if (words.some((word) => word === token)) {
+      score += weight * 3;
+      continue;
+    }
+    if (token.length <= 3) {
+      continue;
+    }
+    if (words.some((word) => word.startsWith(token))) {
+      score += weight * 2;
+      continue;
+    }
+    // Keep contains-match strict for short tokens (e.g. "car" should not match "healthcare").
+    if (token.length >= 4 && normalized.includes(token)) {
+      score += weight;
+    }
+  }
+
+  return score;
+}
+
+function tokenMatchesEntry(entry: Business, token: string): boolean {
+  const fields = [
+    entry.name,
+    entry.category,
+    ...(entry.keywords ?? []),
+    ...(entry.highlights ?? []),
+    entry.tagline ?? "",
+    entry.description ?? "",
+    entry.locality,
+    entry.city,
+    entry.addressLine1 ?? "",
+    entry.addressLine2 ?? "",
+    entry.ownerName ?? "",
+  ];
+
+  return fields.some((field) => {
+    const normalized = normalizeSearchText(field);
+    if (!normalized) return false;
+    const words = normalized.split(" ").filter(Boolean);
+    if (words.some((word) => word === token)) {
+      return true;
+    }
+    if (token.length <= 3) {
+      return false;
+    }
+    if (words.some((word) => word.startsWith(token))) {
+      return true;
+    }
+    return token.length >= 4 && normalized.includes(token);
+  });
+}
+
+function getBusinessRelevanceScore(entry: Business, tokens: string[]): number {
+  const servicesText = entry.services?.map((service) => service.name).join(" ") ?? "";
+  return (
+    scoreField(entry.name, tokens, 8) +
+    scoreField(entry.category, tokens, 7) +
+    scoreField((entry.keywords ?? []).join(" "), tokens, 6) +
+    scoreField(servicesText, tokens, 5) +
+    scoreField((entry.highlights ?? []).join(" "), tokens, 4) +
+    scoreField(entry.tagline ?? "", tokens, 3) +
+    scoreField(entry.description ?? "", tokens, 2) +
+    scoreField(entry.locality, tokens, 2) +
+    scoreField(entry.city, tokens, 2) +
+    scoreField(entry.addressLine1 ?? "", tokens, 1) +
+    scoreField(entry.addressLine2 ?? "", tokens, 1) +
+    scoreField(entry.ownerName ?? "", tokens, 1)
+  );
+}
+
+function compareBusinessesBySort(
+  a: Business,
+  b: Business,
+  sort: "rating_desc" | "rating_asc" | "reviews_desc" | "newest"
+): number {
+  if (sort === "rating_desc") {
+    return b.rating - a.rating;
+  }
+  if (sort === "rating_asc") {
+    return a.rating - b.rating;
+  }
+  if (sort === "reviews_desc") {
+    return b.reviewCount - a.reviewCount;
+  }
+  return b.createdAt.localeCompare(a.createdAt);
+}
+
 function applyBusinessFilters(
   businesses: Business[],
   filters: BusinessFilters
 ): Business[] {
   const query = normalizeText(filters.q);
+  const queryTokens = tokenizeQuery(query);
   const category = normalizeText(filters.category);
   const city = normalizeText(filters.city);
 
-  let result = businesses.filter((entry) => {
+  const scored = businesses.flatMap((entry) => {
+    if (queryTokens.length > 0) {
+      const allTokensMatch = queryTokens.every((token) => tokenMatchesEntry(entry, token));
+      if (!allTokensMatch) {
+        return [];
+      }
+    }
+
     if (query) {
       const haystack = buildBusinessSearchText(entry);
       if (!haystack.includes(query)) {
-        return false;
+        return [];
       }
     }
 
     if (category && normalizeText(entry.category) !== category) {
-      return false;
+      return [];
     }
 
     if (city && normalizeText(entry.city) !== city) {
-      return false;
+      return [];
     }
 
     if (typeof filters.verified === "boolean" && entry.verified !== filters.verified) {
-      return false;
+      return [];
     }
 
     if (typeof filters.openNow === "boolean" && entry.isOpenNow !== filters.openNow) {
-      return false;
+      return [];
     }
 
-    return true;
+    const relevanceScore =
+      queryTokens.length > 0 ? getBusinessRelevanceScore(entry, queryTokens) : 0;
+
+    if (queryTokens.length > 0 && relevanceScore < 3) {
+      return [];
+    }
+
+    return [{ entry, relevanceScore }];
   });
 
   const sort = filters.sort ?? "rating_desc";
+  const sorted = scored.sort((a, b) => {
+    if (queryTokens.length > 0 && b.relevanceScore !== a.relevanceScore) {
+      return b.relevanceScore - a.relevanceScore;
+    }
+    return compareBusinessesBySort(a.entry, b.entry, sort);
+  });
 
-  if (sort === "rating_desc") {
-    result = result.sort((a, b) => b.rating - a.rating);
-  } else if (sort === "rating_asc") {
-    result = result.sort((a, b) => a.rating - b.rating);
-  } else if (sort === "reviews_desc") {
-    result = result.sort((a, b) => b.reviewCount - a.reviewCount);
-  } else {
-    result = result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }
-
-  return result;
+  return sorted.map((item) => item.entry);
 }
 
 function applyReelFilters(reels: Reel[], filters: ReelFilters): Reel[] {

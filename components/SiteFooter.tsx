@@ -38,7 +38,7 @@ const quickLinks = [
   { label: "Home", href: "/" },
   { label: "Daily Inquiry", href: "/daily-inquiry" },
   { label: "Search Businesses", href: "/search" },
-  { label: "Free Listing", href: "/free-listing" },
+  { label: "Listing", href: "/free-listing" },
   { label: "Offers", href: "/offers" },
   { label: "Stories", href: "/stories" },
   { label: "About Us", href: "/about" },

@@ -26,7 +26,7 @@ type HeaderItem = {
 
 const headerItems: HeaderItem[] = [
   { href: "/", label: "Home", Icon: Home },
-  { href: "/free-listing", label: "Free Listing", Icon: BriefcaseBusiness },
+  { href: "/free-listing", label: "Listing", Icon: BriefcaseBusiness },
   { href: "/daily-inquiry", label: "Daily Inquiry", Icon: Compass },
   { href: "/stories", label: "Stories", Icon: Sparkles },
   { href: "/search", label: "Search", Icon: Search },
@@ -116,3 +116,4 @@ export default function MarketplaceHeader() {
     </>
   );
 }
+

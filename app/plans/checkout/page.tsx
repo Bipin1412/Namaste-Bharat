@@ -7,43 +7,37 @@ import { CheckCircle2, CreditCard, ShieldCheck, Sparkles } from "lucide-react";
 type Plan = {
   id: string;
   name: string;
-  monthlyPrice: number;
+  price: number;
+  durationLabel: string;
   subtitle: string;
   features: string[];
 };
 
 const plans: Plan[] = [
   {
-    id: "starter",
-    name: "Starter Boost",
-    monthlyPrice: 999,
-    subtitle: "Best for first-time local sellers",
+    id: "basic",
+    name: "Basic listing",
+    price: 120,
+    durationLabel: "/1 month",
+    subtitle: "Listing on Namaste Bharat Portal",
     features: [
-      "Highlighted in 1 category",
-      "Priority WhatsApp CTA placement",
-      "Monthly listing health suggestions",
+      "Visible on Namaste Bharat portal",
+      "Basic Marketing Tools",
     ],
   },
   {
-    id: "growth",
-    name: "Growth Plus",
-    monthlyPrice: 2499,
-    subtitle: "For growing MSMEs with repeat demand",
+    id: "premium",
+    name: "Premium listing",
+    price: 3000,
+    durationLabel: "/1 year",
+    subtitle: "Listing on portal with featured visibility",
     features: [
-      "Featured in search and map view",
-      "Reel support slots",
-      "Lead quality report",
-    ],
-  },
-  {
-    id: "prime",
-    name: "City Prime",
-    monthlyPrice: 5999,
-    subtitle: "For category leaders in one city",
-    features: [
-      "Top rank placement in city",
-      "Dedicated campaign manager",
-      "Festival-season ad creatives",
+      "Business listing on the Namaste Bharat portal",
+      "100+ customer leads",
+      "Customer enquiries directly on WhatsApp",
+      "Effective digital promotion",
+      "Mini website facility",
+      "Trusted and secure service",
     ],
   },
 ];
@@ -63,7 +57,7 @@ function formatCurrency(value: number) {
 }
 
 export default function PlansCheckoutPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState(plans[1].id);
+  const [selectedPlanId, setSelectedPlanId] = useState(plans[0].id);
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
 
   const [businessName, setBusinessName] = useState("");
@@ -78,13 +72,13 @@ export default function PlansCheckoutPage() {
   const selectedAddOnItems = addOns.filter((addOn) => selectedAddOns.includes(addOn.id));
 
   const pricing = useMemo(() => {
-    const base = selectedPlan.monthlyPrice;
+    const base = selectedPlan.price;
     const addOnTotal = selectedAddOnItems.reduce((sum, item) => sum + item.price, 0);
     const subtotal = base + addOnTotal;
     const gst = Math.round(subtotal * 0.18);
     const total = subtotal + gst;
     return { base, addOnTotal, subtotal, gst, total };
-  }, [selectedAddOnItems, selectedPlan.monthlyPrice]);
+  }, [selectedAddOnItems, selectedPlan.price]);
 
   const canPlaceOrder =
     businessName.trim().length >= 3 &&
@@ -148,12 +142,19 @@ export default function PlansCheckoutPage() {
                           <p className="text-sm text-slate-600">{plan.subtitle}</p>
                         </div>
                         <p className="text-sm font-semibold text-blue-700">
-                          {formatCurrency(plan.monthlyPrice)}/mo
+                          {formatCurrency(plan.price)}
+                          {plan.durationLabel}
                         </p>
                       </div>
                       <ul className="mt-2 space-y-1 text-sm text-slate-700">
                         {plan.features.map((feature) => (
-                          <li key={feature}>- {feature}</li>
+                          <li key={feature} className="flex items-start gap-2">
+                            <CheckCircle2
+                              className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+                              aria-hidden
+                            />
+                            <span>{feature}</span>
+                          </li>
                         ))}
                       </ul>
                     </button>

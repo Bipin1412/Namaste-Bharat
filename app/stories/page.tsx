@@ -100,7 +100,7 @@ export default function StoriesPage() {
               href="/free-listing"
               className="inline-flex h-10 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700"
             >
-              Start Free Listing
+              Start Listing
             </Link>
             <Link
               href="/search"
@@ -115,3 +115,4 @@ export default function StoriesPage() {
     </div>
   );
 }
+

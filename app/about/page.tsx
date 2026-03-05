@@ -17,7 +17,7 @@ const values = [
   {
     title: "Growth Focus",
     description:
-      "From free listing to promotions, the platform supports local growth journeys.",
+      "From listing to promotions, the platform supports local growth journeys.",
     Icon: Target,
   },
   {
@@ -66,7 +66,7 @@ export default function AboutPage() {
           <p className="text-lg font-semibold text-slate-900">What next?</p>
           <p className="mt-2 text-sm text-slate-600">
             Explore live business listings, see growth stories, or onboard your
-            own business profile for free.
+            own business profile with no signup charge.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
@@ -79,7 +79,7 @@ export default function AboutPage() {
               href="/free-listing"
               className="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Start Free Listing
+              Start Listing
             </Link>
           </div>
         </div>
@@ -87,3 +87,4 @@ export default function AboutPage() {
     </div>
   );
 }
+

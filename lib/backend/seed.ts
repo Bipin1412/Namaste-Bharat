@@ -296,7 +296,7 @@ export const seedDatabase: DatabaseShape = {
     },
     {
       id: "o-2",
-      title: "Free Quote on Bulk Orders",
+      title: "Quote on Bulk Orders",
       subtitle: "Manufacturing and logistics suppliers can respond within 15 mins.",
       badge: "B2B",
       active: true,
@@ -315,3 +315,4 @@ export const seedDatabase: DatabaseShape = {
   ],
   leads: [],
 };
+

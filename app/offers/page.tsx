@@ -1,6 +1,12 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgePercent, Megaphone, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BadgePercent,
+  CheckCircle2,
+  Megaphone,
+  Sparkles,
+} from "lucide-react";
 import { listOffers } from "@/lib/backend/service";
 import { offerShowcaseCards } from "@/lib/ui/showcase";
 
@@ -8,30 +14,23 @@ export const dynamic = "force-dynamic";
 
 const planCards = [
   {
-    title: "Starter Boost",
-    price: "Rs 999 / month",
+    title: "Basic listing",
+    price: "Listing at Rs 120/-",
     points: [
-      "Featured in local search results",
-      "Priority WhatsApp inquiry visibility",
-      "Profile optimization suggestions",
+      "Listing on Namaste Bharat Portal",
+      "Basic Marketing Tools",
     ],
   },
   {
-    title: "Growth Plus",
-    price: "Rs 2,499 / month",
+    title: "Premium listing",
+    price: "Rs 3,000 / 1 year",
     points: [
-      "Premium category placement",
-      "Reels discovery support",
-      "Performance and lead report",
-    ],
-  },
-  {
-    title: "City Prime",
-    price: "Rs 5,999 / month",
-    points: [
-      "Top listing slots in target city",
-      "Dedicated campaign manager",
-      "Co-branded seasonal creatives",
+      "Business listing on the Namaste Bharat portal",
+      "100+ customer leads",
+      "Customer enquiries directly on WhatsApp",
+      "Effective digital promotion",
+      "Mini website facility",
+      "Trusted and secure service",
     ],
   },
 ];
@@ -84,7 +83,7 @@ export default async function OffersPage() {
             <Megaphone className="h-5 w-5 text-blue-700" aria-hidden />
             Active offers on Namaste Bharat
           </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
             {offers.map((offer) => (
               <div
                 key={offer.id}
@@ -117,7 +116,13 @@ export default async function OffersPage() {
                 <p className="mt-1 text-sm font-medium text-blue-700">{plan.price}</p>
                 <ul className="mt-2 space-y-1 text-sm text-slate-600">
                   {plan.points.map((point) => (
-                    <li key={point}>- {point}</li>
+                    <li key={point} className="flex items-start gap-2">
+                      <CheckCircle2
+                        className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+                        aria-hidden
+                      />
+                      <span>{point}</span>
+                    </li>
                   ))}
                 </ul>
                 <Link
@@ -135,3 +140,4 @@ export default async function OffersPage() {
     </div>
   );
 }
+
