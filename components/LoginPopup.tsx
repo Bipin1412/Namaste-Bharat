@@ -182,25 +182,6 @@ export default function LoginPopup({ open, onClose }: LoginPopupProps) {
                 )}
               </button>
 
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
-                  Or Login Using
-                </span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-
-              <button
-                type="button"
-                disabled
-                className="inline-flex h-12 w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-slate-300 bg-slate-100 text-2xl font-medium text-slate-500"
-              >
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-[18px] font-bold text-blue-600">
-                  G
-                </span>
-                Google (coming soon)
-              </button>
-
               <p className="text-center text-sm text-slate-600">
                 New user?{" "}
                 <Link
