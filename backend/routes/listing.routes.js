@@ -44,7 +44,6 @@ router.post("/leads", createLeadHandler);
 router.get("/reviews", reviews);
 router.post("/reviews", optionalAuth, createReviewHandler);
 router.get("/daily-inquiries", dailyInquiries);
-router.post("/daily-inquiries", createDailyInquiryHandler);
 
 router.get("/seller/analytics", requireAuth, sellerAnalytics);
 
@@ -52,6 +51,7 @@ router.get("/admin/listings", requireAuth, requireAdmin, adminListings);
 router.patch("/admin/listings/:id/activate", requireAuth, requireAdmin, activateListingHandler);
 router.patch("/admin/listings/:id/reject", requireAuth, requireAdmin, rejectListingHandler);
 router.get("/admin/daily-inquiries", requireAuth, requireAdmin, adminDailyInquiries);
+router.post("/admin/daily-inquiries", requireAuth, requireAdmin, createDailyInquiryHandler);
 router.delete("/admin/daily-inquiries/:id", requireAuth, requireAdmin, deleteDailyInquiryHandler);
 
 module.exports = router;

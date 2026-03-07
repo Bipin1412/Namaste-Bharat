@@ -16,36 +16,15 @@ function copyResponseHeaders(upstream: Response): Headers {
   return headers;
 }
 
-export async function GET() {
-  const upstream = await fetch(`${getBackendBaseUrl()}/api/daily-inquiries`, {
+export async function GET(request: NextRequest) {
+  const query = request.nextUrl.searchParams.toString();
+  const upstream = await fetch(
+    `${getBackendBaseUrl()}/api/daily-inquiries${query ? `?${query}` : ""}`,
+    {
     method: "GET",
     cache: "no-store",
-  }).catch(() => null);
-
-  if (!upstream) {
-    return NextResponse.json(
-      { error: { message: "Daily inquiry service is temporarily unavailable." } },
-      { status: 502 }
-    );
-  }
-
-  const body = await upstream.arrayBuffer();
-  return new NextResponse(body, {
-    status: upstream.status,
-    headers: copyResponseHeaders(upstream),
-  });
-}
-
-export async function POST(request: NextRequest) {
-  const rawBody = await request.text();
-  const upstream = await fetch(`${getBackendBaseUrl()}/api/daily-inquiries`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: rawBody,
-    cache: "no-store",
-  }).catch(() => null);
+    }
+  ).catch(() => null);
 
   if (!upstream) {
     return NextResponse.json(

@@ -294,21 +294,14 @@ function mapReview(row) {
   };
 }
 
-function mapDailyInquiry(row) {
+function mapDailyInquiryPost(row) {
   return {
     id: row.id,
-    cityName: row.city_name,
     inquiryDate: row.inquiry_date,
-    shortDescription: row.short_description,
-    phoneNumber: row.phone_number,
+    description: row.description,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
-}
-
-function maskPhoneNumber(phoneNumber) {
-  const digits = String(phoneNumber || "").replace(/\D/g, "");
-  if (digits.length <= 4) return digits;
-  return `${digits.slice(0, 2)}${"*".repeat(digits.length - 4)}${digits.slice(-2)}`;
 }
 
 async function listBusinesses(filters) {
@@ -683,37 +676,42 @@ async function getSellerAnalytics(businessId) {
   };
 }
 
-async function listDailyInquiries() {
+async function listDailyInquiryPosts(filterDate) {
   ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("daily_inquiries")
+  let query = supabaseAdminClient
+    .from("daily_inquiry_posts")
     .select("*")
+    .order("inquiry_date", { ascending: false })
     .order("created_at", { ascending: false });
+
+  if (filterDate) {
+    query = query.eq("inquiry_date", filterDate);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
-  return (data || []).map(mapDailyInquiry);
+  return (data || []).map(mapDailyInquiryPost);
 }
 
-async function createDailyInquiry(input) {
+async function createDailyInquiryPost(input) {
   ensureAdminClient();
   const { data, error } = await supabaseAdminClient
-    .from("daily_inquiries")
+    .from("daily_inquiry_posts")
     .insert({
-      city_name: input.cityName,
       inquiry_date: input.inquiryDate,
-      short_description: input.shortDescription,
-      phone_number: input.phoneNumber,
+      description: input.description,
     })
     .select("*")
     .single();
 
   if (error) throw error;
-  return mapDailyInquiry(data);
+  return mapDailyInquiryPost(data);
 }
 
-async function deleteDailyInquiry(id) {
+async function deleteDailyInquiryPost(id) {
   ensureAdminClient();
   const { error, count } = await supabaseAdminClient
-    .from("daily_inquiries")
+    .from("daily_inquiry_posts")
     .delete({ count: "exact" })
     .eq("id", id);
 
@@ -738,8 +736,7 @@ module.exports = {
   createReview,
   getHomeSnapshot,
   getSellerAnalytics,
-  listDailyInquiries,
-  createDailyInquiry,
-  deleteDailyInquiry,
-  maskPhoneNumber,
+  listDailyInquiryPosts,
+  createDailyInquiryPost,
+  deleteDailyInquiryPost,
 };

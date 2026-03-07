@@ -264,30 +264,21 @@ function validateCreateReviewPayload(payload) {
   };
 }
 
-function validateCreateDailyInquiryPayload(payload) {
+function validateCreateDailyInquiryPostPayload(payload) {
   if (!isObject(payload)) {
     return { ok: false, errors: ["Payload must be a JSON object."] };
   }
 
   const errors = [];
-  const cityName = getTrimmedString(payload, "cityName");
   const inquiryDate = getTrimmedString(payload, "inquiryDate");
-  const shortDescription = getTrimmedString(payload, "shortDescription");
-  const phoneNumber = getTrimmedString(payload, "phoneNumber");
+  const description = getTrimmedString(payload, "description");
 
-  if (!cityName) errors.push("`cityName` is required.");
   if (!inquiryDate) errors.push("`inquiryDate` is required.");
-  if (!shortDescription) errors.push("`shortDescription` is required.");
-  if (!phoneNumber) errors.push("`phoneNumber` is required.");
+  if (!description) errors.push("`description` is required.");
 
   const parsedDate = inquiryDate ? new Date(inquiryDate) : null;
   if (!parsedDate || Number.isNaN(parsedDate.getTime())) {
     errors.push("`inquiryDate` must be a valid date.");
-  }
-
-  const sanitizedPhone = sanitizePhone(phoneNumber || "");
-  if (sanitizedPhone.length < 10 || sanitizedPhone.length > 15) {
-    errors.push("`phoneNumber` must contain 10 to 15 digits.");
   }
 
   if (errors.length > 0) {
@@ -297,10 +288,8 @@ function validateCreateDailyInquiryPayload(payload) {
   return {
     ok: true,
     data: {
-      cityName,
       inquiryDate: inquiryDate.slice(0, 10),
-      shortDescription,
-      phoneNumber: sanitizedPhone,
+      description,
     },
   };
 }
@@ -313,5 +302,5 @@ module.exports = {
   validateUpdateBusinessPayload,
   validateCreateLeadPayload,
   validateCreateReviewPayload,
-  validateCreateDailyInquiryPayload,
+  validateCreateDailyInquiryPostPayload,
 };

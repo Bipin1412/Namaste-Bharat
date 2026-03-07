@@ -5,7 +5,7 @@ const {
   validateUpdateBusinessPayload,
   validateCreateLeadPayload,
   validateCreateReviewPayload,
-  validateCreateDailyInquiryPayload,
+  validateCreateDailyInquiryPostPayload,
 } = require("../utils/listing.validators");
 const {
   listBusinesses,
@@ -24,10 +24,9 @@ const {
   createReview,
   getHomeSnapshot,
   getSellerAnalytics,
-  listDailyInquiries,
-  createDailyInquiry,
-  deleteDailyInquiry,
-  maskPhoneNumber,
+  listDailyInquiryPosts,
+  createDailyInquiryPost,
+  deleteDailyInquiryPost,
 } = require("../services/listing.service");
 
 function handleError(res, error, fallbackMessage) {
@@ -305,16 +304,16 @@ async function sellerAnalytics(req, res) {
   }
 }
 
-async function dailyInquiries(_req, res) {
+async function dailyInquiries(req, res) {
   try {
-    const data = await listDailyInquiries();
-    const publicData = data.map((entry) => ({
-      ...entry,
-      phoneNumber: maskPhoneNumber(entry.phoneNumber),
-    }));
+    const filterDate =
+      typeof req.query.date === "string" && req.query.date.trim()
+        ? req.query.date.trim()
+        : "";
+    const data = await listDailyInquiryPosts(filterDate || null);
     return res.json({
-      data: publicData,
-      meta: { total: publicData.length },
+      data,
+      meta: { total: data.length },
     });
   } catch (error) {
     return handleError(res, error, "Could not load daily inquiries.");
@@ -322,7 +321,7 @@ async function dailyInquiries(_req, res) {
 }
 
 async function createDailyInquiryHandler(req, res) {
-  const validation = validateCreateDailyInquiryPayload(req.body);
+  const validation = validateCreateDailyInquiryPostPayload(req.body);
   if (!validation.ok) {
     return res.status(400).json({
       error: { message: "Invalid daily inquiry payload.", details: validation.errors },
@@ -330,19 +329,20 @@ async function createDailyInquiryHandler(req, res) {
   }
 
   try {
-    const created = await createDailyInquiry(validation.data);
-    return res.status(201).json({
-      ...created,
-      phoneNumber: maskPhoneNumber(created.phoneNumber),
-    });
+    const created = await createDailyInquiryPost(validation.data);
+    return res.status(201).json(created);
   } catch (error) {
     return handleError(res, error, "Could not create daily inquiry.");
   }
 }
 
-async function adminDailyInquiries(_req, res) {
+async function adminDailyInquiries(req, res) {
   try {
-    const data = await listDailyInquiries();
+    const filterDate =
+      typeof req.query.date === "string" && req.query.date.trim()
+        ? req.query.date.trim()
+        : "";
+    const data = await listDailyInquiryPosts(filterDate || null);
     return res.json({
       data,
       meta: { total: data.length },
@@ -354,7 +354,7 @@ async function adminDailyInquiries(_req, res) {
 
 async function deleteDailyInquiryHandler(req, res) {
   try {
-    const removed = await deleteDailyInquiry(req.params.id);
+    const removed = await deleteDailyInquiryPost(req.params.id);
     if (!removed) {
       return res.status(404).json({ error: { message: "Daily inquiry not found." } });
     }

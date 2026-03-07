@@ -30,11 +30,10 @@ type AdminListing = {
 type StatusFilter = "all" | "pending" | "active" | "rejected";
 type DailyInquiry = {
   id: string;
-  cityName: string;
   inquiryDate: string;
-  shortDescription: string;
-  phoneNumber: string;
+  description: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 export default function AdminDashboard() {
@@ -47,6 +46,8 @@ export default function AdminDashboard() {
   const [dailyWorkingId, setDailyWorkingId] = useState("");
   const [usingLocalFallback, setUsingLocalFallback] = useState(false);
   const [dailyInquiries, setDailyInquiries] = useState<DailyInquiry[]>([]);
+  const [dailyInquiryDate, setDailyInquiryDate] = useState("");
+  const [dailyInquiryDescription, setDailyInquiryDescription] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchText, setSearchText] = useState("");
   const [editId, setEditId] = useState("");
@@ -427,9 +428,50 @@ export default function AdminDashboard() {
     }
   }
 
+  async function createDailyInquiryPost() {
+    if (!token || dailyWorkingId) return;
+    setMessage("");
+
+    if (!dailyInquiryDate.trim() || !dailyInquiryDescription.trim()) {
+      setMessage("Date and description are required.");
+      return;
+    }
+
+    setDailyWorkingId("creating");
+    try {
+      const response = await fetch("/api/admin/daily-inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          inquiryDate: dailyInquiryDate,
+          description: dailyInquiryDescription.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        throw new Error(payload?.error?.message || "Could not create daily inquiry post.");
+      }
+
+      setDailyInquiryDate("");
+      setDailyInquiryDescription("");
+      setMessage("Daily inquiry post created.");
+      await loadDailyInquiries();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not create daily inquiry post.");
+    } finally {
+      setDailyWorkingId("");
+    }
+  }
+
   async function deleteDailyInquiryItem(id: string) {
     if (!token || dailyWorkingId) return;
-    if (!window.confirm("Delete this daily inquiry?")) return;
+    if (!window.confirm("Delete this daily inquiry post?")) return;
 
     setDailyWorkingId(id);
     setMessage("");
@@ -677,7 +719,7 @@ export default function AdminDashboard() {
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-lg font-semibold text-slate-900">
-            Daily Inquiries ({dailyInquiries.length})
+            Daily Inquiry Posts ({dailyInquiries.length})
           </p>
           <button
             type="button"
@@ -688,21 +730,41 @@ export default function AdminDashboard() {
           </button>
         </div>
 
+        <div className="mb-4 grid gap-2 md:grid-cols-[180px,1fr,120px]">
+          <input
+            type="date"
+            value={dailyInquiryDate}
+            onChange={(event) => setDailyInquiryDate(event.target.value)}
+            className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+          />
+          <input
+            value={dailyInquiryDescription}
+            onChange={(event) => setDailyInquiryDescription(event.target.value)}
+            placeholder="Description"
+            className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+          />
+          <button
+            type="button"
+            disabled={dailyWorkingId === "creating"}
+            onClick={() => void createDailyInquiryPost()}
+            className="h-10 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {dailyWorkingId === "creating" ? "Posting..." : "Post"}
+          </button>
+        </div>
+
         {dailyInquiries.length === 0 ? (
           <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            No daily inquiries available.
+            No daily inquiry posts available.
           </p>
         ) : (
           <div className="space-y-2">
             {dailyInquiries.map((item) => (
               <article key={item.id} className="rounded-xl border border-slate-200 p-3">
-                <p className="text-sm font-semibold text-slate-900">
-                  {item.cityName} | {item.inquiryDate}
-                </p>
-                <p className="mt-1 text-sm text-slate-700">{item.shortDescription}</p>
+                <p className="text-sm font-semibold text-slate-900">{item.inquiryDate}</p>
+                <p className="mt-1 text-sm text-slate-700">{item.description}</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Phone: {item.phoneNumber} | Submitted:{" "}
-                  {new Date(item.createdAt).toLocaleString("en-IN")}
+                  Posted: {new Date(item.createdAt).toLocaleString("en-IN")}
                 </p>
 
                 <div className="mt-3">
