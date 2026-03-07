@@ -140,6 +140,14 @@ export default function FreeListingForm() {
     return selectedCategories.join(", ");
   }, [selectedCategories]);
 
+  const sortedCities = useMemo(
+    () =>
+      [...supportedCities].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+      ),
+    []
+  );
+
   const canSubmit = useMemo(() => {
     return (
       businessName.trim().length > 2 &&
@@ -272,7 +280,7 @@ export default function FreeListingForm() {
               className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
             >
               <option value="">Select city</option>
-              {supportedCities.map((option) => (
+              {sortedCities.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
