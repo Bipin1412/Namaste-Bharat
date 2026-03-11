@@ -548,7 +548,7 @@ export default function AdminDashboard() {
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-24 pt-4 md:px-6 lg:px-8">
       <section className="rounded-2xl bg-slate-900 p-6 text-white">
         <p className="text-xs uppercase tracking-[0.14em] text-slate-300">Admin Dashboard</p>
-        <h1 className="mt-2 text-3xl font-semibold">Welcome, {adminName}</h1>
+        <h1 className="mt-2 text-3xl font-semibold">Welcome, Namaste Bharat Admin</h1>
         <p className="mt-2 text-sm text-slate-200">
           Review pending listing requests and activate approved businesses.
         </p>
