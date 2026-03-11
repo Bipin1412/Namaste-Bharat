@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+frontend.log
+frontend-local.log
+frontend-local-error.log
+backend.log
+backend-local.log
+backend-local-error.log
+tsconfig.tsbuildinfo
