@@ -1,70 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  createDailyInquiryPost,
+  listDailyInquiryPosts,
+  requireAdminFromAuthHeader,
+} from "@/lib/server/daily-inquiries";
 
 export const runtime = "nodejs";
 
-function getBackendBaseUrl(): string {
-  const raw = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-  return raw.replace(/\/+$/, "");
-}
+function getErrorResponse(error: unknown, fallbackMessage: string) {
+  const message = error instanceof Error ? error.message : fallbackMessage;
+  const status =
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof (error as { status?: number }).status === "number"
+      ? (error as { status: number }).status
+      : 502;
 
-function copyResponseHeaders(upstream: Response): Headers {
-  const headers = new Headers();
-  upstream.headers.forEach((value, key) => {
-    if (key.toLowerCase() === "transfer-encoding") return;
-    headers.set(key, value);
-  });
-  return headers;
+  return NextResponse.json({ error: { message } }, { status });
 }
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization") || "";
-  const query = request.nextUrl.searchParams.toString();
-  const upstream = await fetch(
-    `${getBackendBaseUrl()}/api/admin/daily-inquiries${query ? `?${query}` : ""}`,
-    {
-      method: "GET",
-      headers: authHeader ? { Authorization: authHeader } : undefined,
-      cache: "no-store",
-    }
-  ).catch(() => null);
-
-  if (!upstream) {
-    return NextResponse.json(
-      { error: { message: "Admin daily inquiry service is temporarily unavailable." } },
-      { status: 502 }
-    );
+  try {
+    await requireAdminFromAuthHeader(request.headers.get("authorization") || "");
+    const filterDate = request.nextUrl.searchParams.get("date");
+    const data = await listDailyInquiryPosts(filterDate || null);
+    return NextResponse.json({
+      data,
+      meta: { total: data.length },
+    });
+  } catch (error) {
+    return getErrorResponse(error, "Admin daily inquiry service is temporarily unavailable.");
   }
-
-  const body = await upstream.arrayBuffer();
-  return new NextResponse(body, {
-    status: upstream.status,
-    headers: copyResponseHeaders(upstream),
-  });
 }
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get("authorization") || "";
-  const rawBody = await request.text();
-  const upstream = await fetch(`${getBackendBaseUrl()}/api/admin/daily-inquiries`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(authHeader ? { Authorization: authHeader } : {}),
-    },
-    body: rawBody,
-    cache: "no-store",
-  }).catch(() => null);
+  try {
+    await requireAdminFromAuthHeader(request.headers.get("authorization") || "");
+    const payload = (await request.json().catch(() => null)) as
+      | { inquiryDate?: string; description?: string }
+      | null;
 
-  if (!upstream) {
-    return NextResponse.json(
-      { error: { message: "Admin daily inquiry service is temporarily unavailable." } },
-      { status: 502 }
-    );
+    const inquiryDate = String(payload?.inquiryDate || "").trim().slice(0, 10);
+    const description = String(payload?.description || "").trim();
+
+    const parsedDate = inquiryDate ? new Date(inquiryDate) : null;
+    if (!inquiryDate || !description || !parsedDate || Number.isNaN(parsedDate.getTime())) {
+      return NextResponse.json(
+        { error: { message: "Invalid daily inquiry payload." } },
+        { status: 400 }
+      );
+    }
+
+    const created = await createDailyInquiryPost({
+      inquiryDate,
+      description,
+    });
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    return getErrorResponse(error, "Admin daily inquiry service is temporarily unavailable.");
   }
-
-  const body = await upstream.arrayBuffer();
-  return new NextResponse(body, {
-    status: upstream.status,
-    headers: copyResponseHeaders(upstream),
-  });
 }
