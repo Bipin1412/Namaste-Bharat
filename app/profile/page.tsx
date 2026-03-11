@@ -119,7 +119,7 @@ export default function ProfilePage() {
                 <LogIn className="h-4 w-4" aria-hidden />
                 Login with Email
               </Link>
-
+{/* 
               <button
                 type="button"
                 disabled
@@ -129,7 +129,7 @@ export default function ProfilePage() {
                   G
                 </span>
                 Google Login (coming soon)
-              </button>
+              </button> */}
             </div>
 
             <p className="mt-3 text-sm text-slate-600">
