@@ -565,12 +565,6 @@ export default function AdminDashboard() {
             Refresh
           </button>
         </div>
-        {usingLocalFallback ? (
-          <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Showing local fallback listing data. Approve/reject/update/delete actions require backend admin APIs.
-          </p>
-        ) : null}
-
         <div className="mb-3 grid gap-2 sm:grid-cols-4">
           <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">Total: {counts.total}</div>
           <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Pending: {counts.pending}</div>
