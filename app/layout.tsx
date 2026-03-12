@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
+import Script from "next/script";
 import BottomNav from "../components/BottomNav";
 import MarketplaceHeader from "../components/MarketplaceHeader";
 import SiteFooter from "../components/SiteFooter";
@@ -57,6 +58,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${notoSans.variable} ${notoSansDevanagari.variable}`}
     >
       <body className="min-h-dvh bg-slate-50 text-slate-900 antialiased [font-family:var(--font-sans-latin),var(--font-sans-devanagari),sans-serif]">
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-RJEY8WZQ7D"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-RJEY8WZQ7D');
+          `}
+        </Script>
         <MarketplaceHeader />
         <div className="mx-auto flex min-h-dvh w-full max-w-7xl flex-col">
           <main className="flex-1 pb-20 md:pb-8">{children}</main>
