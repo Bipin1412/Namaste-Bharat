@@ -460,7 +460,7 @@ export default function FreeListingForm({
             Submitting...
           </>
         ) : (
-          adminMode ? "Create Listing" : "Start Listing"
+          adminMode ? "Create Listing" : "Submit Listing"
         )}
       </button>
 
