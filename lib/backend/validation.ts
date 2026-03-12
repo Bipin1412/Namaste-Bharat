@@ -255,6 +255,17 @@ function parsePolicies(value: unknown): BusinessPolicies | null {
 
   const policies: BusinessPolicies = {};
 
+  if ("listingPlan" in value && value.listingPlan !== undefined && value.listingPlan !== null) {
+    if (typeof value.listingPlan !== "string") {
+      return null;
+    }
+    const listingPlan = value.listingPlan.trim().toLowerCase();
+    if (listingPlan !== "basic" && listingPlan !== "premium") {
+      return null;
+    }
+    policies.listingPlan = listingPlan;
+  }
+
   if (
     "paymentMethods" in value &&
     value.paymentMethods !== undefined &&

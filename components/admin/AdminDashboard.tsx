@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, Pencil, ShieldAlert, Trash2, XCircle } from "lucide-react";
 import { getAuthToken, getBackendBaseUrl } from "@/lib/auth-client";
+import FreeListingForm from "@/components/FreeListingForm";
 
 type SessionPayload = {
   user?: { id?: string; email?: string | null };
@@ -17,6 +18,7 @@ type AdminListing = {
   locality: string;
   city: string;
   phone: string;
+  listingPlan: "basic" | "premium" | "unknown";
   listingStatus: "pending" | "active" | "rejected";
   verified: boolean;
   createdAt: string;
@@ -28,6 +30,7 @@ type AdminListing = {
 };
 
 type StatusFilter = "all" | "pending" | "active" | "rejected";
+type PlanFilter = "all" | "basic" | "premium";
 type DailyInquiry = {
   id: string;
   inquiryDate: string;
@@ -39,16 +42,15 @@ type DailyInquiry = {
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminName, setAdminName] = useState("Admin");
   const [message, setMessage] = useState("");
   const [listings, setListings] = useState<AdminListing[]>([]);
   const [workingId, setWorkingId] = useState("");
   const [dailyWorkingId, setDailyWorkingId] = useState("");
-  const [usingLocalFallback, setUsingLocalFallback] = useState(false);
   const [dailyInquiries, setDailyInquiries] = useState<DailyInquiry[]>([]);
   const [dailyInquiryDate, setDailyInquiryDate] = useState("");
   const [dailyInquiryDescription, setDailyInquiryDescription] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
   const [searchText, setSearchText] = useState("");
   const [editId, setEditId] = useState("");
   const [editName, setEditName] = useState("");
@@ -56,6 +58,7 @@ export default function AdminDashboard() {
   const [editCity, setEditCity] = useState("");
   const [editLocality, setEditLocality] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editListingPlan, setEditListingPlan] = useState<"basic" | "premium">("basic");
   const [editCoverImage, setEditCoverImage] = useState("");
 
   const token = useMemo(() => getAuthToken(), []);
@@ -116,7 +119,6 @@ export default function AdminDashboard() {
         | { data?: AdminListing[] }
         | null;
       setListings(Array.isArray(payload?.data) ? payload.data : []);
-      setUsingLocalFallback(false);
       return;
     }
 
@@ -126,7 +128,6 @@ export default function AdminDashboard() {
 
     if (!localResponse || !localResponse.ok) {
       setListings([]);
-      setUsingLocalFallback(false);
       return;
     }
 
@@ -142,6 +143,24 @@ export default function AdminDashboard() {
         locality: String(entry.locality || ""),
         city: String(entry.city || ""),
         phone: String(entry.phone || ""),
+        listingPlan:
+          String(
+            entry.policies &&
+              typeof entry.policies === "object" &&
+              "listingPlan" in entry.policies
+              ? (entry.policies as { listingPlan?: string }).listingPlan || ""
+              : ""
+          ).toLowerCase() === "premium"
+            ? ("premium" as const)
+            : String(
+                entry.policies &&
+                  typeof entry.policies === "object" &&
+                  "listingPlan" in entry.policies
+                  ? (entry.policies as { listingPlan?: string }).listingPlan || ""
+                  : ""
+              ).toLowerCase() === "basic"
+            ? ("basic" as const)
+            : ("unknown" as const),
         listingStatus:
           String(entry.listingStatus || "").toLowerCase() === "active"
             ? ("active" as const)
@@ -161,7 +180,6 @@ export default function AdminDashboard() {
       .filter((entry) => entry.id);
 
     setListings(localAll);
-    setUsingLocalFallback(true);
   }, [token]);
 
   const loadDailyInquiries = useCallback(async () => {
@@ -219,7 +237,6 @@ export default function AdminDashboard() {
         return;
       }
 
-      setAdminName(payload?.profile?.full_name || "Admin");
       setIsAdmin(true);
       await loadListings();
       await loadDailyInquiries();
@@ -315,6 +332,7 @@ export default function AdminDashboard() {
     setEditCity(item.city);
     setEditLocality(item.locality);
     setEditPhone(item.phone);
+    setEditListingPlan(item.listingPlan === "premium" ? "premium" : "basic");
     setEditCoverImage(item.media?.coverImages?.[0] || "");
   }
 
@@ -350,6 +368,9 @@ export default function AdminDashboard() {
           locality: editLocality.trim(),
           phone: editPhone.trim(),
           whatsappNumber: editPhone.trim(),
+          policies: {
+            listingPlan: editListingPlan,
+          },
           media: editCoverImage.trim()
             ? {
                 coverImages: [editCoverImage.trim()],
@@ -372,6 +393,9 @@ export default function AdminDashboard() {
             locality: editLocality.trim(),
             phone: editPhone.trim(),
             whatsappNumber: editPhone.trim(),
+            policies: {
+              listingPlan: editListingPlan,
+            },
             media: editCoverImage.trim()
               ? {
                   coverImages: [editCoverImage.trim()],
@@ -504,11 +528,14 @@ export default function AdminDashboard() {
       if (statusFilter !== "all" && item.listingStatus !== statusFilter) {
         return false;
       }
+      if (planFilter !== "all" && item.listingPlan !== planFilter) {
+        return false;
+      }
       if (!query) return true;
-      const haystack = `${item.name} ${item.category} ${item.locality} ${item.city} ${item.phone}`.toLowerCase();
+      const haystack = `${item.name} ${item.category} ${item.locality} ${item.city} ${item.phone} ${item.listingPlan}`.toLowerCase();
       return haystack.includes(query);
     });
-  }, [listings, searchText, statusFilter]);
+  }, [listings, planFilter, searchText, statusFilter]);
 
   const counts = useMemo(() => {
     const pending = listings.filter((item) => item.listingStatus === "pending").length;
@@ -554,6 +581,16 @@ export default function AdminDashboard() {
         </p>
       </section>
 
+      <section className="rounded-2xl border border-slate-200 bg-slate-50 p-3 md:p-4">
+        <div className="mb-4">
+          <p className="text-lg font-semibold text-slate-900">Create Listing For Customer</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Use the same front listing form here when a customer needs admin assistance.
+          </p>
+        </div>
+        <FreeListingForm adminMode onSuccess={loadListings} />
+      </section>
+
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-lg font-semibold text-slate-900">All Listings ({filteredListings.length})</p>
@@ -587,6 +624,20 @@ export default function AdminDashboard() {
               {status[0].toUpperCase() + status.slice(1)}
             </button>
           ))}
+          {(["all", "basic", "premium"] as PlanFilter[]).map((plan) => (
+            <button
+              key={plan}
+              type="button"
+              onClick={() => setPlanFilter(plan)}
+              className={`h-8 rounded-full px-3 text-xs font-semibold ${
+                planFilter === plan
+                  ? "bg-blue-600 text-white"
+                  : "border border-slate-300 bg-white text-slate-700"
+              }`}
+            >
+              {plan === "all" ? "All plans" : `${plan[0].toUpperCase()}${plan.slice(1)} plan`}
+            </button>
+          ))}
           <input
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
@@ -608,6 +659,14 @@ export default function AdminDashboard() {
                     <input value={editLocality} onChange={(event) => setEditLocality(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm" />
                     <input value={editCity} onChange={(event) => setEditCity(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm" />
                     <input value={editPhone} onChange={(event) => setEditPhone(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm md:col-span-2" />
+                    <select
+                      value={editListingPlan}
+                      onChange={(event) => setEditListingPlan(event.target.value as "basic" | "premium")}
+                      className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm md:col-span-2"
+                    >
+                      <option value="basic">Basic listing</option>
+                      <option value="premium">Premium listing</option>
+                    </select>
                     <input
                       value={editCoverImage}
                       onChange={(event) => setEditCoverImage(event.target.value)}
@@ -633,6 +692,11 @@ export default function AdminDashboard() {
                     <p className="text-sm font-semibold text-slate-900">{item.name}</p>
                     <p className="text-xs text-slate-600">
                       {item.category} | {item.locality}, {item.city} | {item.phone}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-blue-700">
+                      Plan: {item.listingPlan === "unknown"
+                        ? "Not selected"
+                        : `${item.listingPlan[0].toUpperCase()}${item.listingPlan.slice(1)} listing`}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       Status: <span className="font-semibold">{item.listingStatus}</span> | Submitted: {new Date(item.createdAt).toLocaleString("en-IN")}

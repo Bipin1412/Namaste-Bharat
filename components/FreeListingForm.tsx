@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { Check, CheckCircle2, Loader2 } from "lucide-react";
+import { getAuthToken } from "@/lib/auth-client";
+import { listingPlans, type ListingPlanId } from "@/lib/ui/listing-plans";
 
 type ListingPayload = {
   name: string;
@@ -15,6 +17,14 @@ type ListingPayload = {
   verified: boolean;
   phone: string;
   whatsappNumber: string;
+  policies: {
+    listingPlan: ListingPlanId;
+  };
+};
+
+type FreeListingFormProps = {
+  adminMode?: boolean;
+  onSuccess?: () => void | Promise<void>;
 };
 
 const supportedCities = [
@@ -64,7 +74,10 @@ function normalizeIndianPhone(value: string): string {
   return `+91${digits}`;
 }
 
-export default function FreeListingForm() {
+export default function FreeListingForm({
+  adminMode = false,
+  onSuccess,
+}: FreeListingFormProps) {
   const [businessName, setBusinessName] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -75,6 +88,7 @@ export default function FreeListingForm() {
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [locality, setLocality] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<ListingPlanId>("basic");
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -189,17 +203,22 @@ export default function FreeListingForm() {
       rating: 0,
       reviewCount: 0,
       isOpenNow: true,
-      verified: false,
+      verified: adminMode,
       phone,
       whatsappNumber: phone,
       email: email.trim(),
+      policies: {
+        listingPlan: selectedPlan,
+      },
     };
 
     try {
+      const authToken = adminMode ? getAuthToken() : "";
       const response = await fetch("/api/businesses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         },
         body: JSON.stringify(payload),
       });
@@ -214,7 +233,11 @@ export default function FreeListingForm() {
       }
 
       setIsSuccess(true);
-      setMessage("Listing request submitted. Our team will verify and activate it.");
+      setMessage(
+        adminMode
+          ? "Listing created from admin panel."
+          : "Listing request submitted. Our team will verify and activate it."
+      );
       setBusinessName("");
       setMobile("");
       setEmail("");
@@ -222,6 +245,8 @@ export default function FreeListingForm() {
       setIsCityConfirmed(false);
       setSelectedCategories([]);
       setLocality("");
+      setSelectedPlan("basic");
+      await onSuccess?.();
     } catch (error) {
       setIsSuccess(false);
       setMessage(
@@ -359,6 +384,61 @@ export default function FreeListingForm() {
         </div>
       </div>
 
+      <div className="mt-3 space-y-2">
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Choose Listing Plan</p>
+          <p className="text-xs text-slate-500">
+            Select one plan before submitting your business details.
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {listingPlans.map((plan) => {
+            const isActive = selectedPlan === plan.id;
+            return (
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => setSelectedPlan(plan.id)}
+                className={`flex w-full flex-col items-start justify-start rounded-2xl border p-4 text-left align-top transition-colors ${
+                  isActive
+                    ? "border-blue-500 bg-blue-50 shadow-[0_12px_24px_-18px_rgba(37,99,235,0.55)]"
+                    : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                }`}
+              >
+                <div className="flex w-full items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xl font-semibold text-slate-900">{plan.name}</p>
+                    <p className="mt-1 text-sm font-semibold text-blue-700">{plan.priceLabel}</p>
+                  </div>
+                  <span
+                    className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${
+                      isActive
+                        ? "border-blue-500 bg-blue-600 text-white"
+                        : "border-slate-300 text-transparent"
+                    }`}
+                  >
+                    <Check className="h-3 w-3" aria-hidden />
+                  </span>
+                </div>
+                <ul className="mt-3 space-y-1.5 text-sm text-slate-700">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2">
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-emerald-500 text-[10px] font-bold text-emerald-600">
+                        <Check className="h-3 w-3" aria-hidden />
+                      </span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-sm font-semibold text-blue-700">
+                  {isActive ? "Selected Plan" : "Choose Plan ->"}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600">
         <input
           type="checkbox"
@@ -380,7 +460,7 @@ export default function FreeListingForm() {
             Submitting...
           </>
         ) : (
-          "Start Listing"
+          adminMode ? "Create Listing" : "Start Listing"
         )}
       </button>
 
@@ -397,4 +477,5 @@ export default function FreeListingForm() {
     </form>
   );
 }
+
 

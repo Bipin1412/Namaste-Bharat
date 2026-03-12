@@ -388,14 +388,26 @@ function toBusinessDbPayload(input) {
 
 async function createBusiness(input) {
   ensureAdminClient();
+  const verified = input.verified === true;
+  const listingStatus =
+    typeof input.listingStatus === "string" && input.listingStatus
+      ? input.listingStatus
+      : verified
+      ? "active"
+      : "pending";
+  const activatedAt =
+    listingStatus === "active"
+      ? input.activatedAt || new Date().toISOString()
+      : null;
+
   const { data, error } = await supabaseAdminClient
     .from("businesses")
     .insert(
       toBusinessDbPayload({
         ...input,
-        verified: false,
-        listingStatus: "pending",
-        activatedAt: null,
+        verified,
+        listingStatus,
+        activatedAt,
         rejectedReason: null,
       })
     )

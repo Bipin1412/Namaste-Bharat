@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import {
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Loader2,
   Sparkles,
 } from "lucide-react";
+import { getAuthToken } from "@/lib/auth-client";
+import { listingPlans, type ListingPlanId } from "@/lib/ui/listing-plans";
 
 const steps = [
   "Basic Profile",
@@ -85,8 +88,17 @@ function Textarea({
   );
 }
 
-export default function DetailedListingForm() {
+type DetailedListingFormProps = {
+  adminMode?: boolean;
+  onSuccess?: () => void | Promise<void>;
+};
+
+export default function DetailedListingForm({
+  adminMode = false,
+  onSuccess,
+}: DetailedListingFormProps) {
   const [step, setStep] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState<ListingPlanId>("basic");
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -185,7 +197,7 @@ export default function DetailedListingForm() {
       rating: 0,
       reviewCount: 0,
       isOpenNow: true,
-      verified: false,
+      verified: adminMode,
       keywords: csv(keywords),
       serviceAreas: csv(serviceAreas),
       languages: csv(languages),
@@ -198,6 +210,7 @@ export default function DetailedListingForm() {
       ),
       faqs: faqItems,
       policies: {
+        listingPlan: selectedPlan,
         paymentMethods: csv(paymentMethods),
       },
       media: {
@@ -212,9 +225,13 @@ export default function DetailedListingForm() {
     };
 
     try {
+      const authToken = adminMode ? getAuthToken() : "";
       const response = await fetch("/api/businesses", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
         body: JSON.stringify(payload),
       });
       const result = (await response.json().catch(() => null)) as
@@ -226,7 +243,12 @@ export default function DetailedListingForm() {
       }
 
       setCreatedId(result?.id ?? "");
-      setMessage("Listing request submitted. Our team will verify and activate it.");
+      setMessage(
+        adminMode
+          ? "Listing created from admin panel."
+          : "Listing request submitted. Our team will verify and activate it."
+      );
+      await onSuccess?.();
     } catch (submitError) {
       setMessage(
         submitError instanceof Error ? submitError.message : "Could not save listing."
@@ -245,7 +267,7 @@ export default function DetailedListingForm() {
         <div>
           <p className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Detailed Listing Form
+            {adminMode ? "Admin Listing Form" : "Detailed Listing Form"}
           </p>
           <h2 className="mt-2 text-xl font-semibold text-slate-900 md:text-2xl">
             Step {step + 1}: {steps[step]}
@@ -265,7 +287,52 @@ export default function DetailedListingForm() {
 
       <div className="mt-5 space-y-3">
         {step === 0 ? (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              {listingPlans.map((plan) => {
+                const isActive = selectedPlan === plan.id;
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => setSelectedPlan(plan.id)}
+                    className={`rounded-2xl border p-4 text-left transition-colors ${
+                      isActive
+                        ? "border-blue-500 bg-blue-50 shadow-[0_12px_24px_-18px_rgba(37,99,235,0.55)]"
+                        : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-semibold text-slate-900">{plan.name}</p>
+                        <p className="mt-1 text-sm font-semibold text-blue-700">{plan.priceLabel}</p>
+                        <p className="mt-1 text-xs text-slate-500">{plan.description}</p>
+                      </div>
+                      <span
+                        className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${
+                          isActive
+                            ? "border-blue-500 bg-blue-600 text-white"
+                            : "border-slate-300 text-transparent"
+                        }`}
+                      >
+                        <Check className="h-3 w-3" aria-hidden />
+                      </span>
+                    </div>
+                    <ul className="mt-3 space-y-1.5 text-sm text-slate-700">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2">
+                          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-emerald-500 text-[10px] font-bold text-emerald-600">
+                            <Check className="h-3 w-3" aria-hidden />
+                          </span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
             <Input label="Business Name" value={name} onChange={setName} placeholder="Sai Electricals and Smart Services" />
             <Input label="Category" value={category} onChange={setCategory} placeholder="Electrical Contractor" />
             <Input label="Tagline" value={tagline} onChange={setTagline} placeholder="24x7 local electrician and wiring experts" />
@@ -278,6 +345,7 @@ export default function DetailedListingForm() {
                 placeholder="Describe your expertise, experience, trust factors, and what customers can expect."
                 rows={5}
               />
+            </div>
             </div>
           </div>
         ) : null}
@@ -401,9 +469,11 @@ export default function DetailedListingForm() {
           )}
         </div>
 
-        <Link href="/business/b-1" className="text-sm font-medium text-blue-700 hover:text-blue-600">
-          Open sample detailed page
-        </Link>
+        {!adminMode ? (
+          <Link href="/business/b-1" className="text-sm font-medium text-blue-700 hover:text-blue-600">
+            Open sample detailed page
+          </Link>
+        ) : null}
       </div>
 
       {message ? (
@@ -429,3 +499,4 @@ export default function DetailedListingForm() {
     </form>
   );
 }
+

@@ -25,6 +25,7 @@ export type BusinessMedia = {
 };
 
 export type BusinessPolicies = {
+  listingPlan?: "basic" | "premium";
   paymentMethods?: string[];
   homeService?: boolean;
   emergencyService?: boolean;
