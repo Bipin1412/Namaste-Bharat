@@ -18,6 +18,9 @@
   <rect x="304" y="390" width="190" height="56" rx="16" fill="white" fill-opacity="0.24"/>
   <rect x="844" y="208" width="280" height="330" rx="24" fill="white" fill-opacity="0.2"/>
   <rect x="874" y="244" width="220" height="130" rx="18" fill="white" fill-opacity="0.35"/>
-  <text x="874" y="420" fill="white" font-size="42" font-family="Arial, sans-serif" font-weight="700">Food and Catering</text>
-  <text x="874" y="460" fill="white" fill-opacity="0.9" font-size="22" font-family="Arial, sans-serif">Events and celebrations</text>
+  <text x="984" y="404" text-anchor="middle" fill="white" font-size="34" font-family="Arial, sans-serif" font-weight="700">
+    <tspan x="984" dy="0">Food and</tspan>
+    <tspan x="984" dy="40">Catering</tspan>
+  </text>
+  <text x="984" y="474" text-anchor="middle" fill="white" fill-opacity="0.9" font-size="20" font-family="Arial, sans-serif">Events and celebrations</text>
 </svg>

@@ -347,7 +347,7 @@ export default async function HomePage() {
               >
                 <div className="relative mb-2 h-24 w-full overflow-hidden rounded-lg">
                   <Image
-                    src={getBusinessImage(business.id)}
+                    src={business.media?.coverImages?.[0] || getBusinessImage(business.id)}
                     alt={business.name}
                     fill
                     className="object-cover"

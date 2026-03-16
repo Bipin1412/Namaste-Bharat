@@ -380,6 +380,7 @@ export async function deleteBusiness(id: string): Promise<boolean> {
     const before = draft.businesses.length;
     draft.businesses = draft.businesses.filter((entry) => entry.id !== id);
     draft.reels = draft.reels.filter((entry) => entry.businessId !== id);
+    draft.leads = draft.leads.filter((entry) => entry.businessId !== id);
     removed = draft.businesses.length !== before;
   });
 
