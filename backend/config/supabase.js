@@ -1,5 +1,12 @@
+const dns = require("node:dns");
 const { createClient } = require("@supabase/supabase-js");
 const { env } = require("./env");
+
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch {
+  // Keep platform defaults if custom DNS cannot be applied.
+}
 
 const supabaseAuthClient = createClient(env.supabaseUrl, env.supabaseAnonKey, {
   auth: { persistSession: false },
@@ -18,4 +25,3 @@ module.exports = {
   supabaseAdminClient,
   hasServiceRoleKey,
 };
-
