@@ -259,8 +259,8 @@ function parsePolicies(value: unknown): BusinessPolicies | null {
     if (typeof value.listingPlan !== "string") {
       return null;
     }
-    const listingPlan = value.listingPlan.trim().toLowerCase();
-    if (listingPlan !== "basic" && listingPlan !== "premium") {
+    const listingPlan = value.listingPlan.trim();
+    if (!listingPlan) {
       return null;
     }
     policies.listingPlan = listingPlan;

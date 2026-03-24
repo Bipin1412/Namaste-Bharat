@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Check, CheckCircle2, Loader2 } from "lucide-react";
 import { getAuthToken } from "@/lib/auth-client";
-import { listingPlans, type ListingPlanId } from "@/lib/ui/listing-plans";
+import { useListingPlans } from "@/lib/ui/use-listing-plans";
 
 type ListingPayload = {
   name: string;
@@ -18,7 +18,7 @@ type ListingPayload = {
   phone: string;
   whatsappNumber: string;
   policies: {
-    listingPlan: ListingPlanId;
+    listingPlan: string;
   };
 };
 
@@ -88,7 +88,8 @@ export default function FreeListingForm({
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [locality, setLocality] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState<ListingPlanId>("basic");
+  const { plans: listingPlans, isLoadingPlans } = useListingPlans();
+  const [selectedPlan, setSelectedPlan] = useState("basic");
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -184,6 +185,12 @@ export default function FreeListingForm({
     selectedCategories.length,
   ]);
 
+  useEffect(() => {
+    if (listingPlans.length === 0) return;
+    if (listingPlans.some((plan) => plan.id === selectedPlan)) return;
+    setSelectedPlan(listingPlans[0].id);
+  }, [listingPlans, selectedPlan]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit || isSubmitting) {
@@ -245,7 +252,7 @@ export default function FreeListingForm({
       setIsCityConfirmed(false);
       setSelectedCategories([]);
       setLocality("");
-      setSelectedPlan("basic");
+      setSelectedPlan(listingPlans[0]?.id || "basic");
       await onSuccess?.();
     } catch (error) {
       setIsSuccess(false);
@@ -392,6 +399,11 @@ export default function FreeListingForm({
           </p>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
+          {isLoadingPlans ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 md:col-span-2">
+              Loading plans...
+            </div>
+          ) : null}
           {listingPlans.map((plan) => {
             const isActive = selectedPlan === plan.id;
             return (

@@ -1,4 +1,5 @@
 import type { DatabaseShape } from "./types";
+import { defaultListingPlans } from "@/lib/ui/listing-plans";
 
 const now = new Date().toISOString();
 
@@ -51,5 +52,6 @@ export const seedDatabase: DatabaseShape = {
     },
   ],
   leads: [],
+  listingPlans: defaultListingPlans,
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Check,
   CheckCircle2,
@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getAuthToken } from "@/lib/auth-client";
-import { listingPlans, type ListingPlanId } from "@/lib/ui/listing-plans";
+import { useListingPlans } from "@/lib/ui/use-listing-plans";
 
 const steps = [
   "Basic Profile",
@@ -98,7 +98,8 @@ export default function DetailedListingForm({
   onSuccess,
 }: DetailedListingFormProps) {
   const [step, setStep] = useState(0);
-  const [selectedPlan, setSelectedPlan] = useState<ListingPlanId>("basic");
+  const { plans: listingPlans, isLoadingPlans } = useListingPlans();
+  const [selectedPlan, setSelectedPlan] = useState("basic");
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -149,6 +150,12 @@ export default function DetailedListingForm({
   }, [category, city, closeTime, description, keywords, locality, name, openTime, phone]);
 
   const progress = Math.round(((step + 1) / steps.length) * 100);
+
+  useEffect(() => {
+    if (listingPlans.length === 0) return;
+    if (listingPlans.some((plan) => plan.id === selectedPlan)) return;
+    setSelectedPlan(listingPlans[0].id);
+  }, [listingPlans, selectedPlan]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -289,6 +296,11 @@ export default function DetailedListingForm({
         {step === 0 ? (
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
+              {isLoadingPlans ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 md:col-span-2">
+                  Loading plans...
+                </div>
+              ) : null}
               {listingPlans.map((plan) => {
                 const isActive = selectedPlan === plan.id;
                 return (

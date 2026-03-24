@@ -1,46 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, CreditCard, ShieldCheck, Sparkles } from "lucide-react";
-
-type Plan = {
-  id: string;
-  name: string;
-  price: number;
-  durationLabel: string;
-  subtitle: string;
-  features: string[];
-};
-
-const plans: Plan[] = [
-  {
-    id: "basic",
-    name: "Basic listing",
-    price: 120,
-    durationLabel: "/1 month",
-    subtitle: "Listing on Namaste Bharat Portal",
-    features: [
-      "Visible on Namaste Bharat portal",
-      "Basic Marketing Tools",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Premium listing",
-    price: 3000,
-    durationLabel: "/1 year",
-    subtitle: "Listing on portal with featured visibility",
-    features: [
-      "Business listing on the Namaste Bharat portal",
-      "100+ customer leads",
-      "Customer enquiries directly on WhatsApp",
-      "Effective digital promotion",
-      "Mini website facility",
-      "Trusted and secure service",
-    ],
-  },
-];
+import { useListingPlans } from "@/lib/ui/use-listing-plans";
 
 const addOns = [
   { id: "reels", name: "Extra reel boost", price: 799 },
@@ -56,8 +19,14 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+function extractPriceValue(label: string) {
+  const digits = label.replace(/[^\d]/g, "");
+  return digits ? Number(digits) : 0;
+}
+
 export default function PlansCheckoutPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState(plans[0].id);
+  const { plans, isLoadingPlans } = useListingPlans();
+  const [selectedPlanId, setSelectedPlanId] = useState("");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
 
   const [businessName, setBusinessName] = useState("");
@@ -68,17 +37,23 @@ export default function PlansCheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
+  useEffect(() => {
+    if (plans.length === 0) return;
+    if (plans.some((plan) => plan.id === selectedPlanId)) return;
+    setSelectedPlanId(plans[0].id);
+  }, [plans, selectedPlanId]);
+
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? plans[0];
   const selectedAddOnItems = addOns.filter((addOn) => selectedAddOns.includes(addOn.id));
 
   const pricing = useMemo(() => {
-    const base = selectedPlan.price;
+    const base = extractPriceValue(selectedPlan?.priceLabel || "");
     const addOnTotal = selectedAddOnItems.reduce((sum, item) => sum + item.price, 0);
     const subtotal = base + addOnTotal;
     const gst = Math.round(subtotal * 0.18);
     const total = subtotal + gst;
     return { base, addOnTotal, subtotal, gst, total };
-  }, [selectedAddOnItems, selectedPlan.price]);
+  }, [selectedAddOnItems, selectedPlan?.priceLabel]);
 
   const canPlaceOrder =
     businessName.trim().length >= 3 &&
@@ -139,11 +114,10 @@ export default function PlansCheckoutPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-base font-semibold text-slate-900">{plan.name}</p>
-                          <p className="text-sm text-slate-600">{plan.subtitle}</p>
+                          <p className="text-sm text-slate-600">{plan.description}</p>
                         </div>
                         <p className="text-sm font-semibold text-blue-700">
-                          {formatCurrency(plan.price)}
-                          {plan.durationLabel}
+                          {plan.priceLabel}
                         </p>
                       </div>
                       <ul className="mt-2 space-y-1 text-sm text-slate-700">
@@ -160,6 +134,11 @@ export default function PlansCheckoutPage() {
                     </button>
                   );
                 })}
+                {!isLoadingPlans && plans.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    No plans available right now.
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -246,7 +225,7 @@ export default function PlansCheckoutPage() {
               <p className="text-lg font-semibold text-slate-900">Order summary</p>
               <div className="mt-3 space-y-2 text-sm text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span>Plan ({selectedPlan.name})</span>
+                  <span>Plan ({selectedPlan?.name || "Listing plan"})</span>
                   <span>{formatCurrency(pricing.base)}</span>
                 </div>
                 <div className="flex items-center justify-between">

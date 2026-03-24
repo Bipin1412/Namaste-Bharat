@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { mutateDatabase, readDatabase } from "./store";
 import masterCategories from "@/data/master-categories.json";
+import { normalizeListingPlan, normalizeListingPlans, type ListingPlan } from "@/lib/ui/listing-plans";
 import type {
   Business,
   DatabaseShape,
   Lead,
+  ListingPlanRecord,
   Offer,
   PaginatedResult,
   Reel,
@@ -42,6 +44,8 @@ export type CreateBusinessInput = Omit<
 export type UpdateBusinessInput = Partial<CreateBusinessInput>;
 
 export type CreateLeadInput = Omit<Lead, "id" | "createdAt">;
+export type CreateListingPlanInput = Omit<ListingPlanRecord, "id"> & { id?: string };
+export type UpdateListingPlanInput = Partial<Omit<ListingPlanRecord, "id">>;
 
 function normalizeText(value?: string): string {
   return (value ?? "").trim().toLowerCase();
@@ -503,4 +507,54 @@ export async function getDatabaseStats(): Promise<{
     leads: db.leads.length,
     updatedAt: new Date().toISOString(),
   };
+}
+
+export async function listListingPlans(): Promise<ListingPlan[]> {
+  const db = await readDatabase();
+  return normalizeListingPlans(db.listingPlans);
+}
+
+export async function createListingPlan(input: CreateListingPlanInput): Promise<ListingPlan> {
+  const next = normalizeListingPlan(input);
+  if (!next) {
+    throw new Error("Invalid listing plan payload.");
+  }
+
+  await mutateDatabase((draft) => {
+    draft.listingPlans = normalizeListingPlans(draft.listingPlans).filter(
+      (plan) => plan.id !== next.id
+    );
+    draft.listingPlans.push(next);
+  });
+
+  return next;
+}
+
+export async function updateListingPlan(
+  id: string,
+  input: UpdateListingPlanInput
+): Promise<ListingPlan | null> {
+  const db = await readDatabase();
+  const existing = normalizeListingPlans(db.listingPlans).find((plan) => plan.id === id);
+  if (!existing) {
+    return null;
+  }
+
+  const updated = normalizeListingPlan({
+    ...existing,
+    ...input,
+    id,
+  });
+
+  if (!updated) {
+    throw new Error("Invalid listing plan payload.");
+  }
+
+  await mutateDatabase((draft) => {
+    draft.listingPlans = normalizeListingPlans(draft.listingPlans).map((plan) =>
+      plan.id === id ? updated : plan
+    );
+  });
+
+  return updated;
 }

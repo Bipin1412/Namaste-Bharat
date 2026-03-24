@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { seedDatabase } from "./seed";
 import type { DatabaseShape } from "./types";
+import { normalizeListingPlans } from "@/lib/ui/listing-plans";
 
 const dataDirectory = path.join(process.cwd(), "data");
 const databasePath = path.join(dataDirectory, "db.json");
@@ -28,7 +29,14 @@ export async function readDatabase(): Promise<DatabaseShape> {
   const raw = await fs.readFile(databasePath, "utf8");
 
   try {
-    return JSON.parse(raw) as DatabaseShape;
+    const parsed = JSON.parse(raw) as Partial<DatabaseShape>;
+    return {
+      businesses: Array.isArray(parsed.businesses) ? parsed.businesses : seedDatabase.businesses,
+      reels: Array.isArray(parsed.reels) ? parsed.reels : seedDatabase.reels,
+      offers: Array.isArray(parsed.offers) ? parsed.offers : seedDatabase.offers,
+      leads: Array.isArray(parsed.leads) ? parsed.leads : seedDatabase.leads,
+      listingPlans: normalizeListingPlans(parsed.listingPlans),
+    };
   } catch {
     await fs.writeFile(
       databasePath,

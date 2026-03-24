@@ -1,25 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BadgeCheck,
-  BriefcaseBusiness,
-  Car,
-  GraduationCap,
-  Hammer,
   Hotel,
   MapPin,
   Search,
   ShieldCheck,
   Sparkles,
   Stethoscope,
-  Store,
-  Truck,
-  UtensilsCrossed,
   Wrench,
 } from "lucide-react";
 import BusinessCard from "@/components/BusinessCard";
+import CategorySection from "@/components/CategorySection";
 import OfferBannerSlot from "@/components/OfferBannerSlot";
 import VendorCardsSection, {
   buildVendorCardsFromBusinesses,
@@ -35,21 +28,21 @@ export const dynamic = "force-dynamic";
 
 type CategoryTile = {
   label: string;
-  Icon: LucideIcon;
+  iconKey: string;
   count?: number;
 };
 
 const fallbackCategories: CategoryTile[] = [
-  { label: "Repairs", Icon: Wrench },
-  { label: "Construction", Icon: Hammer },
-  { label: "Healthcare", Icon: Stethoscope },
-  { label: "Food", Icon: UtensilsCrossed },
-  { label: "Business", Icon: BriefcaseBusiness },
-  { label: "Education", Icon: GraduationCap },
-  { label: "Transport", Icon: Truck },
-  { label: "Hotels", Icon: Hotel },
-  { label: "Auto", Icon: Car },
-  { label: "Verified", Icon: ShieldCheck },
+  { label: "Repairs", iconKey: "wrench" },
+  { label: "Construction", iconKey: "hammer" },
+  { label: "Healthcare", iconKey: "health" },
+  { label: "Food", iconKey: "utensils" },
+  { label: "Business", iconKey: "briefcase" },
+  { label: "Education", iconKey: "education" },
+  { label: "Transport", iconKey: "transport" },
+  { label: "Hotels", iconKey: "hotel" },
+  { label: "Auto", iconKey: "car" },
+  { label: "Verified", iconKey: "store" },
 ];
 
 const quickShortcuts = [
@@ -61,20 +54,58 @@ const quickShortcuts = [
   { label: "Verified Only", href: "/search?verified=true&sort=rating_desc" },
 ];
 
-function pickIconForCategory(label: string): LucideIcon {
+function pickIconForCategory(label: string): string {
   const normalized = label.toLowerCase();
-  if (normalized.includes("repair") || normalized.includes("electrical")) return Wrench;
-  if (normalized.includes("fabrication") || normalized.includes("construction")) return Hammer;
-  if (normalized.includes("clinic") || normalized.includes("health")) return Stethoscope;
-  if (normalized.includes("catering") || normalized.includes("food")) return UtensilsCrossed;
-  if (normalized.includes("education")) return GraduationCap;
-  if (normalized.includes("logistics") || normalized.includes("transport")) return Truck;
-  if (normalized.includes("hotel") || normalized.includes("travel")) return Hotel;
-  if (normalized.includes("auto") || normalized.includes("garage")) return Car;
-  if (normalized.includes("business") || normalized.includes("service")) {
-    return BriefcaseBusiness;
+  if (normalized.includes("beauty") || normalized.includes("dress") || normalized.includes("grooms")) {
+    return "scissors";
   }
-  return Store;
+  if (normalized.includes("repair") || normalized.includes("electrical")) return "wrench";
+  if (normalized.includes("fabrication") || normalized.includes("construction")) return "hammer";
+  if (
+    normalized.includes("clinic") ||
+    normalized.includes("health") ||
+    normalized.includes("doctor") ||
+    normalized.includes("dental")
+  ) {
+    return "health";
+  }
+  if (normalized.includes("catering") || normalized.includes("food")) return "utensils";
+  if (normalized.includes("education")) return "education";
+  if (
+    normalized.includes("logistics") ||
+    normalized.includes("transport") ||
+    normalized.includes("courier") ||
+    normalized.includes("travels")
+  ) {
+    return "transport";
+  }
+  if (normalized.includes("hotel") || normalized.includes("travel")) return "hotel";
+  if (normalized.includes("auto") || normalized.includes("garage")) return "car";
+  if (normalized.includes("finance") || normalized.includes("insurance") || normalized.includes("loan")) {
+    return "finance";
+  }
+  if (normalized.includes("interior") || normalized.includes("paint") || normalized.includes("waterproof")) {
+    return "paint";
+  }
+  if (normalized.includes("software") || normalized.includes("computer") || normalized.includes("mobile")) {
+    return "tech";
+  }
+  if (normalized.includes("lawyer") || normalized.includes("legal") || normalized.includes("accounting")) {
+    return "scale";
+  }
+  if (normalized.includes("flower") || normalized.includes("gardening") || normalized.includes("agriculture")) {
+    return "flower";
+  }
+  if (normalized.includes("pack") || normalized.includes("mover") || normalized.includes("dealer")) {
+    return "package";
+  }
+  if (normalized.includes("home")) {
+    return "house";
+  }
+  if (normalized.includes("business") || normalized.includes("service")) {
+    return "briefcase";
+  }
+  return "store";
 }
 
 function promoPalette(index: number) {
@@ -89,13 +120,14 @@ export default async function HomePage() {
   const featuredBusinesses = snapshot.featuredBusinesses.slice(0, 4);
   const quickFilters = snapshot.quickFilters.slice(0, 8);
 
-  const dynamicCategories = snapshot.categories.slice(0, 10).map((entry) => ({
+  const dynamicCategories = snapshot.categories.slice(0, 20).map((entry) => ({
     label: entry.name,
-    Icon: pickIconForCategory(entry.name),
+    iconKey: pickIconForCategory(entry.name),
     count: entry.count,
   }));
   const renderedCategories =
     dynamicCategories.length > 0 ? dynamicCategories : fallbackCategories;
+  const popularPreviewCategories = renderedCategories.slice(0, 6);
 
   const promoOffers = snapshot.offers.slice(0, 4);
   const vendorResult = await listBusinesses({
@@ -219,39 +251,7 @@ export default async function HomePage() {
               ))}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-800">
-              Browse by category
-            </p>
-            <Link
-              href="/search"
-              className="text-xs font-medium text-blue-700 hover:text-blue-600"
-            >
-              View all
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10">
-            {renderedCategories.map(({ label, Icon, count }) => (
-              <Link
-                key={label}
-                href={`/search?q=${encodeURIComponent(label)}`}
-                className="rounded-xl border border-slate-100 bg-slate-50 p-2 text-center transition-colors hover:border-blue-200 hover:bg-blue-50"
-              >
-                <span className="mx-auto grid h-9 w-9 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
-                  <Icon className="h-[18px] w-[18px]" aria-hidden />
-                </span>
-                <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-tight text-slate-700">
-                  {label}
-                </p>
-                {count ? (
-                  <p className="mt-0.5 text-[10px] text-slate-500">{count} listed</p>
-                ) : null}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <CategorySection categories={renderedCategories} />
 
         <OfferBannerSlot
           title="Offer Banner Slot"
@@ -281,6 +281,25 @@ export default async function HomePage() {
                   className="whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
                 >
                   {item}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-3">
+              {popularPreviewCategories.map(({ label, iconKey, count }) => (
+                <Link
+                  key={`popular-preview-${label}`}
+                  href={`/search?q=${encodeURIComponent(label)}`}
+                  className="rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors hover:border-blue-200 hover:bg-blue-50"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                      {iconKey.slice(0, 2)}
+                    </span>
+                  </span>
+                  <p className="mt-3 text-sm font-semibold text-slate-800">{label}</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {count ? `${count} active listings` : "Explore top local options"}
+                  </p>
                 </Link>
               ))}
             </div>

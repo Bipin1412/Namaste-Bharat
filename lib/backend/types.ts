@@ -25,7 +25,7 @@ export type BusinessMedia = {
 };
 
 export type BusinessPolicies = {
-  listingPlan?: "basic" | "premium";
+  listingPlan?: string;
   paymentMethods?: string[];
   homeService?: boolean;
   emergencyService?: boolean;
@@ -112,11 +112,21 @@ export type Lead = {
   createdAt: string;
 };
 
+export type ListingPlanRecord = {
+  id: string;
+  name: string;
+  priceLabel: string;
+  shortLabel: string;
+  description: string;
+  features: string[];
+};
+
 export type DatabaseShape = {
   businesses: Business[];
   reels: Reel[];
   offers: Offer[];
   leads: Lead[];
+  listingPlans: ListingPlanRecord[];
 };
 
 export type PaginatedResult<T> = {

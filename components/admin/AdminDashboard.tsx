@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Pencil, ShieldAlert, Trash2, XCircle } from "lucide-react";
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Loader2, Pencil, Plus, ShieldAlert, Trash2, XCircle } from "lucide-react";
 import { getAuthToken, getBackendBaseUrl } from "@/lib/auth-client";
 import FreeListingForm from "@/components/FreeListingForm";
+import type { ListingPlan } from "@/lib/ui/listing-plans";
 
 type SessionPayload = {
   user?: { id?: string; email?: string | null };
@@ -18,7 +19,7 @@ type AdminListing = {
   locality: string;
   city: string;
   phone: string;
-  listingPlan: "basic" | "premium" | "unknown";
+  listingPlan: string | "unknown";
   listingStatus: "pending" | "active" | "rejected";
   verified: boolean;
   createdAt: string;
@@ -30,13 +31,31 @@ type AdminListing = {
 };
 
 type StatusFilter = "all" | "pending" | "active" | "rejected";
-type PlanFilter = "all" | "basic" | "premium";
+type PlanFilter = "all" | string;
 type DailyInquiry = {
   id: string;
   inquiryDate: string;
   description: string;
   createdAt: string;
   updatedAt?: string;
+};
+
+type PlanFormState = {
+  id: string;
+  name: string;
+  shortLabel: string;
+  priceLabel: string;
+  description: string;
+  featuresText: string;
+};
+
+const emptyPlanForm: PlanFormState = {
+  id: "",
+  name: "",
+  shortLabel: "",
+  priceLabel: "",
+  description: "",
+  featuresText: "",
 };
 
 export default function AdminDashboard() {
@@ -52,14 +71,19 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
   const [searchText, setSearchText] = useState("");
+  const [listingPlans, setListingPlans] = useState<ListingPlan[]>([]);
   const [editId, setEditId] = useState("");
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState("");
   const [editCity, setEditCity] = useState("");
   const [editLocality, setEditLocality] = useState("");
   const [editPhone, setEditPhone] = useState("");
-  const [editListingPlan, setEditListingPlan] = useState<"basic" | "premium">("basic");
+  const [editListingPlan, setEditListingPlan] = useState("basic");
   const [editCoverImage, setEditCoverImage] = useState("");
+  const [planWorkingId, setPlanWorkingId] = useState("");
+  const [planEditId, setPlanEditId] = useState("");
+  const [newPlan, setNewPlan] = useState<PlanFormState>(emptyPlanForm);
+  const [editPlanForm, setEditPlanForm] = useState<PlanFormState>(emptyPlanForm);
 
   const token = useMemo(() => getAuthToken(), []);
   const missingBusinessesTableMsg = "could not find the table 'public.businesses'";
@@ -144,23 +168,16 @@ export default function AdminDashboard() {
         city: String(entry.city || ""),
         phone: String(entry.phone || ""),
         listingPlan:
-          String(
+          (() => {
+            const rawPlan = String(
             entry.policies &&
               typeof entry.policies === "object" &&
               "listingPlan" in entry.policies
               ? (entry.policies as { listingPlan?: string }).listingPlan || ""
               : ""
-          ).toLowerCase() === "premium"
-            ? ("premium" as const)
-            : String(
-                entry.policies &&
-                  typeof entry.policies === "object" &&
-                  "listingPlan" in entry.policies
-                  ? (entry.policies as { listingPlan?: string }).listingPlan || ""
-                  : ""
-              ).toLowerCase() === "basic"
-            ? ("basic" as const)
-            : ("unknown" as const),
+            ).trim();
+            return rawPlan || ("unknown" as const);
+          })(),
         listingStatus:
           String(entry.listingStatus || "").toLowerCase() === "active"
             ? ("active" as const)
@@ -204,6 +221,32 @@ export default function AdminDashboard() {
     setDailyInquiries(Array.isArray(payload?.data) ? payload.data : []);
   }, [token]);
 
+  const loadListingPlans = useCallback(async () => {
+    try {
+      const authHeader = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const response = await fetch("/api/admin/plans", {
+        headers: authHeader,
+        cache: "no-store",
+      }).catch(() => null);
+
+      if (!response || !response.ok) {
+        const fallback = await fetch("/api/plans", { cache: "no-store" }).catch(() => null);
+        const fallbackPayload = (await fallback?.json().catch(() => null)) as
+          | { data?: ListingPlan[] }
+          | null;
+        setListingPlans(Array.isArray(fallbackPayload?.data) ? fallbackPayload.data : []);
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | { data?: ListingPlan[] }
+        | null;
+      setListingPlans(Array.isArray(payload?.data) ? payload.data : []);
+    } catch {
+      setListingPlans([]);
+    }
+  }, [token]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -240,6 +283,7 @@ export default function AdminDashboard() {
       setIsAdmin(true);
       await loadListings();
       await loadDailyInquiries();
+      await loadListingPlans();
       setIsLoading(false);
     }
 
@@ -247,7 +291,7 @@ export default function AdminDashboard() {
     return () => {
       mounted = false;
     };
-  }, [loadDailyInquiries, loadListings, token]);
+  }, [loadDailyInquiries, loadListingPlans, loadListings, token]);
 
   async function activateListing(id: string) {
     if (!token || workingId) return;
@@ -332,8 +376,115 @@ export default function AdminDashboard() {
     setEditCity(item.city);
     setEditLocality(item.locality);
     setEditPhone(item.phone);
-    setEditListingPlan(item.listingPlan === "premium" ? "premium" : "basic");
+    setEditListingPlan(item.listingPlan === "unknown" ? listingPlans[0]?.id || "basic" : item.listingPlan);
     setEditCoverImage(item.media?.coverImages?.[0] || "");
+  }
+
+  function updatePlanForm(
+    setter: Dispatch<SetStateAction<PlanFormState>>,
+    key: keyof PlanFormState,
+    value: string
+  ) {
+    setter((current) => ({ ...current, [key]: value }));
+  }
+
+  function toFeatures(text: string) {
+    return text
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function startPlanEdit(plan: ListingPlan) {
+    setPlanEditId(plan.id);
+    setEditPlanForm({
+      id: plan.id,
+      name: plan.name,
+      shortLabel: plan.shortLabel,
+      priceLabel: plan.priceLabel,
+      description: plan.description,
+      featuresText: plan.features.join("\n"),
+    });
+  }
+
+  async function createPlan() {
+    if (!token || planWorkingId) return;
+    setPlanWorkingId("create");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/admin/plans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: newPlan.id.trim() || undefined,
+          name: newPlan.name.trim(),
+          shortLabel: newPlan.shortLabel.trim(),
+          priceLabel: newPlan.priceLabel.trim(),
+          description: newPlan.description.trim(),
+          features: toFeatures(newPlan.featuresText),
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || "Could not create listing plan.");
+      }
+
+      setNewPlan(emptyPlanForm);
+      setMessage("Listing plan created.");
+      await loadListingPlans();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not create listing plan.");
+    } finally {
+      setPlanWorkingId("");
+    }
+  }
+
+  async function savePlan(id: string) {
+    if (!token || planWorkingId) return;
+    setPlanWorkingId(id);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/plans/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editPlanForm.name.trim(),
+          shortLabel: editPlanForm.shortLabel.trim(),
+          priceLabel: editPlanForm.priceLabel.trim(),
+          description: editPlanForm.description.trim(),
+          features: toFeatures(editPlanForm.featuresText),
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || "Could not update listing plan.");
+      }
+
+      setPlanEditId("");
+      setEditPlanForm(emptyPlanForm);
+      setMessage("Listing plan updated.");
+      await loadListingPlans();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update listing plan.");
+    } finally {
+      setPlanWorkingId("");
+    }
   }
 
   async function onPickImageFile(file: File | null) {
@@ -537,6 +688,11 @@ export default function AdminDashboard() {
     });
   }, [listings, planFilter, searchText, statusFilter]);
 
+  const availablePlanFilters = useMemo(
+    () => ["all", ...listingPlans.map((plan) => plan.id)],
+    [listingPlans]
+  );
+
   const counts = useMemo(() => {
     const pending = listings.filter((item) => item.listingStatus === "pending").length;
     const active = listings.filter((item) => item.listingStatus === "active").length;
@@ -592,6 +748,177 @@ export default function AdminDashboard() {
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-lg font-semibold text-slate-900">Manage Listing Plans</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Create new plans and update the existing ones used across listing forms.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadListingPlans()}
+            className="h-9 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1.05fr,1.4fr]">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
+              <Plus className="h-4 w-4 text-blue-600" /> Add New Plan
+            </p>
+            <div className="mt-3 grid gap-2">
+              <input
+                value={newPlan.id}
+                onChange={(event) => updatePlanForm(setNewPlan, "id", event.target.value)}
+                placeholder="Plan id (optional, e.g. gold-listing)"
+                className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              />
+              <input
+                value={newPlan.name}
+                onChange={(event) => updatePlanForm(setNewPlan, "name", event.target.value)}
+                placeholder="Plan name"
+                className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              />
+              <input
+                value={newPlan.shortLabel}
+                onChange={(event) => updatePlanForm(setNewPlan, "shortLabel", event.target.value)}
+                placeholder="Short label"
+                className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              />
+              <input
+                value={newPlan.priceLabel}
+                onChange={(event) => updatePlanForm(setNewPlan, "priceLabel", event.target.value)}
+                placeholder="Price label"
+                className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              />
+              <textarea
+                value={newPlan.description}
+                onChange={(event) => updatePlanForm(setNewPlan, "description", event.target.value)}
+                placeholder="Plan description"
+                rows={3}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+              <textarea
+                value={newPlan.featuresText}
+                onChange={(event) => updatePlanForm(setNewPlan, "featuresText", event.target.value)}
+                placeholder={"Features, one per line\nFeatured business profile\nPriority listing placement"}
+                rows={5}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                disabled={planWorkingId === "create"}
+                onClick={() => void createPlan()}
+                className="h-10 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {planWorkingId === "create" ? "Creating..." : "Create plan"}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {listingPlans.length === 0 ? (
+              <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                No listing plans available.
+              </p>
+            ) : (
+              listingPlans.map((plan) => (
+                <article key={plan.id} className="rounded-xl border border-slate-200 p-4">
+                  {planEditId === plan.id ? (
+                    <div className="grid gap-2">
+                      <input
+                        value={editPlanForm.name}
+                        onChange={(event) => updatePlanForm(setEditPlanForm, "name", event.target.value)}
+                        className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+                      />
+                      <div className="grid gap-2 md:grid-cols-2">
+                        <input
+                          value={editPlanForm.shortLabel}
+                          onChange={(event) => updatePlanForm(setEditPlanForm, "shortLabel", event.target.value)}
+                          className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+                        />
+                        <input
+                          value={editPlanForm.priceLabel}
+                          onChange={(event) => updatePlanForm(setEditPlanForm, "priceLabel", event.target.value)}
+                          className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+                        />
+                      </div>
+                      <textarea
+                        value={editPlanForm.description}
+                        onChange={(event) => updatePlanForm(setEditPlanForm, "description", event.target.value)}
+                        rows={3}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      />
+                      <textarea
+                        value={editPlanForm.featuresText}
+                        onChange={(event) => updatePlanForm(setEditPlanForm, "featuresText", event.target.value)}
+                        rows={5}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-slate-900">{plan.name}</p>
+                          <p className="mt-1 text-sm font-medium text-blue-700">{plan.priceLabel}</p>
+                          <p className="mt-1 text-sm text-slate-600">{plan.description}</p>
+                        </div>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                          {plan.shortLabel}
+                        </span>
+                      </div>
+                      <ul className="mt-3 space-y-1 text-sm text-slate-700">
+                        {plan.features.map((feature) => (
+                          <li key={feature}>- {feature}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+
+                  <div className="mt-3 flex gap-2">
+                    {planEditId === plan.id ? (
+                      <>
+                        <button
+                          type="button"
+                          disabled={planWorkingId === plan.id}
+                          onClick={() => void savePlan(plan.id)}
+                          className="inline-flex h-9 items-center gap-1 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                        >
+                          Save plan
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPlanEditId("");
+                            setEditPlanForm(emptyPlanForm);
+                          }}
+                          className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startPlanEdit(plan)}
+                        className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit plan
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-lg font-semibold text-slate-900">All Listings ({filteredListings.length})</p>
           <button
@@ -624,7 +951,7 @@ export default function AdminDashboard() {
               {status[0].toUpperCase() + status.slice(1)}
             </button>
           ))}
-          {(["all", "basic", "premium"] as PlanFilter[]).map((plan) => (
+          {availablePlanFilters.map((plan) => (
             <button
               key={plan}
               type="button"
@@ -635,7 +962,9 @@ export default function AdminDashboard() {
                   : "border border-slate-300 bg-white text-slate-700"
               }`}
             >
-              {plan === "all" ? "All plans" : `${plan[0].toUpperCase()}${plan.slice(1)} plan`}
+              {plan === "all"
+                ? "All plans"
+                : listingPlans.find((item) => item.id === plan)?.name || plan}
             </button>
           ))}
           <input
@@ -661,11 +990,14 @@ export default function AdminDashboard() {
                     <input value={editPhone} onChange={(event) => setEditPhone(event.target.value)} className="h-9 rounded-lg border border-slate-300 px-3 text-sm md:col-span-2" />
                     <select
                       value={editListingPlan}
-                      onChange={(event) => setEditListingPlan(event.target.value as "basic" | "premium")}
+                      onChange={(event) => setEditListingPlan(event.target.value)}
                       className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm md:col-span-2"
                     >
-                      <option value="basic">Basic listing</option>
-                      <option value="premium">Premium listing</option>
+                      {listingPlans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </option>
+                      ))}
                     </select>
                     <input
                       value={editCoverImage}
@@ -696,7 +1028,7 @@ export default function AdminDashboard() {
                     <p className="mt-1 text-xs font-medium text-blue-700">
                       Plan: {item.listingPlan === "unknown"
                         ? "Not selected"
-                        : `${item.listingPlan[0].toUpperCase()}${item.listingPlan.slice(1)} listing`}
+                        : listingPlans.find((plan) => plan.id === item.listingPlan)?.name || item.listingPlan}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       Status: <span className="font-semibold">{item.listingStatus}</span> | Submitted: {new Date(item.createdAt).toLocaleString("en-IN")}
