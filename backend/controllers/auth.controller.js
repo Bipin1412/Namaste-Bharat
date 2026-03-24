@@ -19,6 +19,30 @@ const {
   validatePhone,
 } = require("../utils/validators");
 
+function getReadableAuthError(error, fallbackMessage) {
+  const message = error instanceof Error ? error.message : fallbackMessage;
+  const causeMessage =
+    typeof error === "object" &&
+    error !== null &&
+    "cause" in error &&
+    error.cause &&
+    typeof error.cause === "object" &&
+    "message" in error.cause
+      ? String(error.cause.message || "")
+      : "";
+  const combined = `${message} ${causeMessage}`.toLowerCase();
+
+  if (
+    combined.includes("fetch failed") ||
+    combined.includes("enotfound") ||
+    combined.includes("getaddrinfo")
+  ) {
+    return "Authentication service is temporarily unavailable. Please try again shortly.";
+  }
+
+  return message || fallbackMessage;
+}
+
 async function signup(req, res) {
   try {
     const fullName = String(req.body?.fullName || "").trim();
@@ -84,7 +108,7 @@ async function signup(req, res) {
     });
   } catch (error) {
     return res.status(500).json({
-      error: { message: error instanceof Error ? error.message : "Could not sign up." },
+      error: { message: getReadableAuthError(error, "Could not sign up.") },
     });
   }
 }
@@ -142,7 +166,7 @@ async function login(req, res) {
     });
   } catch (error) {
     return res.status(500).json({
-      error: { message: error instanceof Error ? error.message : "Could not login." },
+      error: { message: getReadableAuthError(error, "Could not login.") },
     });
   }
 }
@@ -161,7 +185,7 @@ async function me(req, res) {
     });
   } catch (error) {
     return res.status(500).json({
-      error: { message: error instanceof Error ? error.message : "Could not load session." },
+      error: { message: getReadableAuthError(error, "Could not load session.") },
     });
   }
 }
@@ -180,7 +204,7 @@ async function logout(req, res) {
     return res.json({ ok: true });
   } catch (error) {
     return res.status(500).json({
-      error: { message: error instanceof Error ? error.message : "Could not logout." },
+      error: { message: getReadableAuthError(error, "Could not logout.") },
     });
   }
 }
@@ -231,7 +255,7 @@ async function requestPasswordReset(req, res) {
     });
   } catch (error) {
     return res.status(500).json({
-      error: { message: error instanceof Error ? error.message : "Could not request password reset." },
+      error: { message: getReadableAuthError(error, "Could not request password reset.") },
     });
   }
 }
@@ -274,7 +298,7 @@ async function confirmPasswordReset(req, res) {
     return res.json({ ok: true, message: "Password has been updated. Please login again." });
   } catch (error) {
     return res.status(500).json({
-      error: { message: error instanceof Error ? error.message : "Could not reset password." },
+      error: { message: getReadableAuthError(error, "Could not reset password.") },
     });
   }
 }
@@ -316,7 +340,7 @@ async function sendPhoneOtp(req, res) {
     }
     const message =
       typeof error?.message === "string"
-        ? error.message
+        ? getReadableAuthError(error, "Could not send OTP.")
         : "Could not send OTP.";
     return res.status(500).json({
       error: { message },
@@ -385,7 +409,7 @@ async function verifyPhoneOtp(req, res) {
   } catch (error) {
     const message =
       typeof error?.message === "string"
-        ? error.message
+        ? getReadableAuthError(error, "Could not verify OTP.")
         : "Could not verify OTP.";
     return res.status(500).json({
       error: { message },
