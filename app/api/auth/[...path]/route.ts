@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type User } from "@supabase/supabase-js";
+import { Resolver } from "node:dns";
+import { Agent, fetch as undiciFetch } from "undici";
 
 export const runtime = "nodejs";
 
@@ -19,11 +21,43 @@ function requireEnv(name: string): string {
   return value;
 }
 
+const resolver = new Resolver();
+resolver.setServers(["8.8.8.8", "1.1.1.1"]);
+
+const dispatcher = new Agent({
+  connect: {
+    lookup(hostname, _options, callback) {
+      resolver.resolve4(hostname, (error, addresses) => {
+        if (!error && Array.isArray(addresses) && addresses.length > 0) {
+          callback(null, addresses[0], 4);
+          return;
+        }
+
+        resolver.resolve6(hostname, (ipv6Error, ipv6Addresses) => {
+          if (!ipv6Error && Array.isArray(ipv6Addresses) && ipv6Addresses.length > 0) {
+            callback(null, ipv6Addresses[0], 6);
+            return;
+          }
+
+          callback(error || ipv6Error || new Error(`DNS lookup failed for ${hostname}`));
+        });
+      });
+    },
+  },
+});
+
+function customFetch(input: string | URL | Request, init?: RequestInit) {
+  return undiciFetch(input, {
+    ...init,
+    dispatcher,
+  });
+}
+
 function createAnonClient() {
   return createClient(
     requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
     requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-    { auth: { persistSession: false } }
+    { auth: { persistSession: false }, global: { fetch: customFetch } }
   );
 }
 
@@ -35,6 +69,7 @@ function createAdminClient() {
 
   return createClient(requireEnv("NEXT_PUBLIC_SUPABASE_URL"), serviceKey, {
     auth: { persistSession: false },
+    global: { fetch: customFetch },
   });
 }
 
