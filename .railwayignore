@@ -8,3 +8,4 @@ backend.log
 backend-local.log
 backend-local-error.log
 tsconfig.tsbuildinfo
+assests/first-excel-image
