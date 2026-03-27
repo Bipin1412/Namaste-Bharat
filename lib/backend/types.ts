@@ -64,6 +64,9 @@ export type Business = {
   reviewCount: number;
   isOpenNow: boolean;
   verified: boolean;
+  listingStatus?: "pending" | "active" | "rejected";
+  activatedAt?: string | null;
+  rejectedReason?: string | null;
   phone: string;
   whatsappNumber: string;
   serviceAreas?: string[];

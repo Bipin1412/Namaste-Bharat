@@ -6,6 +6,7 @@ import {
   updateBusiness,
 } from "@/lib/backend/service";
 import { validateUpdateBusinessPayload } from "@/lib/backend/validation";
+import { requireAdminFromAuthHeader } from "@/lib/server/daily-inquiries";
 
 export const runtime = "nodejs";
 
@@ -15,30 +16,19 @@ type RouteContext = {
 
 async function ensureAdmin(request: NextRequest): Promise<null | NextResponse> {
   const authHeader = request.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice("Bearer ".length).trim()
-    : "";
-
-  if (!token) {
-    return jsonError(401, "Missing bearer token.");
-  }
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-  const response = await fetch(`${backendUrl}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  }).catch(() => null);
-
-  if (!response || !response.ok) {
-    return jsonError(401, "Unauthorized.");
-  }
-
-  const payload = (await response.json().catch(() => null)) as
-    | { profile?: { role?: string | null } }
-    | null;
-
-  if (String(payload?.profile?.role || "").toLowerCase() !== "admin") {
-    return jsonError(403, "Admin access required.");
+  try {
+    await requireAdminFromAuthHeader(authHeader);
+  } catch (error) {
+    const status =
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      typeof (error as { status?: number }).status === "number"
+        ? (error as { status: number }).status
+        : 403;
+    const message =
+      error instanceof Error ? error.message : "Admin access required.";
+    return jsonError(status, message);
   }
 
   return null;

@@ -2,15 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { jsonError, parseBooleanParam, parseNumberParam } from "@/lib/backend/http";
 import { createBusiness, listBusinesses } from "@/lib/backend/service";
 import { validateCreateBusinessPayload } from "@/lib/backend/validation";
+import { hasMysqlConfig } from "@/lib/server/mysql";
 import { requireAdminFromAuthHeader } from "@/lib/server/daily-inquiries";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
+  const authHeader = request.headers.get("authorization") || "";
 
   const page = parseNumberParam(searchParams.get("page"), 1, 1, 10000);
   const limit = parseNumberParam(searchParams.get("limit"), 12, 1, 50);
+  const includeInactive = parseBooleanParam(searchParams.get("includeInactive")) === true;
+
+  if (includeInactive) {
+    try {
+      await requireAdminFromAuthHeader(authHeader);
+    } catch (error) {
+      const status =
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status?: number }).status === "number"
+          ? (error as { status: number }).status
+          : 403;
+      const message =
+        error instanceof Error ? error.message : "Admin access required.";
+      return jsonError(status, message);
+    }
+  }
 
   const payload = await listBusinesses({
     q: searchParams.get("q") ?? undefined,
@@ -25,6 +45,7 @@ export async function GET(request: NextRequest) {
         | "reviews_desc"
         | "newest"
         | null) ?? "rating_desc",
+    includeInactive,
     page,
     limit,
   });
@@ -51,7 +72,7 @@ export async function POST(request: NextRequest) {
       ? {
           ...validation.data,
           verified: true,
-          listingStatus: "active",
+          listingStatus: "active" as const,
           activatedAt: new Date().toISOString(),
           rejectedReason: null,
         }
@@ -60,17 +81,19 @@ export async function POST(request: NextRequest) {
           verified: false,
         };
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-    const upstream = await fetch(`${backendUrl}/api/businesses`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(createPayload),
-      cache: "no-store",
-    }).catch(() => null);
+    if (!hasMysqlConfig()) {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+      const upstream = await fetch(`${backendUrl}/api/businesses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createPayload),
+        cache: "no-store",
+      }).catch(() => null);
 
-    if (upstream && upstream.ok) {
-      const payload = await upstream.json();
-      return NextResponse.json(payload, { status: 201 });
+      if (upstream && upstream.ok) {
+        const payload = await upstream.json();
+        return NextResponse.json(payload, { status: 201 });
+      }
     }
 
     const created = await createBusiness(createPayload);

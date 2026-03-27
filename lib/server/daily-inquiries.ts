@@ -1,12 +1,14 @@
-import crypto from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
+import { executeResult, hasMysqlConfig, queryRows, toIsoString } from "@/lib/server/mysql";
+import { findProfileByUserId, resolveUserFromToken } from "@/lib/server/mysql-auth";
+import * as legacy from "./daily-inquiries-legacy";
 
 type DailyInquiryRow = {
   id: string;
   inquiry_date: string;
   description: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 type ResolvedUser = {
@@ -18,110 +20,21 @@ type ResolvedUser = {
   } | null;
 };
 
-function getEnv(name: string): string {
-  return String(process.env[name] || "").trim();
-}
-
-function requireEnv(name: string): string {
-  const value = getEnv(name);
-  if (!value) {
-    throw new Error(`Missing required env var: ${name}`);
-  }
-  return value;
-}
-
-function createAnonClient() {
-  return createClient(
-    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-    { auth: { persistSession: false } }
-  );
-}
-
-function createAdminClient() {
-  return createClient(
-    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
-    { auth: { persistSession: false } }
-  );
-}
-
 function mapDailyInquiry(row: DailyInquiryRow) {
   return {
     id: row.id,
     inquiryDate: row.inquiry_date,
     description: row.description,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toIsoString(row.created_at),
+    updatedAt: toIsoString(row.updated_at),
   };
 }
 
-function base64UrlDecode(input: string): string {
-  const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-  return Buffer.from(padded, "base64").toString("utf8");
-}
-
-function signHmac(data: string, secret: string): string {
-  return crypto
-    .createHmac("sha256", secret)
-    .update(data)
-    .digest("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-function verifyAppToken(token: string) {
-  const secret = requireEnv("APP_JWT_SECRET");
-  const parts = String(token || "").split(".");
-  if (parts.length !== 3) {
-    return { ok: false as const };
-  }
-
-  const [encodedHeader, encodedBody, signature] = parts;
-  const signingInput = `${encodedHeader}.${encodedBody}`;
-  const expectedSignature = signHmac(signingInput, secret);
-  const signatureBuffer = Buffer.from(signature);
-  const expectedBuffer = Buffer.from(expectedSignature);
-
-  if (signatureBuffer.length !== expectedBuffer.length) {
-    return { ok: false as const };
-  }
-  if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
-    return { ok: false as const };
-  }
-
-  try {
-    const payload = JSON.parse(base64UrlDecode(encodedBody)) as {
-      sub?: string;
-      email?: string | null;
-      phone?: string | null;
-      role?: string | null;
-      exp?: number;
-    };
-    const now = Math.floor(Date.now() / 1000);
-    if (!payload.exp || now >= payload.exp || !payload.sub) {
-      return { ok: false as const };
-    }
-
-    return {
-      ok: true as const,
-      user: {
-        id: payload.sub,
-        email: payload.email ?? null,
-        phone: payload.phone ?? null,
-        user_metadata: {
-          role: payload.role ?? "user",
-        },
-      } satisfies ResolvedUser,
-    };
-  } catch {
-    return { ok: false as const };
-  }
-}
-
 export async function requireAdminFromAuthHeader(authHeader: string) {
+  if (!hasMysqlConfig()) {
+    return legacy.requireAdminFromAuthHeader(authHeader);
+  }
+
   const token = authHeader.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length).trim()
     : "";
@@ -132,75 +45,49 @@ export async function requireAdminFromAuthHeader(authHeader: string) {
     throw error;
   }
 
-  let user: ResolvedUser | null = null;
-
-  try {
-    const anonClient = createAnonClient();
-    const { data, error } = await anonClient.auth.getUser(token);
-    if (!error && data.user) {
-      user = {
-        id: data.user.id,
-        email: data.user.email ?? null,
-        phone: data.user.phone ?? null,
-        user_metadata: data.user.user_metadata as ResolvedUser["user_metadata"],
-      };
-    }
-  } catch {
-    user = null;
-  }
-
-  if (!user) {
-    const verified = verifyAppToken(token);
-    if (verified.ok) {
-      user = verified.user;
-    }
-  }
-
+  const user = await resolveUserFromToken(token);
   if (!user?.id) {
     const error = new Error("Invalid or expired session.");
     (error as Error & { status?: number }).status = 401;
     throw error;
   }
 
-  const metadataRole = String(user.user_metadata?.role || "").toLowerCase();
-  if (metadataRole === "admin") {
-    return user;
-  }
-
-  const adminClient = createAdminClient();
-  const { data, error } = await adminClient
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (error || String(data?.role || "").toLowerCase() !== "admin") {
+  const profile = await findProfileByUserId(user.id);
+  if (String(profile?.role || "").toLowerCase() !== "admin") {
     const denied = new Error("Admin access denied.");
     (denied as Error & { status?: number }).status = 403;
     throw denied;
   }
 
-  return user;
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    phone: user.phone ?? null,
+    user_metadata: {
+      role: profile?.role ?? "user",
+    },
+  } satisfies ResolvedUser;
 }
 
 export async function listDailyInquiryPosts(filterDate: string | null) {
-  const adminClient = createAdminClient();
-  let query = adminClient
-    .from("daily_inquiry_posts")
-    .select("*")
-    .order("inquiry_date", { ascending: false })
-    .order("created_at", { ascending: false });
-
-  if (filterDate) {
-    query = query.eq("inquiry_date", filterDate);
+  if (!hasMysqlConfig()) {
+    return legacy.listDailyInquiryPosts(filterDate);
   }
 
-  const { data, error } = await query;
-  if (error) {
-    throw error;
-  }
+  const rows = filterDate
+    ? await queryRows<DailyInquiryRow>(
+        `SELECT id, inquiry_date, description, created_at, updated_at
+         FROM daily_inquiry_posts
+         WHERE inquiry_date = ?
+         ORDER BY inquiry_date DESC, created_at DESC`,
+        [filterDate]
+      )
+    : await queryRows<DailyInquiryRow>(
+        `SELECT id, inquiry_date, description, created_at, updated_at
+         FROM daily_inquiry_posts
+         ORDER BY inquiry_date DESC, created_at DESC`
+      );
 
-  const rows = (data || []) as DailyInquiryRow[];
   return rows.map(mapDailyInquiry);
 }
 
@@ -208,33 +95,37 @@ export async function createDailyInquiryPost(input: {
   inquiryDate: string;
   description: string;
 }) {
-  const adminClient = createAdminClient();
-  const { data, error } = await adminClient
-    .from("daily_inquiry_posts")
-    .insert({
-      inquiry_date: input.inquiryDate,
-      description: input.description,
-    })
-    .select("*")
-    .single();
-
-  if (error) {
-    throw error;
+  if (!hasMysqlConfig()) {
+    return legacy.createDailyInquiryPost(input);
   }
 
-  return mapDailyInquiry(data as DailyInquiryRow);
+  const id = randomUUID();
+  await executeResult(
+    `INSERT INTO daily_inquiry_posts (id, inquiry_date, description)
+     VALUES (?, ?, ?)`,
+    [id, input.inquiryDate, input.description]
+  );
+
+  const rows = await queryRows<DailyInquiryRow>(
+    `SELECT id, inquiry_date, description, created_at, updated_at
+     FROM daily_inquiry_posts
+     WHERE id = ?
+     LIMIT 1`,
+    [id]
+  );
+
+  if (!rows[0]) {
+    throw new Error("Daily inquiry post was created but could not be loaded.");
+  }
+
+  return mapDailyInquiry(rows[0]);
 }
 
 export async function deleteDailyInquiryPost(id: string) {
-  const adminClient = createAdminClient();
-  const { error, count } = await adminClient
-    .from("daily_inquiry_posts")
-    .delete({ count: "exact" })
-    .eq("id", id);
-
-  if (error) {
-    throw error;
+  if (!hasMysqlConfig()) {
+    return legacy.deleteDailyInquiryPost(id);
   }
 
-  return Boolean(count);
+  const result = await executeResult("DELETE FROM daily_inquiry_posts WHERE id = ?", [id]);
+  return result.affectedRows > 0;
 }

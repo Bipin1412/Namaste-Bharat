@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, Pencil, Plus, ShieldAlert, Trash2, XCircle } from "lucide-react";
-import { getAuthToken, getBackendBaseUrl } from "@/lib/auth-client";
+import { getAuthToken } from "@/lib/auth-client";
 import FreeListingForm from "@/components/FreeListingForm";
 import type { ListingPlan } from "@/lib/ui/listing-plans";
 
@@ -86,11 +86,6 @@ export default function AdminDashboard() {
   const [editPlanForm, setEditPlanForm] = useState<PlanFormState>(emptyPlanForm);
 
   const token = useMemo(() => getAuthToken(), []);
-  const missingBusinessesTableMsg = "could not find the table 'public.businesses'";
-
-  function shouldUseLocalFallback(message: string): boolean {
-    return message.toLowerCase().includes(missingBusinessesTableMsg);
-  }
 
   async function localPatchBusiness(id: string, body: Record<string, unknown>) {
     if (!token) {
@@ -134,28 +129,17 @@ export default function AdminDashboard() {
       return;
     }
 
-    const response = await fetch(`${getBackendBaseUrl()}/api/admin/listings?page=1&limit=500`, {
+    const response = await fetch("/api/businesses?sort=newest&page=1&limit=500&includeInactive=true", {
       headers: { Authorization: `Bearer ${token}` },
-    }).catch(() => null);
-
-    if (response && response.ok) {
-      const payload = (await response.json().catch(() => null)) as
-        | { data?: AdminListing[] }
-        | null;
-      setListings(Array.isArray(payload?.data) ? payload.data : []);
-      return;
-    }
-
-    const localResponse = await fetch("/api/businesses?sort=newest&page=1&limit=200", {
       cache: "no-store",
     }).catch(() => null);
 
-    if (!localResponse || !localResponse.ok) {
+    if (!response || !response.ok) {
       setListings([]);
       return;
     }
 
-    const localPayload = (await localResponse.json().catch(() => null)) as
+    const localPayload = (await response.json().catch(() => null)) as
       | { data?: Array<Record<string, unknown>> }
       | null;
 
@@ -299,24 +283,12 @@ export default function AdminDashboard() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/admin/listings/${id}/activate`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
+      await localPatchBusiness(id, {
+        verified: true,
+        listingStatus: "active",
+        activatedAt: new Date().toISOString(),
+        rejectedReason: null,
       });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: { message?: string } }
-          | null;
-        const backendMessage = payload?.error?.message || "Could not activate listing.";
-        if (shouldUseLocalFallback(backendMessage)) {
-          await localPatchBusiness(id, {
-            verified: true,
-            listingStatus: "active",
-          });
-        } else {
-          throw new Error(backendMessage);
-        }
-      }
 
       setMessage("Listing activated successfully.");
       await loadListings();
@@ -336,29 +308,11 @@ export default function AdminDashboard() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/admin/listings/${id}/reject`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason: reason.trim() }),
+      await localPatchBusiness(id, {
+        verified: false,
+        listingStatus: "rejected",
+        rejectedReason: reason.trim() || "Rejected by admin",
       });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: { message?: string } }
-          | null;
-        const backendMessage = payload?.error?.message || "Could not reject listing.";
-        if (shouldUseLocalFallback(backendMessage)) {
-          await localPatchBusiness(id, {
-            verified: false,
-            listingStatus: "rejected",
-            rejectedReason: reason.trim() || "Rejected by admin",
-          });
-        } else {
-          throw new Error(backendMessage);
-        }
-      }
 
       setMessage("Listing rejected.");
       await loadListings();
@@ -506,58 +460,23 @@ export default function AdminDashboard() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/businesses/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      await localPatchBusiness(id, {
+        name: editName.trim(),
+        category: editCategory.trim(),
+        city: editCity.trim(),
+        locality: editLocality.trim(),
+        phone: editPhone.trim(),
+        whatsappNumber: editPhone.trim(),
+        policies: {
+          listingPlan: editListingPlan,
         },
-        body: JSON.stringify({
-          name: editName.trim(),
-          category: editCategory.trim(),
-          city: editCity.trim(),
-          locality: editLocality.trim(),
-          phone: editPhone.trim(),
-          whatsappNumber: editPhone.trim(),
-          policies: {
-            listingPlan: editListingPlan,
-          },
-          media: editCoverImage.trim()
-            ? {
-                coverImages: [editCoverImage.trim()],
-                gallery: [editCoverImage.trim()],
-              }
-            : undefined,
-        }),
+        media: editCoverImage.trim()
+          ? {
+              coverImages: [editCoverImage.trim()],
+              gallery: [editCoverImage.trim()],
+            }
+          : undefined,
       });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: { message?: string } }
-          | null;
-        const backendMessage = payload?.error?.message || "Could not update listing.";
-        if (shouldUseLocalFallback(backendMessage)) {
-          await localPatchBusiness(id, {
-            name: editName.trim(),
-            category: editCategory.trim(),
-            city: editCity.trim(),
-            locality: editLocality.trim(),
-            phone: editPhone.trim(),
-            whatsappNumber: editPhone.trim(),
-            policies: {
-              listingPlan: editListingPlan,
-            },
-            media: editCoverImage.trim()
-              ? {
-                  coverImages: [editCoverImage.trim()],
-                  gallery: [editCoverImage.trim()],
-                }
-              : undefined,
-          });
-        } else {
-          throw new Error(backendMessage);
-        }
-      }
 
       setEditId("");
       setMessage("Listing updated successfully.");
@@ -577,22 +496,7 @@ export default function AdminDashboard() {
     setMessage("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/businesses/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: { message?: string } }
-          | null;
-        const backendMessage = payload?.error?.message || "Could not delete listing.";
-        if (shouldUseLocalFallback(backendMessage)) {
-          await localDeleteBusiness(id);
-        } else {
-          throw new Error(backendMessage);
-        }
-      }
+      await localDeleteBusiness(id);
 
       setMessage("Listing deleted.");
       await loadListings();
