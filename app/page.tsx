@@ -1,15 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import heroBusinessImage from "../assests/home_page-images/1.png";
+import heroDeliveryImage from "../assests/home_page-images/2.png";
+import heroHealthcareImage from "../assests/home_page-images/3.png";
+import heroExploreImage from "../assests/home_page-images/4.png";
 import {
   ArrowRight,
   BadgeCheck,
-  Hotel,
   MapPin,
   Search,
-  ShieldCheck,
   Sparkles,
-  Stethoscope,
-  Wrench,
 } from "lucide-react";
 import BusinessCard from "@/components/BusinessCard";
 import CategorySection from "@/components/CategorySection";
@@ -52,6 +52,30 @@ const quickShortcuts = [
   { label: "Top Rated", href: "/search?sort=rating_desc" },
   { label: "Near Me", href: "/search?q=near me" },
   { label: "Verified Only", href: "/search?verified=true&sort=rating_desc" },
+];
+
+const heroServiceCards = [
+  {
+    image: heroDeliveryImage,
+    eyebrow: "B2B",
+    title: "Quick Quotes",
+    subtitle: "",
+    bgColor: "#252a68",
+  },
+  {
+    image: heroBusinessImage,
+    eyebrow: "Repairs & Services",
+    title: "Get Nearby Experts",
+    subtitle: "",
+    bgColor: "#4f67f5",
+  },
+  {
+    image: heroHealthcareImage,
+    eyebrow: "Healthcare",
+    title: "Book Trusted Clinics",
+    subtitle: "",
+    bgColor: "#1399b5",
+  },
 ];
 
 function pickIconForCategory(label: string): string {
@@ -108,13 +132,6 @@ function pickIconForCategory(label: string): string {
   return "store";
 }
 
-function promoPalette(index: number) {
-  if (index === 0) return "from-emerald-500 to-teal-500";
-  if (index === 1) return "from-blue-600 to-indigo-600";
-  if (index === 2) return "from-orange-500 to-amber-500";
-  return "from-purple-600 to-fuchsia-600";
-}
-
 export default async function HomePage() {
   const snapshot = await getHomeSnapshot();
   const featuredBusinesses = snapshot.featuredBusinesses.slice(0, 4);
@@ -129,7 +146,6 @@ export default async function HomePage() {
     dynamicCategories.length > 0 ? dynamicCategories : fallbackCategories;
   const popularPreviewCategories = renderedCategories.slice(0, 6);
 
-  const promoOffers = snapshot.offers.slice(0, 4);
   const vendorResult = await listBusinesses({
     q: "vendor-card",
     sort: "newest",
@@ -194,61 +210,82 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[2fr,1fr,1fr,1fr]">
-          <div className="rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 p-5 text-white">
-            <p className="text-xs uppercase tracking-[0.14em] text-blue-100">
-              Explore and Book
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold leading-tight tracking-[0.01em]">
-              Find trusted businesses in under 30 seconds
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-blue-100">
-              One place for local services, offers, and direct WhatsApp
-              connect.
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Link
-                href="/search"
-                className="inline-flex h-9 items-center rounded-lg bg-white px-3 text-sm font-semibold text-blue-700"
-              >
-                Start Search
-              </Link>
-              <Link
-                href="/daily-inquiry"
-                className="inline-flex h-9 items-center rounded-lg border border-blue-300/50 bg-blue-600/40 px-3 text-sm font-medium text-white"
-              >
-                Open Daily Inquiry
-              </Link>
+        <div className="grid gap-4 xl:grid-cols-[1.45fr,0.55fr,0.55fr,0.55fr]">
+          <div className="relative overflow-hidden rounded-[26px] text-white shadow-[0_20px_50px_-28px_rgba(37,42,104,0.55)] min-h-[340px] sm:min-h-[340px] md:min-h-[260px] xl:h-[238px]">
+            <Image
+              src={heroExploreImage}
+              alt="Explore and book trusted businesses"
+              fill
+              priority
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(41,63,215,0.9)_0%,rgba(56,52,203,0.82)_34%,rgba(61,42,192,0.34)_62%,rgba(61,42,192,0.08)_100%)]" />
+            <div className="relative z-10 h-full p-6 md:p-8 xl:px-7 xl:py-5">
+              <div className="relative h-full max-w-md pb-20 sm:pb-24 xl:pb-20">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-100">
+                    Explore and Book
+                  </p>
+                  <h1 className="mt-3 max-w-[11rem] text-[1.65rem] font-semibold leading-[0.98] tracking-[-0.04em] sm:max-w-[14rem] sm:text-[2.7rem] xl:max-w-[18rem] xl:text-[2.2rem]">
+                    Find trusted businesses in under 30 seconds
+                  </h1>
+                  <p className="mt-3 max-w-[10rem] text-sm leading-5 text-blue-100 sm:mt-4 sm:max-w-sm sm:text-base xl:mt-3 xl:text-[15px] xl:leading-6">
+                    {/* One place for local services, offers, and direct WhatsApp
+                    connect. */}
+                  </p>
+                </div>
+
+                <div className="absolute bottom-0 left-0 flex flex-wrap items-center gap-2 sm:gap-3">
+                  <Link
+                    href="/search"
+                    className="inline-flex h-10 items-center rounded-lg bg-white px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 sm:h-11 sm:px-5"
+                  >
+                    Start Search
+                  </Link>
+                  <Link
+                    href="/daily-inquiry"
+                    className="inline-flex h-10 items-center rounded-lg border border-blue-300/60 bg-blue-500/20 px-4 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-blue-500/30 sm:h-11 sm:px-5"
+                  >
+                    Open Daily Inquiry
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
 
-          {promoOffers.length > 0
-            ? promoOffers.map((offer, index) => (
-                <div
-                  key={offer.id}
-                  className={`rounded-2xl bg-gradient-to-br ${promoPalette(index)} p-4 text-white`}
-                >
-                  <p className="text-[11px] uppercase tracking-[0.12em] text-white/80">
-                    {offer.badge}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold leading-snug">
-                    {offer.title}
-                  </p>
-                </div>
-              ))
-            : [0, 1, 2].map((index) => (
-                <div
-                  key={`promo-${index}`}
-                  className={`rounded-2xl bg-gradient-to-br ${promoPalette(index)} p-4 text-white`}
-                >
-                  <p className="text-[11px] uppercase tracking-[0.12em] text-white/80">
-                    Offer
-                  </p>
-                  <p className="mt-1 text-sm font-semibold leading-snug">
-                    Campaign slot
-                  </p>
-                </div>
-              ))}
+          {heroServiceCards.map((card) => (
+            <div
+              key={card.title}
+              className="group relative min-h-[340px] overflow-hidden rounded-[22px] p-4 text-black shadow-[0_18px_45px_-28px_rgba(15,23,42,0.6)] sm:min-h-[340px] md:min-h-[260px] xl:h-[238px]"
+              style={{ backgroundColor: card.bgColor }}
+            >
+              <div className="relative z-10 max-w-[60%]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/80">
+                  {card.eyebrow}
+                </p>
+                <h2 className="mt-2 text-[1.05rem] font-semibold leading-7 text-black">
+                  {card.title}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-black/75">
+                  {card.subtitle}
+                </p>
+              </div>
+              <div
+                className="absolute inset-y-0 right-0 w-[78%] transition-transform duration-500 group-hover:scale-[1.02]"
+                style={{ backgroundColor: card.bgColor }}
+              >
+                <Image
+                  src={card.image}
+                  alt={card.title}
+                  fill
+                  className="object-cover object-right-bottom"
+                />
+              </div>
+              <div className="absolute bottom-4 left-4 z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-white/35 backdrop-blur">
+                <ArrowRight className="h-5 w-5" aria-hidden />
+              </div>
+            </div>
+          ))}
         </div>
 
         <CategorySection categories={renderedCategories} />
