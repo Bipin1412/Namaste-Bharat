@@ -14,6 +14,7 @@ import {
 import BusinessCard from "@/components/BusinessCard";
 import CategorySection from "@/components/CategorySection";
 import OfferBannerSlot from "@/components/OfferBannerSlot";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import VendorCardsSection, {
   buildVendorCardsFromBusinesses,
 } from "@/components/VendorCardsSection";
@@ -21,7 +22,6 @@ import { getHomeSnapshot, listBusinesses } from "@/lib/backend/service";
 import {
   getBusinessImage,
   homeShowcaseCards,
-  storyShowcaseCards,
 } from "@/lib/ui/showcase";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +75,54 @@ const heroServiceCards = [
     title: "Book Trusted Clinics",
     subtitle: "",
     bgColor: "#1399b5",
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "Namaste Bharat Portal helped my business get genuine customer enquiries within days. After listing on Namaste Bharat, my business visibility increased a lot. I started getting calls from new customers regularly. Highly recommended for small business owners!",
+    name: "Vihang Agashe",
+    business: "Vyadeshwar Electricals",
+    location: "Pune",
+    highlight: "Excellent Lead Generation",
+    secondaryHighlight: "Great Online Visibility",
+  },
+  {
+    quote:
+      "Very affordable service compared to other platforms. Best part is we get real leads, not just views. The portal is simple and user-friendly. Creating my business profile was quick and hassle-free.",
+    name: "Mangesh Vaidya",
+    business: "Aatithya Agrovan Pvt Ltd",
+    location: "Guhagar",
+    highlight: "Affordable & Effective",
+    secondaryHighlight: "Easy to Use Platform",
+  },
+  {
+    quote:
+      "Namaste Bharat is becoming a trusted platform for business listings. Customers find us easily. The support team is very helpful and responsive. They guided me properly to grow my business online.",
+    name: "Harish Hajare",
+    business: "Neerai Interiors",
+    location: "Thane",
+    highlight: "Trusted Business Listings",
+    secondaryHighlight: "Good Customer Support",
+  },
+  {
+    quote:
+      "If you have a small or local business, Namaste Bharat is a great platform to get started with digital marketing. After joining Namaste Bharat, I noticed an increase in inquiries and sales. Very useful for business growth.",
+    name: "Mrs Jyoti Sharma",
+    business: "Jyoti's Kitchen",
+    location: "Nagpur",
+    highlight: "Great for Small Business",
+    secondaryHighlight: "Boost in Sales",
+  },
+  {
+    quote:
+      "Within a week of listing my business, I started getting enquiries. Really impressed with the results. My local business got more visibility in my area. Customers are now able to find me easily.",
+    name: "Ketan Tayde",
+    business: "Jodidar Matrimony",
+    location: "Nashik",
+    highlight: "Fast Enquiries",
+    secondaryHighlight: "Perfect for Local Reach",
   },
 ];
 
@@ -422,39 +470,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-900">Client showcase stories</p>
-            <Link
-              href="/stories"
-              className="text-xs font-medium text-blue-700 hover:text-blue-600"
-            >
-              Read stories
-            </Link>
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            {storyShowcaseCards.map((story) => (
-              <Link
-                key={story.title}
-                href={story.href}
-                className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50 transition-colors hover:border-blue-200"
-              >
-                <div className="relative h-32 w-full">
-                  <Image
-                    src={story.image}
-                    alt={story.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-3">
-                  <p className="text-sm font-semibold text-slate-900">{story.title}</p>
-                  <p className="text-xs text-slate-500">{story.subtitle}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <TestimonialsCarousel testimonials={testimonials} />
       </section>
     </div>
   );

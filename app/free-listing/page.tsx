@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import stepOneImage from "../../assests/namaste bharat 3 steps images/step 1.png";
+import stepTwoImage from "../../assests/namaste bharat 3 steps images/step 2.png";
+import stepThreeImage from "../../assests/namaste bharat 3 steps images/step 3.png";
 import {
   ArrowRight,
   BadgeCheck,
   CircleHelp,
-  FileCheck2,
   Megaphone,
-  NotebookPen,
   Sparkles,
-  TrendingUp,
   UserCheck,
 } from "lucide-react";
 import FreeListingForm from "@/components/FreeListingForm";
@@ -38,17 +38,20 @@ const listingSteps = [
   {
     title: "Create Account",
     description: "Enter your mobile number and basic business details.",
-    Icon: NotebookPen,
+    image: stepOneImage,
+    tint: "from-violet-50 via-white to-blue-50",
   },
   {
     title: "Add Business Profile",
     description: "Fill category, services, area, and contact preferences.",
-    Icon: FileCheck2,
+    image: stepTwoImage,
+    tint: "from-amber-50 via-white to-pink-50",
   },
   {
     title: "Go Live",
     description: "Get discovered on search, reels, and customer inquiries.",
-    Icon: TrendingUp,
+    image: stepThreeImage,
+    tint: "from-cyan-50 via-white to-sky-50",
   },
 ];
 
@@ -206,21 +209,30 @@ export default function ListingPage() {
             Get a Business Listing in 3 Simple Steps
           </p>
           <div className="grid gap-3 md:grid-cols-3">
-            {listingSteps.map(({ title, description, Icon }, index) => (
+            {listingSteps.map(({ title, description, image, tint }, index) => (
               <div
                 key={title}
-                className="rounded-xl border border-slate-100 bg-slate-50 p-4"
+                className="group overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_16px_30px_-24px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-1"
               >
-                <p className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-                  {index + 1}
-                </p>
-                <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-blue-700 shadow-sm">
-                  <Icon className="h-5 w-5" aria-hidden />
+                <div className={`relative h-48 overflow-hidden bg-gradient-to-br ${tint}`}>
+                  <div className="absolute left-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-blue-700 shadow-sm">
+                    {index + 1}
+                  </div>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.08),transparent_24%)]" />
+                  <Image
+                    src={image}
+                    alt={title}
+                    fill
+                    className="object-contain p-5 transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
                 </div>
-                <p className="text-base font-semibold text-slate-900">{title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                  {description}
-                </p>
+
+                <div className="p-4">
+                  <p className="text-base font-semibold text-slate-900">{title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    {description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
