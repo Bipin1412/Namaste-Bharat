@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import listingPageImage from "../../assests/listing-page-image.jpeg";
 import profileLearnOne from "../../assests/namaste bharat 3 steps images/pp1.webp";
 import profileLearnTwo from "../../assests/namaste bharat 3 steps images/pp2.webp";
 import profileLearnThree from "../../assests/namaste bharat 3 steps images/pp3.webp";
@@ -165,10 +166,10 @@ export default function ListingPage() {
               </Link>
             </div>
 
-            <div className="relative h-44 w-full overflow-hidden rounded-xl border border-slate-200">
+            <div className="relative h-52 w-full overflow-hidden rounded-xl border border-slate-200 md:h-60">
               <Image
-                src="/showcase/offer-growth.svg"
-                alt="Business growth illustration"
+                src={listingPageImage}
+                alt="Namaste Bharat listing page preview"
                 fill
                 className="object-cover"
               />
