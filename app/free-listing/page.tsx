@@ -1,5 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import profileLearnOne from "../../assests/namaste bharat 3 steps images/pp1.webp";
+import profileLearnTwo from "../../assests/namaste bharat 3 steps images/pp2.webp";
+import profileLearnThree from "../../assests/namaste bharat 3 steps images/pp3.webp";
 import stepOneImage from "../../assests/namaste bharat 3 steps images/step 1.png";
 import stepTwoImage from "../../assests/namaste bharat 3 steps images/step 2.png";
 import stepThreeImage from "../../assests/namaste bharat 3 steps images/step 3.png";
@@ -80,19 +83,22 @@ const faqs = [
 
 const learningCards = [
   {
-    title: "How to write a strong business profile",
-    subtitle: "Get more leads with clear services and trust signals.",
-    image: "/showcase/service-professional.svg",
+    title: "How to Fill in the Essential Business Information",
+    subtitle: "Build a stronger profile with complete contact and business details.",
+    image: profileLearnOne,
+    tint: "bg-[#f9eef1]",
   },
   {
-    title: "How to choose the right categories",
-    subtitle: "Improve discoverability in local searches.",
-    image: "/showcase/service-home.svg",
+    title: "The Art of Selecting the Right Categories",
+    subtitle: "Choose accurate categories so customers can discover your business faster.",
+    image: profileLearnTwo,
+    tint: "bg-[#def5ff]",
   },
   {
-    title: "How to respond faster on WhatsApp",
-    subtitle: "Turn inquiries into paying customers quickly.",
-    image: "/showcase/service-food.svg",
+    title: "How to Respond to Customer Reviews and Questions",
+    subtitle: "Stay active, build trust, and convert inquiries into real business.",
+    image: profileLearnThree,
+    tint: "bg-[#eef1fb]",
   },
 ];
 
@@ -287,12 +293,12 @@ export default function ListingPage() {
             {faqs.map((item) => (
               <details
                 key={item.question}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 md:px-5 md:py-5"
               >
-                <summary className="cursor-pointer list-none text-sm font-medium text-slate-800">
+                <summary className="cursor-pointer list-none text-base font-semibold text-slate-900 md:text-lg">
                   {item.question}
                 </summary>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                <p className="mt-3 text-sm leading-7 text-slate-600 md:text-base">
                   {item.answer}
                 </p>
               </details>
@@ -308,19 +314,27 @@ export default function ListingPage() {
             {learningCards.map((item) => (
               <div
                 key={item.title}
-                className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
+                className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_16px_32px_-26px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-1"
               >
-                <div className="relative h-32 w-full">
-                  <Image src={item.image} alt={item.title} fill className="object-cover" />
+                <div className={`relative h-56 w-full overflow-hidden ${item.tint}`}>
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-contain p-6"
+                  />
                 </div>
-                <div className="p-4">
-                  <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                  <p className="mt-1 text-xs text-slate-600">{item.subtitle}</p>
+                <div className="p-6">
+                  <p className="text-[1.1rem] font-semibold leading-10 text-slate-950 md:text-[1rem] md:leading-9 lg:text-[1.05rem]">
+                    {item.title}
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">{item.subtitle}</p>
                   <Link
                     href="/profile"
-                    className="mt-3 inline-flex text-xs font-medium text-blue-700 hover:text-blue-600"
+                    className="mt-5 inline-flex items-center gap-2 text-base font-medium text-blue-700 hover:text-blue-600"
                   >
                     Learn More
+                    <ArrowRight className="h-4 w-4" aria-hidden />
                   </Link>
                 </div>
               </div>

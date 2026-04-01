@@ -274,7 +274,7 @@ export default async function HomePage() {
                   <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-100">
                     Explore and Book
                   </p>
-                  <h1 className="mt-3 max-w-[11rem] text-[1.65rem] font-semibold leading-[0.98] tracking-[-0.04em] sm:max-w-[14rem] sm:text-[2.7rem] xl:max-w-[18rem] xl:text-[2.2rem]">
+                  <h1 className="mt-3 max-w-[10rem] text-[1.55rem] font-semibold leading-[0.98] tracking-[-0.04em] [@media(min-width:360px)]:max-w-[11rem] [@media(min-width:360px)]:text-[1.65rem] sm:max-w-[14rem] sm:text-[2.7rem] xl:max-w-[18rem] xl:text-[2.2rem]">
                     Find trusted businesses in under 30 seconds
                   </h1>
                   <p className="mt-3 max-w-[10rem] text-sm leading-5 text-blue-100 sm:mt-4 sm:max-w-sm sm:text-base xl:mt-3 xl:text-[15px] xl:leading-6">
@@ -283,16 +283,16 @@ export default async function HomePage() {
                   </p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="absolute bottom-0 left-0 flex flex-wrap items-center gap-2 [@media(max-width:359px)]:gap-1.5 sm:gap-3">
                   <Link
                     href="/search"
-                    className="inline-flex h-10 items-center rounded-lg bg-white px-4 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 sm:h-11 sm:px-5"
+                    className="inline-flex h-10 items-center rounded-lg bg-white px-3.5 text-[0.95rem] font-semibold text-blue-700 transition-colors hover:bg-blue-50 [@media(min-width:360px)]:px-4 [@media(min-width:360px)]:text-sm sm:h-11 sm:px-5"
                   >
                     Start Search
                   </Link>
                   <Link
                     href="/daily-inquiry"
-                    className="inline-flex h-10 items-center rounded-lg border border-blue-300/60 bg-blue-500/20 px-4 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-blue-500/30 sm:h-11 sm:px-5"
+                    className="inline-flex h-10 items-center rounded-lg border border-blue-300/60 bg-blue-500/20 px-3 text-[0.95rem] font-medium text-white backdrop-blur transition-colors hover:bg-blue-500/30 [@media(max-width:359px)]:px-2.5 [@media(max-width:359px)]:text-[0.9rem] [@media(min-width:360px)]:px-4 [@media(min-width:360px)]:text-sm sm:h-11 sm:px-5"
                   >
                     Open Daily Inquiry
                   </Link>
