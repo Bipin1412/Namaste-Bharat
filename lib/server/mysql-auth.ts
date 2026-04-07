@@ -214,24 +214,27 @@ export async function upsertProfile(userId: string, fullName: string | null, pho
 
 export async function createEmailUser(input: {
   fullName: string;
-  phone: string;
+  phone?: string | null;
   email: string;
   password: string;
+  role?: string | null;
 }) {
   const id = crypto.randomUUID();
   const email = normalizeEmail(input.email);
   const passwordHash = hashPassword(input.password);
+  const role = String(input.role || "user").trim().toLowerCase() || "user";
+  const phone = input.phone ? String(input.phone).trim() : null;
 
   await executeResult(
     `INSERT INTO users (id, full_name, phone, email, password_hash)
      VALUES (?, ?, ?, ?, ?)`,
-    [id, input.fullName, input.phone, email, passwordHash]
+    [id, input.fullName, phone, email, passwordHash]
   );
 
   await executeResult(
     `INSERT INTO profiles (id, full_name, phone, role)
-     VALUES (?, ?, ?, 'user')`,
-    [id, input.fullName, input.phone]
+     VALUES (?, ?, ?, ?)`,
+    [id, input.fullName, phone, role]
   );
 
   return findUserById(id);

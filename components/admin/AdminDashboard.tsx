@@ -88,6 +88,13 @@ export default function AdminDashboard() {
   const [newCity, setNewCity] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [taxonomyWorkingType, setTaxonomyWorkingType] = useState<"" | "city" | "category">("");
+  const [newAdminFullName, setNewAdminFullName] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPhone, setNewAdminPhone] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [isCreatingAdminUser, setIsCreatingAdminUser] = useState(false);
+  const [adminUserMessage, setAdminUserMessage] = useState("");
+  const [isAdminUserSuccess, setIsAdminUserSuccess] = useState(false);
   const {
     cities: listingCities,
     categories: listingCategories,
@@ -498,6 +505,58 @@ export default function AdminDashboard() {
     }
   }
 
+  async function createAdminUserAccount() {
+    if (!token || isCreatingAdminUser) return;
+
+    setAdminUserMessage("");
+    setIsAdminUserSuccess(false);
+
+    if (!newAdminFullName.trim() || !newAdminEmail.trim() || newAdminPassword.length < 6) {
+      setAdminUserMessage("Full name, email, and password are required. Password must be at least 6 characters.");
+      return;
+    }
+
+    setIsCreatingAdminUser(true);
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          fullName: newAdminFullName.trim(),
+          email: newAdminEmail.trim().toLowerCase(),
+          phone: newAdminPhone.trim() || null,
+          password: newAdminPassword,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || "Could not create admin user.");
+      }
+
+      setNewAdminFullName("");
+      setNewAdminEmail("");
+      setNewAdminPhone("");
+      setNewAdminPassword("");
+      setIsAdminUserSuccess(true);
+      setAdminUserMessage("New admin user created. They can now login from the normal login page.");
+    } catch (error) {
+      setIsAdminUserSuccess(false);
+      setAdminUserMessage(
+        error instanceof Error ? error.message : "Could not create admin user."
+      );
+    } finally {
+      setIsCreatingAdminUser(false);
+    }
+  }
+
   async function onPickImageFile(file: File | null) {
     if (!file) return;
     const reader = new FileReader();
@@ -696,6 +755,70 @@ export default function AdminDashboard() {
         <p className="mt-2 text-sm text-slate-200">
           Review pending listing requests and activate approved businesses.
         </p>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="mb-4">
+          <p className="text-lg font-semibold text-slate-900">Create Admin User</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Create another login with role <span className="font-semibold">admin</span> so they can access the admin page.
+          </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <input
+            value={newAdminFullName}
+            onChange={(event) => setNewAdminFullName(event.target.value)}
+            placeholder="Full name"
+            className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+          />
+          <input
+            value={newAdminEmail}
+            onChange={(event) => setNewAdminEmail(event.target.value)}
+            placeholder="Email"
+            type="email"
+            className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+          />
+          <input
+            value={newAdminPhone}
+            onChange={(event) => setNewAdminPhone(event.target.value)}
+            placeholder="Phone (optional)"
+            className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+          />
+          <input
+            value={newAdminPassword}
+            onChange={(event) => setNewAdminPassword(event.target.value)}
+            placeholder="Password"
+            type="password"
+            className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
+          />
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
+            Role: admin
+          </span>
+          <button
+            type="button"
+            disabled={isCreatingAdminUser}
+            onClick={() => void createAdminUserAccount()}
+            className="h-10 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {isCreatingAdminUser ? "Creating admin..." : "Create admin user"}
+          </button>
+        </div>
+
+        {adminUserMessage ? (
+          <p
+            className={`mt-3 rounded-lg px-3 py-2 text-sm ${
+              isAdminUserSuccess
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-amber-50 text-amber-700"
+            }`}
+          >
+            {adminUserMessage}
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-slate-50 p-3 md:p-4">
