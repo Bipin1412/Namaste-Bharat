@@ -56,7 +56,7 @@ export default function TestimonialsCarousel({
     <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-5 pb-8 pt-5 shadow-[0_20px_45px_-32px_rgba(15,23,42,0.22)] md:px-8 md:pb-9 md:pt-5">
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-xl font-semibold tracking-[-0.03em] text-slate-900 md:text-3xl">
-          Testimonials
+          Real Stories
         </p>
         <p className="mt-2 text-xs leading-6 text-slate-500 md:text-sm">
           Stories of trust, collaboration, and business growth with Namaste
@@ -111,7 +111,7 @@ export default function TestimonialsCarousel({
                 ? "w-7 bg-blue-600"
                 : "w-2.5 bg-slate-300 hover:bg-slate-400"
             }`}
-            aria-label={`Go to testimonial ${index + 1}`}
+            aria-label={`Go to story ${index + 1}`}
           />
         ))}
       </div>

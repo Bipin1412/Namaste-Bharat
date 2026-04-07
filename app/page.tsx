@@ -304,17 +304,17 @@ export default async function HomePage() {
           {heroServiceCards.map((card) => (
             <div
               key={card.title}
-              className="group relative min-h-[340px] overflow-hidden rounded-[22px] p-4 text-black shadow-[0_18px_45px_-28px_rgba(15,23,42,0.6)] sm:min-h-[340px] md:min-h-[260px] xl:h-[238px]"
+              className="group relative min-h-[340px] overflow-hidden rounded-[22px] p-4 text-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.6)] sm:min-h-[340px] md:min-h-[260px] xl:h-[238px]"
               style={{ backgroundColor: card.bgColor }}
             >
-              <div className="relative z-10 max-w-[60%]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/80">
+              <div className="relative z-10 -ml-1 max-w-[60%]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80">
                   {card.eyebrow}
                 </p>
-                <h2 className="mt-2 text-[1.05rem] font-semibold leading-7 text-black">
+                <h2 className="mt-2 text-[1.05rem] font-semibold leading-7 text-white">
                   {card.title}
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-black/75">
+                <p className="mt-2 text-sm leading-6 text-white/75">
                   {card.subtitle}
                 </p>
               </div>
