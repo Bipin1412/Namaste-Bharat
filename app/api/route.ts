@@ -16,6 +16,7 @@ export async function GET() {
       reels: "/api/reels",
       offers: "/api/offers",
       categories: "/api/categories",
+      cities: "/api/cities",
       leads: "/api/leads",
       authBackendHealth: `${backendUrl}/api/health`,
       authBackendSignup: `${backendUrl}/api/auth/signup`,

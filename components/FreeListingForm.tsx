@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Check, CheckCircle2, Loader2 } from "lucide-react";
 import { getAuthToken } from "@/lib/auth-client";
 import { useListingPlans } from "@/lib/ui/use-listing-plans";
+import { useListingTaxonomy } from "@/lib/ui/use-listing-taxonomy";
 
 type ListingPayload = {
   name: string;
@@ -27,45 +28,6 @@ type FreeListingFormProps = {
   onSuccess?: () => void | Promise<void>;
 };
 
-const supportedCities = [
-  "Mumbai City",
-  "Mumbai Suburban",
-  "Thane",
-  "Palghar",
-  "Raigad",
-  "Ratnagiri",
-  "Sindhudurg",
-  "Pune",
-  "Satara",
-  "Sangli",
-  "Kolhapur",
-  "Solapur",
-  "Nashik",
-  "Dhule",
-  "Nandurbar",
-  "Jalgaon",
-  "Ahmednagar",
-  "Chhatrapati Sambhaji Nagar (Aurangabad)",
-  "Jalna",
-  "Parbhani",
-  "Hingoli",
-  "Beed",
-  "Dharashiv (Osmanabad)",
-  "Nanded",
-  "Latur",
-  "Amravati",
-  "Akola",
-  "Buldhana",
-  "Washim",
-  "Yavatmal",
-  "Nagpur",
-  "Wardha",
-  "Bhandara",
-  "Gondia",
-  "Chandrapur",
-  "Gadchiroli",
-];
-
 function normalizeIndianPhone(value: string): string {
   const digits = value.replace(/\D/g, "").slice(-10);
   if (digits.length === 0) {
@@ -84,56 +46,21 @@ export default function FreeListingForm({
   const [city, setCity] = useState("");
   const [isCityConfirmed, setIsCityConfirmed] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [locality, setLocality] = useState("");
   const { plans: listingPlans, isLoadingPlans } = useListingPlans();
+  const {
+    cities: availableCities,
+    categories: availableCategories,
+    isLoadingCities,
+    isLoadingCategories,
+  } = useListingTaxonomy();
   const [selectedPlan, setSelectedPlan] = useState("basic");
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const categoryMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadCategories() {
-      try {
-        const response = await fetch("/api/categories", {
-          cache: "no-store",
-        });
-        const payload = (await response.json().catch(() => null)) as
-          | { data?: Array<{ name?: string }> }
-          | null;
-
-        const names = (payload?.data || [])
-          .map((entry) => String(entry.name || "").trim())
-          .filter(Boolean);
-
-        if (!mounted) return;
-        setAvailableCategories(
-          Array.from(new Set(names)).sort((a, b) =>
-            a.localeCompare(b, undefined, { sensitivity: "base" })
-          )
-        );
-      } catch {
-        if (!mounted) return;
-        setAvailableCategories([]);
-      } finally {
-        if (mounted) {
-          setIsCategoriesLoading(false);
-        }
-      }
-    }
-
-    void loadCategories();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
@@ -154,14 +81,6 @@ export default function FreeListingForm({
     }
     return selectedCategories.join(", ");
   }, [selectedCategories]);
-
-  const sortedCities = useMemo(
-    () =>
-      [...supportedCities].sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: "base" })
-      ),
-    []
-  );
 
   const canSubmit = useMemo(() => {
     return (
@@ -309,10 +228,13 @@ export default function FreeListingForm({
                 setCity(event.target.value);
                 setIsCityConfirmed(false);
               }}
+              disabled={isLoadingCities}
               className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
             >
-              <option value="">Select city</option>
-              {sortedCities.map((option) => (
+              <option value="">
+                {isLoadingCities ? "Loading cities..." : "Select city"}
+              </option>
+              {availableCities.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -354,7 +276,7 @@ export default function FreeListingForm({
 
           {isCategoryMenuOpen ? (
             <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
-              {isCategoriesLoading ? (
+              {isLoadingCategories ? (
                 <p className="px-2 py-1 text-sm text-slate-500">Loading categories...</p>
               ) : availableCategories.length === 0 ? (
                 <p className="px-2 py-1 text-sm text-slate-500">No categories available.</p>

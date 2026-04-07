@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2, Pencil, Plus, ShieldAlert, Trash2, XCircle } fro
 import { getAuthToken } from "@/lib/auth-client";
 import FreeListingForm from "@/components/FreeListingForm";
 import type { ListingPlan } from "@/lib/ui/listing-plans";
+import { useListingTaxonomy } from "@/lib/ui/use-listing-taxonomy";
 
 type SessionPayload = {
   user?: { id?: string; email?: string | null };
@@ -84,6 +85,16 @@ export default function AdminDashboard() {
   const [planEditId, setPlanEditId] = useState("");
   const [newPlan, setNewPlan] = useState<PlanFormState>(emptyPlanForm);
   const [editPlanForm, setEditPlanForm] = useState<PlanFormState>(emptyPlanForm);
+  const [newCity, setNewCity] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [taxonomyWorkingType, setTaxonomyWorkingType] = useState<"" | "city" | "category">("");
+  const {
+    cities: listingCities,
+    categories: listingCategories,
+    isLoadingCities,
+    isLoadingCategories,
+    refreshTaxonomy,
+  } = useListingTaxonomy();
 
   const token = useMemo(() => getAuthToken(), []);
 
@@ -441,6 +452,52 @@ export default function AdminDashboard() {
     }
   }
 
+  async function createTaxonomyEntry(type: "city" | "category") {
+    if (!token || taxonomyWorkingType) return;
+
+    const value = type === "city" ? newCity.trim() : newCategory.trim();
+    if (!value) {
+      setMessage(type === "city" ? "City name is required." : "Category name is required.");
+      return;
+    }
+
+    setTaxonomyWorkingType(type);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/admin/taxonomy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ type, value }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || "Could not update listing taxonomy.");
+      }
+
+      if (type === "city") {
+        setNewCity("");
+        setMessage("New city added. Listing forms are updated.");
+      } else {
+        setNewCategory("");
+        setMessage("New category added. Listing forms are updated.");
+      }
+
+      refreshTaxonomy();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update listing taxonomy.");
+    } finally {
+      setTaxonomyWorkingType("");
+    }
+  }
+
   async function onPickImageFile(file: File | null) {
     if (!file) return;
     const reader = new FileReader();
@@ -649,6 +706,102 @@ export default function AdminDashboard() {
           </p>
         </div>
         <FreeListingForm adminMode onSuccess={loadListings} />
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="mb-4">
+          <p className="text-lg font-semibold text-slate-900">Manage Cities and Categories</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Add new cities and categories here. The admin listing form and public listing form
+            will use these updated options.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
+              <Plus className="h-4 w-4 text-blue-600" /> Add City
+            </p>
+            <div className="mt-3 flex gap-2">
+              <input
+                value={newCity}
+                onChange={(event) => setNewCity(event.target.value)}
+                placeholder="Enter new city"
+                className="h-10 flex-1 rounded-lg border border-slate-300 px-3 text-sm"
+              />
+              <button
+                type="button"
+                disabled={taxonomyWorkingType === "city"}
+                onClick={() => void createTaxonomyEntry("city")}
+                className="h-10 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {taxonomyWorkingType === "city" ? "Adding..." : "Add city"}
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Available Cities
+              </p>
+              {isLoadingCities ? (
+                <p className="mt-2 text-sm text-slate-500">Loading cities...</p>
+              ) : (
+                <div className="mt-3 flex max-h-48 flex-wrap gap-2 overflow-y-auto">
+                  {listingCities.map((city) => (
+                    <span
+                      key={city}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                    >
+                      {city}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
+              <Plus className="h-4 w-4 text-blue-600" /> Add Category
+            </p>
+            <div className="mt-3 flex gap-2">
+              <input
+                value={newCategory}
+                onChange={(event) => setNewCategory(event.target.value)}
+                placeholder="Enter new category"
+                className="h-10 flex-1 rounded-lg border border-slate-300 px-3 text-sm"
+              />
+              <button
+                type="button"
+                disabled={taxonomyWorkingType === "category"}
+                onClick={() => void createTaxonomyEntry("category")}
+                className="h-10 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {taxonomyWorkingType === "category" ? "Adding..." : "Add category"}
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Available Categories
+              </p>
+              {isLoadingCategories ? (
+                <p className="mt-2 text-sm text-slate-500">Loading categories...</p>
+              ) : (
+                <div className="mt-3 flex max-h-48 flex-wrap gap-2 overflow-y-auto">
+                  {listingCategories.map((category) => (
+                    <span
+                      key={category}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">

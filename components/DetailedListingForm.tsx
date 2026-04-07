@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getAuthToken } from "@/lib/auth-client";
 import { useListingPlans } from "@/lib/ui/use-listing-plans";
+import { useListingTaxonomy } from "@/lib/ui/use-listing-taxonomy";
 
 const steps = [
   "Basic Profile",
@@ -99,6 +100,7 @@ export default function DetailedListingForm({
 }: DetailedListingFormProps) {
   const [step, setStep] = useState(0);
   const { plans: listingPlans, isLoadingPlans } = useListingPlans();
+  const { cities, categories } = useListingTaxonomy();
   const [selectedPlan, setSelectedPlan] = useState("basic");
 
   const [name, setName] = useState("");
@@ -346,7 +348,21 @@ export default function DetailedListingForm({
             </div>
             <div className="grid gap-3 md:grid-cols-2">
             <Input label="Business Name" value={name} onChange={setName} placeholder="Sai Electricals and Smart Services" />
-            <Input label="Category" value={category} onChange={setCategory} placeholder="Electrical Contractor" />
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Category</span>
+              <input
+                list="listing-category-options"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                placeholder="Electrical Contractor"
+                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              />
+              <datalist id="listing-category-options">
+                {categories.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+            </label>
             <Input label="Tagline" value={tagline} onChange={setTagline} placeholder="24x7 local electrician and wiring experts" />
             <Input label="Owner Name" value={ownerName} onChange={setOwnerName} placeholder="Sachin Kulkarni" />
             <div className="md:col-span-2">
@@ -366,7 +382,21 @@ export default function DetailedListingForm({
           <div className="grid gap-3 md:grid-cols-2">
             <Input label="Phone" value={phone} onChange={setPhone} placeholder="+91 98765 43210" />
             <Input label="WhatsApp" value={whatsapp} onChange={setWhatsapp} placeholder="Leave blank to use same number" />
-            <Input label="City" value={city} onChange={setCity} placeholder="Pune" />
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">City</span>
+              <input
+                list="listing-city-options"
+                value={city}
+                onChange={(event) => setCity(event.target.value)}
+                placeholder="Pune"
+                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              />
+              <datalist id="listing-city-options">
+                {cities.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+            </label>
             <Input label="Locality" value={locality} onChange={setLocality} placeholder="Kothrud" />
             <Input label="Address" value={addressLine1} onChange={setAddressLine1} placeholder="Shop no. 4, Paud Road" />
             <Input label="Pincode" value={pincode} onChange={setPincode} placeholder="411038" />
