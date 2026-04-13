@@ -23,21 +23,6 @@ export default function StoriesPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Image-ready cards
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Each card includes a reserved visual area for the story image later.
-              </p>
-              <Link
-                href="/free-listing"
-                className="mt-3 inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-              >
-                Add your story
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
