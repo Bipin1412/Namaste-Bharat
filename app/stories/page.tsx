@@ -3,112 +3,128 @@ import Link from "next/link";
 import { ArrowRight, Quote, Sparkles } from "lucide-react";
 import { storyShowcaseCards } from "@/lib/ui/showcase";
 
-const storyHighlights = [
-  {
-    title: "More quality inquiries",
-    description:
-      "Businesses report stronger intent from customers who discover via verified listings.",
-  },
-  {
-    title: "Faster response cycle",
-    description:
-      "Integrated WhatsApp and call CTAs help teams convert leads quickly.",
-  },
-  {
-    title: "Better local recall",
-    description:
-      "Consistent brand presence across search and reels builds trust in neighborhood markets.",
-  },
-];
-
 export default function StoriesPage() {
   return (
-    <div className="min-h-dvh bg-slate-50">
-      <section className="mx-auto max-w-7xl space-y-5 px-4 pb-24 pt-4 md:px-6 lg:px-8">
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-700 to-blue-700 p-6 text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.13em] text-indigo-100">
-            Success Stories
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold leading-tight md:text-4xl">
-            How MSMEs are growing with Namaste Bharat
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-indigo-100 md:text-base">
-            Real examples of listings gaining visibility, better response rates,
-            and repeat customer flow.
-          </p>
-        </div>
+    <div className="min-h-dvh bg-[#f6f7fb]">
+      <section className="mx-auto max-w-7xl px-4 pb-24 pt-4 md:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.96),rgba(248,250,252,0.98)_42%,rgba(241,245,249,1)_100%)] p-5 shadow-[0_24px_60px_-38px_rgba(15,23,42,0.45)] md:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 shadow-sm">
+                <Sparkles className="h-3.5 w-3.5 text-orange-500" aria-hidden />
+                Success Stories
+              </p>
+              <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-slate-900 md:text-5xl">
+                Real local businesses. Real growth.
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
+                These stories are now set up text-first, so we can add the matching
+                images later without changing the layout.
+              </p>
+            </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Image-ready cards
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Each card includes a reserved visual area for the story image later.
+              </p>
+              <Link
+                href="/free-listing"
+                className="mt-3 inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+              >
+                Add your story
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {storyShowcaseCards.map((story) => (
             <article
               key={story.title}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_30px_-22px_rgba(15,23,42,0.35)]"
+              className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-1"
             >
-              <div className="relative h-56 w-full">
-                <Image src={story.image} alt={story.title} fill className="object-cover" />
+              <div
+                className={`relative h-56 overflow-hidden bg-gradient-to-br ${story.accent}`}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.3),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.18),transparent_35%)]" />
+                <div className="absolute left-4 top-4 z-10 inline-flex items-center rounded-full bg-white/18 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
+                  {story.category}
+                </div>
+
+                {story.image ? (
+                  <Image
+                    src={story.image}
+                    alt={story.title}
+                    fill
+                    className="object-cover object-center"
+                  />
+                ) : (
+                  <div className="absolute inset-x-4 top-12 bottom-4 overflow-hidden rounded-[22px] border border-white/15 bg-white/10 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.18),transparent_45%,rgba(255,255,255,0.08)_100%)]" />
+                    <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-white/85">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.18em]">
+                          Image space
+                        </p>
+                        <p className="mt-1 text-xs">
+                          Ready for the matching photo later
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="absolute bottom-4 left-4 right-4 z-10">
+                  <h2 className="max-w-[16rem] text-2xl font-semibold leading-tight text-white drop-shadow-sm">
+                    {story.title}
+                  </h2>
+                </div>
               </div>
-              <div className="p-4">
-                <p className="text-lg font-semibold text-slate-900">{story.title}</p>
-                <p className="text-sm text-slate-600">{story.subtitle}</p>
+
+              <div className="p-5">
+                <p className="text-sm leading-6 text-slate-600">{story.summary}</p>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {story.outcomes.map((outcome) => (
+                    <span
+                      key={outcome}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-700"
+                    >
+                      {outcome}
+                    </span>
+                  ))}
+                </div>
+
+                <blockquote className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                  <Quote className="mb-2 h-4 w-4 text-orange-500" aria-hidden />
+                  {`"${story.quote}"`}
+                </blockquote>
               </div>
             </article>
           ))}
         </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="inline-flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <Quote className="h-5 w-5 text-blue-700" aria-hidden />
-            Client voices
-          </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <blockquote className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-              &quot;Within two months we started receiving local B2B inquiries
-              regularly. The WhatsApp CTA brought serious buyers.&quot;
-              <footer className="mt-2 text-xs font-medium text-slate-500">
-                - Founder, Urban Steel Works
-              </footer>
-            </blockquote>
-            <blockquote className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-              &quot;Our listing became easier to discover than social posts.
-              Customers now call directly after seeing our profile.&quot;
-              <footer className="mt-2 text-xs font-medium text-slate-500">
-                - Owner, Ganraj Caterers
-              </footer>
-            </blockquote>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="inline-flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <Sparkles className="h-5 w-5 text-orange-500" aria-hidden />
-            What changed after listing?
-          </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            {storyHighlights.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-xl border border-slate-100 bg-slate-50 p-4"
-              >
-                <p className="text-base font-semibold text-slate-900">{item.title}</p>
-                <p className="mt-1 text-sm text-slate-600">{item.description}</p>
+          <div className="mt-5 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  We can drop in the images next
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Send the image for each story whenever you’re ready, and I’ll wire
+                  it into the reserved area in the cards.
+                </p>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/free-listing"
-              className="inline-flex h-10 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Start Listing
-            </Link>
-            <Link
-              href="/search"
-              className="inline-flex h-10 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Explore Businesses
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-            </Link>
+              <Link
+                href="/search"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              >
+                Explore businesses
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
