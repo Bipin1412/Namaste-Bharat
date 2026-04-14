@@ -1,3 +1,13 @@
+import type { StaticImageData } from "next/image";
+
+import balajiKitchenImage from "../../assests/stories/Balaji Kitchen.jpeg";
+import omPropertyImage from "../../assests/stories/Om property.jpeg";
+import poojaBoutiqueImage from "../../assests/stories/pooja boutique.jpeg";
+import rajCabServicesImage from "../../assests/stories/Raj car servies.jpeg";
+import saiElectricalsImage from "../../assests/stories/Shree Electrical.jpeg";
+import smartFixImage from "../../assests/stories/smart fix.jpeg";
+import spiceBowlImage from "../../assests/stories/Spice Boul.jpeg";
+
 export type ShowcaseCard = {
   title: string;
   subtitle: string;
@@ -12,7 +22,7 @@ export type StoryShowcaseCard = {
   outcomes: string[];
   quote: string;
   accent: string;
-  image?: string;
+  image?: StaticImageData;
   href: string;
 };
 
@@ -69,6 +79,7 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     outcomes: ["50+ monthly orders", "3x increase in income", "Expanded to office catering"],
     quote: "Namaste Bharat gave my business a new identity and steady customers!",
     accent: "from-amber-500 via-orange-500 to-rose-500",
+    image: balajiKitchenImage,
     href: "/stories",
   },
   {
@@ -77,8 +88,9 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     summary:
       "Raj had 2 cars but no consistent bookings. After joining Namaste Bharat, his business started getting daily travel enquiries.",
     outcomes: ["100+ customer leads in 2 months", "Fleet expanded from 2 to 5 cars", "Regular airport bookings"],
-    quote: "Now I don’t worry about finding customers. Namaste Bharat does it for me.",
+    quote: "Now I don't worry about finding customers. Namaste Bharat does it for me.",
     accent: "from-cyan-500 via-sky-500 to-blue-600",
+    image: rajCabServicesImage,
     href: "/stories",
   },
   {
@@ -89,6 +101,7 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     outcomes: ["70% increase in walk-ins", "Custom order bookings doubled", "Strong local brand presence"],
     quote: "My boutique is now known in my area thanks to Namaste Bharat.",
     accent: "from-fuchsia-500 via-pink-500 to-rose-500",
+    image: poojaBoutiqueImage,
     href: "/stories",
   },
   {
@@ -99,6 +112,7 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     outcomes: ["80+ orders per week", "Better online visibility", "Repeat customers increased"],
     quote: "Namaste Bharat helped us grow faster than expected!",
     accent: "from-emerald-500 via-teal-500 to-cyan-500",
+    image: spiceBowlImage,
     href: "/stories",
   },
   {
@@ -109,6 +123,7 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     outcomes: ["Daily service enquiries", "Increased monthly income by 2x", "Built a loyal customer base"],
     quote: "Now customers find me easily online!",
     accent: "from-indigo-600 via-blue-600 to-sky-500",
+    image: saiElectricalsImage,
     href: "/stories",
   },
   {
@@ -119,6 +134,7 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     outcomes: ["40+ repair enquiries per week", "Increased revenue by 2.5x", "Started doorstep repair service"],
     quote: "Now customers contact us directly from online searches!",
     accent: "from-violet-600 via-purple-600 to-fuchsia-500",
+    image: smartFixImage,
     href: "/stories",
   },
   {
@@ -129,6 +145,7 @@ export const storyShowcaseCards: StoryShowcaseCard[] = [
     outcomes: ["20+ property enquiries per month", "Faster deal closures", "Strong client network"],
     quote: "We now get serious buyers regularly!",
     accent: "from-slate-700 via-indigo-700 to-blue-700",
+    image: omPropertyImage,
     href: "/stories",
   },
 ];
