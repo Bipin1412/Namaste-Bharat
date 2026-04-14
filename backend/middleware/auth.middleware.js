@@ -1,50 +1,25 @@
-const { supabaseAuthClient, supabaseAdminClient } = require("../config/supabase");
-const { verifyAppToken } = require("../utils/app-token");
-
-async function resolveAppUserFromToken(token) {
-  const verified = verifyAppToken(token);
-  if (!verified.ok) {
-    return { ok: false };
-  }
-
-  const userId = String(verified.payload?.sub || "").trim();
-  if (!userId) {
-    return { ok: false };
-  }
-
-  if (supabaseAdminClient) {
-    const { data, error } = await supabaseAdminClient.auth.admin.getUserById(userId);
-    if (!error && data?.user) {
-      return {
-        ok: true,
-        user: data.user,
-        tokenType: "app",
-      };
-    }
-  }
-
-  return {
-    ok: true,
-    tokenType: "app",
-    user: {
-      id: userId,
-      email: verified.payload?.email || null,
-      phone: verified.payload?.phone || null,
-      created_at: null,
-      user_metadata: {
-        role: verified.payload?.role || "user",
-      },
-    },
-  };
-}
+const { findProfileByUserId, resolveUserFromToken, sanitizeUser, toProfile } = require("../services/mysql-auth");
 
 async function resolveAuthFromBearerToken(token) {
-  const { data, error } = await supabaseAuthClient.auth.getUser(token);
-  if (!error && data?.user) {
-    return { ok: true, user: data.user, tokenType: "supabase" };
+  const user = await resolveUserFromToken(token);
+  if (!user) {
+    return { ok: false };
   }
 
-  return resolveAppUserFromToken(token);
+  const profile = await findProfileByUserId(user.id);
+  const profileData = toProfile(profile, user);
+  return {
+    ok: true,
+    user: {
+      ...sanitizeUser(user),
+      user_metadata: {
+        ...sanitizeUser(user).user_metadata,
+        role: profileData.role || "user",
+        phone: profileData.phone || user.phone || null,
+      },
+    },
+    tokenType: "app",
+  };
 }
 
 async function requireAuth(req, res, next) {
@@ -115,31 +90,14 @@ async function requireAdmin(req, res, next) {
     if (!req.authUser?.id) {
       return res.status(401).json({ error: { message: "Unauthorized." } });
     }
+
     const metadataRole = String(req.authUser?.user_metadata?.role || "").toLowerCase();
     if (metadataRole === "admin") {
       return next();
     }
 
-    if (!supabaseAdminClient) {
-      return res.status(500).json({
-        error: { message: "Server is missing SUPABASE_SERVICE_ROLE_KEY." },
-      });
-    }
-
-    const { data, error } = await supabaseAdminClient
-      .from("profiles")
-      .select("role")
-      .eq("id", req.authUser.id)
-      .single();
-
-    const message = String(error?.message || "").toLowerCase();
-    if (error && message.includes("could not find the table") && message.includes("public.profiles")) {
-      return res.status(403).json({ error: { message: "Admin access denied." } });
-    }
-    if (error) {
-      return res.status(403).json({ error: { message: "Admin access denied." } });
-    }
-    if (String(data?.role || "").toLowerCase() !== "admin") {
+    const profile = await findProfileByUserId(req.authUser.id);
+    if (String(profile?.role || "").toLowerCase() !== "admin") {
       return res.status(403).json({ error: { message: "Admin access denied." } });
     }
 

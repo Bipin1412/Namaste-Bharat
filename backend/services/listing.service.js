@@ -1,25 +1,100 @@
-const { supabaseAdminClient } = require("../config/supabase");
-const { normalizeText } = require("../utils/listing.validators");
+const { randomUUID } = require("crypto");
 const masterCategories = require("../data/master-categories.json");
+const { normalizeText } = require("../utils/listing.validators");
+const {
+  executeResult,
+  parseJsonField,
+  queryRows,
+  toIsoString,
+  toMysqlDateTime,
+} = require("../lib/mysql");
 
-function ensureAdminClient() {
-  if (!supabaseAdminClient) {
-    const error = new Error("Server is missing SUPABASE_SERVICE_ROLE_KEY for marketplace APIs.");
-    error.status = 500;
-    throw error;
-  }
+const defaultListingPlans = [
+  {
+    id: "basic",
+    name: "Basic listing",
+    priceLabel: "Listing at Rs 120/-",
+    shortLabel: "Basic",
+    description: "A starter plan for local visibility on Namaste Bharat.",
+    features: ["Listing on Namaste Bharat Portal", "Basic Marketing Tools"],
+  },
+  {
+    id: "premium",
+    name: "Premium listing",
+    priceLabel: "Rs 3,000 / 1 year",
+    shortLabel: "Premium",
+    description: "A promotion-focused plan for stronger reach and lead flow.",
+    features: [
+      "Business listing on the Namaste Bharat portal",
+      "100+ customer leads",
+      "Customer enquiries directly on WhatsApp",
+      "Effective digital promotion",
+      "Mini website facility",
+      "Trusted and secure service",
+    ],
+  },
+];
+
+function normalizeListingPlanId(value) {
+  return (
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "plan"
+  );
 }
 
-function paginate(items, page, limit) {
-  const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * limit;
+function normalizeListingPlan(input) {
+  const name = String(input.name || "").trim();
+  const shortLabel = String(input.shortLabel || "").trim();
+  const description = String(input.description || "").trim();
+  const priceLabel = String(input.priceLabel || "").trim();
+  const features = Array.isArray(input.features)
+    ? input.features.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+  const id = normalizeListingPlanId(String(input.id || name || shortLabel));
+
+  if (!name || !shortLabel || !description || !priceLabel || features.length === 0) {
+    return null;
+  }
+
   return {
-    data: items.slice(start, start + limit),
+    id,
+    name,
+    shortLabel,
+    description,
+    priceLabel,
+    features,
+  };
+}
+
+function normalizeListingPlans(input) {
+  if (!Array.isArray(input)) {
+    return defaultListingPlans;
+  }
+
+  const normalized = input
+    .map((entry) => (typeof entry === "object" && entry !== null ? normalizeListingPlan(entry) : null))
+    .filter(Boolean);
+
+  return normalized.length > 0 ? normalized : defaultListingPlans;
+}
+
+function paginate(entries, page, limit) {
+  const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+  const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(Math.floor(limit), 100) : 12;
+  const total = entries.length;
+  const totalPages = Math.max(1, Math.ceil(total / safeLimit));
+  const currentPage = Math.min(safePage, totalPages);
+  const start = (currentPage - 1) * safeLimit;
+  const end = start + safeLimit;
+
+  return {
+    data: entries.slice(start, end),
     meta: {
-      page: safePage,
-      limit,
+      page: currentPage,
+      limit: safeLimit,
       total,
       totalPages,
     },
@@ -61,7 +136,137 @@ function scoreField(fieldValue, tokens, weight) {
   return score;
 }
 
-function tokenMatchesRow(entry, token) {
+function buildBusinessSearchText(entry) {
+  const servicesText =
+    entry.services?.flatMap((service) => [service.name, service.priceLabel || "", service.description || ""]) || [];
+  const faqText = entry.faqs?.flatMap((faq) => [faq.question, faq.answer]) || [];
+  const hourText =
+    entry.businessHours?.map((slot) =>
+      slot.closed ? `${slot.day} closed` : `${slot.day} ${slot.open || ""} ${slot.close || ""}`
+    ) || [];
+
+  return [
+    entry.name,
+    entry.category,
+    entry.tagline || "",
+    entry.description || "",
+    entry.locality,
+    entry.city,
+    entry.addressLine1 || "",
+    entry.addressLine2 || "",
+    entry.pincode || "",
+    entry.ownerName || "",
+    entry.email || "",
+    entry.website || "",
+    ...(entry.serviceAreas || []),
+    ...(entry.languages || []),
+    ...(entry.keywords || []),
+    ...(entry.highlights || []),
+    ...(entry.policies?.paymentMethods || []),
+    entry.policies?.cancellationPolicy || "",
+    entry.verification?.gstNumber || "",
+    entry.verification?.licenseNumber || "",
+    ...servicesText,
+    ...faqText,
+    ...hourText,
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
+function getBusinessRelevanceScore(entry, tokens) {
+  const servicesText = entry.services?.map((service) => service.name).join(" ") || "";
+  return (
+    scoreField(entry.name, tokens, 8) +
+    scoreField(entry.category, tokens, 7) +
+    scoreField((entry.keywords || []).join(" "), tokens, 6) +
+    scoreField(servicesText, tokens, 5) +
+    scoreField((entry.highlights || []).join(" "), tokens, 4) +
+    scoreField(entry.tagline || "", tokens, 3) +
+    scoreField(entry.description || "", tokens, 2) +
+    scoreField(entry.locality || "", tokens, 2) +
+    scoreField(entry.city || "", tokens, 2) +
+    scoreField(entry.addressLine1 || "", tokens, 1) +
+    scoreField(entry.addressLine2 || "", tokens, 1) +
+    scoreField(entry.ownerName || "", tokens, 1)
+  );
+}
+
+function compareBusinessesBySort(a, b, sort) {
+  switch (sort) {
+    case "rating_asc":
+      return a.rating - b.rating;
+    case "reviews_desc":
+      return b.reviewCount - a.reviewCount;
+    case "newest":
+      return b.createdAt.localeCompare(a.createdAt);
+    case "rating_desc":
+    default:
+      return b.rating - a.rating;
+  }
+}
+
+function applyBusinessFilters(businesses, filters) {
+  const query = normalizeText(filters.q);
+  const queryTokens = tokenizeQuery(query);
+  const category = normalizeText(filters.category);
+  const city = normalizeText(filters.city);
+
+  const scored = businesses.flatMap((entry) => {
+    if (!filters.includeInactive && entry.listingStatus && entry.listingStatus !== "active") {
+      return [];
+    }
+
+    if (queryTokens.length > 0) {
+      const allTokensMatch = queryTokens.every((token) => tokenMatchesEntry(entry, token));
+      if (!allTokensMatch) {
+        return [];
+      }
+    }
+
+    if (query) {
+      const haystack = buildBusinessSearchText(entry);
+      if (!haystack.includes(query)) {
+        return [];
+      }
+    }
+
+    if (category && normalizeText(entry.category) !== category) {
+      return [];
+    }
+
+    if (city && normalizeText(entry.city) !== city) {
+      return [];
+    }
+
+    if (typeof filters.verified === "boolean" && entry.verified !== filters.verified) {
+      return [];
+    }
+
+    if (typeof filters.openNow === "boolean" && entry.isOpenNow !== filters.openNow) {
+      return [];
+    }
+
+    const relevanceScore = queryTokens.length > 0 ? getBusinessRelevanceScore(entry, queryTokens) : 0;
+    if (queryTokens.length > 0 && relevanceScore < 3) {
+      return [];
+    }
+
+    return [{ entry, relevanceScore }];
+  });
+
+  const sort = filters.sort || "rating_desc";
+  const sorted = scored.sort((a, b) => {
+    if (queryTokens.length > 0 && b.relevanceScore !== a.relevanceScore) {
+      return b.relevanceScore - a.relevanceScore;
+    }
+    return compareBusinessesBySort(a.entry, b.entry, sort);
+  });
+
+  return sorted.map((item) => item.entry);
+}
+
+function tokenMatchesEntry(entry, token) {
   const fields = [
     entry.name,
     entry.category,
@@ -71,9 +276,9 @@ function tokenMatchesRow(entry, token) {
     entry.description || "",
     entry.locality,
     entry.city,
-    entry.address_line_1,
-    entry.address_line_2,
-    entry.owner_name,
+    entry.addressLine1 || "",
+    entry.addressLine2 || "",
+    entry.ownerName || "",
   ];
 
   return fields.some((field) => {
@@ -93,115 +298,28 @@ function tokenMatchesRow(entry, token) {
   });
 }
 
-function getBusinessRelevanceScore(entry, tokens) {
-  const servicesText = (entry.services || [])
-    .map((service) => String(service?.name || ""))
-    .join(" ");
-
-  return (
-    scoreField(entry.name, tokens, 8) +
-    scoreField(entry.category, tokens, 7) +
-    scoreField((entry.keywords || []).join(" "), tokens, 6) +
-    scoreField(servicesText, tokens, 5) +
-    scoreField((entry.highlights || []).join(" "), tokens, 4) +
-    scoreField(entry.tagline || "", tokens, 3) +
-    scoreField(entry.description || "", tokens, 2) +
-    scoreField(entry.locality || "", tokens, 2) +
-    scoreField(entry.city || "", tokens, 2) +
-    scoreField(entry.address_line_1 || "", tokens, 1) +
-    scoreField(entry.address_line_2 || "", tokens, 1) +
-    scoreField(entry.owner_name || "", tokens, 1)
-  );
-}
-
-function compareBySort(a, b, sort) {
-  switch (sort) {
-    case "rating_asc":
-      return Number(a.rating || 0) - Number(b.rating || 0);
-    case "reviews_desc":
-      return Number(b.review_count || 0) - Number(a.review_count || 0);
-    case "newest":
-      return String(b.created_at).localeCompare(String(a.created_at));
-    default:
-      return Number(b.rating || 0) - Number(a.rating || 0);
-  }
-}
-
-function applyBusinessFilters(businesses, filters) {
+function applyReelFilters(reels, filters) {
   const query = normalizeText(filters.q);
-  const queryTokens = tokenizeQuery(query);
-  const category = normalizeText(filters.category);
   const city = normalizeText(filters.city);
 
-  const scored = businesses.flatMap((entry) => {
-    if (!filters.includeInactive && entry.listing_status && entry.listing_status !== "active") {
-      return [];
-    }
-
-    if (queryTokens.length > 0) {
-      const allTokensMatch = queryTokens.every((token) => tokenMatchesRow(entry, token));
-      if (!allTokensMatch) {
-        return [];
-      }
-    }
-
+  return reels.filter((entry) => {
     if (query) {
-      const haystack = [
-        entry.name,
-        entry.category,
-        entry.tagline,
-        entry.description,
-        entry.locality,
-        entry.city,
-        entry.address_line_1,
-        entry.address_line_2,
-        entry.owner_name,
-        entry.email,
-        entry.website,
-        ...(entry.keywords || []),
-        ...(entry.highlights || []),
-        ...(entry.service_areas || []),
-        ...(entry.languages || []),
-      ]
-        .join(" ")
-        .toLowerCase();
-
+      const haystack = `${entry.vendorName} ${entry.description} ${entry.handle} ${entry.city}`.toLowerCase();
       if (!haystack.includes(query)) {
-        return [];
+        return false;
       }
     }
 
-    if (category && normalizeText(entry.category) !== category) {
-      return [];
-    }
     if (city && normalizeText(entry.city) !== city) {
-      return [];
-    }
-    if (typeof filters.verified === "boolean" && Boolean(entry.verified) !== filters.verified) {
-      return [];
-    }
-    if (typeof filters.openNow === "boolean" && Boolean(entry.is_open_now) !== filters.openNow) {
-      return [];
+      return false;
     }
 
-    const relevanceScore =
-      queryTokens.length > 0 ? getBusinessRelevanceScore(entry, queryTokens) : 0;
-    if (queryTokens.length > 0 && relevanceScore < 3) {
-      return [];
+    if (typeof filters.verified === "boolean" && entry.verified !== filters.verified) {
+      return false;
     }
 
-    return [{ entry, relevanceScore }];
+    return true;
   });
-
-  const sort = filters.sort || "rating_desc";
-  const sorted = scored.sort((a, b) => {
-    if (queryTokens.length > 0 && b.relevanceScore !== a.relevanceScore) {
-      return b.relevanceScore - a.relevanceScore;
-    }
-    return compareBySort(a.entry, b.entry, sort);
-  });
-
-  return sorted.map((item) => item.entry);
 }
 
 function mapBusiness(row) {
@@ -209,39 +327,39 @@ function mapBusiness(row) {
     id: row.id,
     name: row.name,
     category: row.category,
-    tagline: row.tagline,
-    description: row.description,
+    tagline: row.tagline || undefined,
+    description: row.description || undefined,
     locality: row.locality,
     city: row.city,
-    addressLine1: row.address_line_1,
-    addressLine2: row.address_line_2,
-    pincode: row.pincode,
-    ownerName: row.owner_name,
-    establishedYear: row.established_year,
-    email: row.email,
-    website: row.website,
+    addressLine1: row.address_line_1 || undefined,
+    addressLine2: row.address_line_2 || undefined,
+    pincode: row.pincode || undefined,
+    ownerName: row.owner_name || undefined,
+    establishedYear: row.established_year || undefined,
+    email: row.email || undefined,
+    website: row.website || undefined,
     rating: Number(row.rating || 0),
     reviewCount: Number(row.review_count || 0),
     isOpenNow: Boolean(row.is_open_now),
     verified: Boolean(row.verified),
     listingStatus: row.listing_status || "active",
-    activatedAt: row.activated_at || null,
+    activatedAt: row.activated_at ? toIsoString(row.activated_at) : null,
     rejectedReason: row.rejected_reason || null,
     phone: row.phone,
     whatsappNumber: row.whatsapp_number,
-    serviceAreas: row.service_areas || [],
-    languages: row.languages || [],
-    keywords: row.keywords || [],
-    highlights: row.highlights || [],
-    services: row.services || [],
-    businessHours: row.business_hours || [],
-    media: row.media || {},
-    faqs: row.faqs || [],
-    policies: row.policies || {},
-    socialLinks: row.social_links || {},
-    verification: row.verification || {},
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    serviceAreas: parseJsonField(row.service_areas, []),
+    languages: parseJsonField(row.languages, []),
+    keywords: parseJsonField(row.keywords, []),
+    highlights: parseJsonField(row.highlights, []),
+    services: parseJsonField(row.services, []),
+    businessHours: parseJsonField(row.business_hours, []),
+    media: parseJsonField(row.media, {}),
+    faqs: parseJsonField(row.faqs, []),
+    policies: parseJsonField(row.policies, {}),
+    socialLinks: parseJsonField(row.social_links, {}),
+    verification: parseJsonField(row.verification, {}),
+    createdAt: toIsoString(row.created_at),
+    updatedAt: toIsoString(row.updated_at),
   };
 }
 
@@ -254,7 +372,7 @@ function mapReel(row) {
     description: row.description,
     city: row.city,
     verified: Boolean(row.verified),
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   };
 }
 
@@ -265,8 +383,8 @@ function mapOffer(row) {
     subtitle: row.subtitle,
     badge: row.badge,
     active: Boolean(row.active),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toIsoString(row.created_at),
+    updatedAt: toIsoString(row.updated_at),
   };
 }
 
@@ -278,7 +396,7 @@ function mapLead(row) {
     phone: row.phone,
     message: row.message,
     source: row.source,
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   };
 }
 
@@ -290,7 +408,7 @@ function mapReview(row) {
     reviewerName: row.reviewer_name,
     rating: Number(row.rating || 0),
     comment: row.comment,
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   };
 }
 
@@ -299,45 +417,20 @@ function mapDailyInquiryPost(row) {
     id: row.id,
     inquiryDate: row.inquiry_date,
     description: row.description,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toIsoString(row.created_at),
+    updatedAt: toIsoString(row.updated_at),
   };
 }
 
-async function listBusinesses(filters) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient.from("businesses").select("*");
-  if (error) throw error;
-
-  const filtered = applyBusinessFilters(data || [], filters);
-  const paginated = paginate(filtered, filters.page, filters.limit);
+function mapListingPlan(row) {
   return {
-    data: paginated.data.map(mapBusiness),
-    meta: paginated.meta,
+    id: row.id,
+    name: row.name,
+    priceLabel: row.price_label,
+    shortLabel: row.short_label,
+    description: row.description,
+    features: parseJsonField(row.features, []),
   };
-}
-
-async function listAdminListings(filters) {
-  return listBusinesses({
-    ...filters,
-    includeInactive: true,
-  });
-}
-
-async function getBusinessById(id, options = {}) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("businesses")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error && error.code !== "PGRST116") throw error;
-  if (!data) return null;
-  if (!options.includeInactive && data.listing_status && data.listing_status !== "active") {
-    return null;
-  }
-  return mapBusiness(data);
 }
 
 function toBusinessDbPayload(input) {
@@ -360,76 +453,118 @@ function toBusinessDbPayload(input) {
     is_open_now: input.isOpenNow,
     verified: input.verified,
     listing_status: input.listingStatus,
-    activated_at: input.activatedAt,
+    activated_at: toMysqlDateTime(input.activatedAt),
     rejected_reason: input.rejectedReason,
     phone: input.phone,
     whatsapp_number: input.whatsappNumber,
-    service_areas: input.serviceAreas,
-    languages: input.languages,
-    keywords: input.keywords,
-    highlights: input.highlights,
-    services: input.services,
-    business_hours: input.businessHours,
-    media: input.media,
-    faqs: input.faqs,
-    policies: input.policies,
-    social_links: input.socialLinks,
-    verification: input.verification,
+    service_areas: input.serviceAreas ? JSON.stringify(input.serviceAreas) : undefined,
+    languages: input.languages ? JSON.stringify(input.languages) : undefined,
+    keywords: input.keywords ? JSON.stringify(input.keywords) : undefined,
+    highlights: input.highlights ? JSON.stringify(input.highlights) : undefined,
+    services: input.services ? JSON.stringify(input.services) : undefined,
+    business_hours: input.businessHours ? JSON.stringify(input.businessHours) : undefined,
+    media: input.media ? JSON.stringify(input.media) : undefined,
+    faqs: input.faqs ? JSON.stringify(input.faqs) : undefined,
+    policies: input.policies ? JSON.stringify(input.policies) : undefined,
+    social_links: input.socialLinks ? JSON.stringify(input.socialLinks) : undefined,
+    verification: input.verification ? JSON.stringify(input.verification) : undefined,
   };
 
-  Object.keys(payload).forEach((key) => {
+  for (const key of Object.keys(payload)) {
     if (payload[key] === undefined) {
       delete payload[key];
     }
-  });
+  }
 
   return payload;
 }
 
+async function fetchAllBusinesses() {
+  const rows = await queryRows("SELECT * FROM businesses");
+  return rows.map(mapBusiness);
+}
+
+async function listBusinesses(filters) {
+  const businesses = await fetchAllBusinesses();
+  const filtered = applyBusinessFilters(businesses, filters);
+  return paginate(filtered, filters.page, filters.limit);
+}
+
+async function listAdminListings(filters) {
+  return listBusinesses({
+    ...filters,
+    includeInactive: true,
+  });
+}
+
+async function getBusinessById(id, options = {}) {
+  const rows = await queryRows("SELECT * FROM businesses WHERE id = ? LIMIT 1", [id]);
+  const row = rows[0];
+  if (!row) {
+    return null;
+  }
+
+  if (!options.includeInactive && row.listing_status && row.listing_status !== "active") {
+    return null;
+  }
+
+  return mapBusiness(row);
+}
+
 async function createBusiness(input) {
-  ensureAdminClient();
+  const id = randomUUID();
+  const now = new Date().toISOString();
   const verified = input.verified === true;
-  const listingStatus =
-    typeof input.listingStatus === "string" && input.listingStatus
-      ? input.listingStatus
-      : verified
-      ? "active"
-      : "pending";
-  const activatedAt =
-    listingStatus === "active"
-      ? input.activatedAt || new Date().toISOString()
-      : null;
+  const listingStatus = input.listingStatus || (verified ? "active" : "pending");
+  const activatedAt = listingStatus === "active" ? input.activatedAt || now : null;
 
-  const { data, error } = await supabaseAdminClient
-    .from("businesses")
-    .insert(
-      toBusinessDbPayload({
-        ...input,
-        verified,
-        listingStatus,
-        activatedAt,
-        rejectedReason: null,
-      })
-    )
-    .select("*")
-    .single();
+  const payload = toBusinessDbPayload({
+    ...input,
+    verified,
+    listingStatus,
+    activatedAt,
+    rejectedReason: null,
+  });
 
-  if (error) throw error;
-  return mapBusiness(data);
+  const entries = Object.entries(payload);
+  const columns = ["id", ...entries.map(([key]) => key), "created_at", "updated_at"];
+  const placeholders = columns.map(() => "?").join(", ");
+  const values = [id, ...entries.map(([, value]) => value), toMysqlDateTime(now), toMysqlDateTime(now)];
+
+  await executeResult(
+    `INSERT INTO businesses (${columns.join(", ")}) VALUES (${placeholders})`,
+    values
+  );
+
+  const created = await getBusinessById(id);
+  if (!created) {
+    throw new Error("Business was created but could not be loaded.");
+  }
+  return created;
 }
 
 async function updateBusiness(id, input) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("businesses")
-    .update(toBusinessDbPayload(input))
-    .eq("id", id)
-    .select("*")
-    .single();
+  const payload = toBusinessDbPayload(input);
+  const entries = Object.entries(payload);
 
-  if (error && error.code !== "PGRST116") throw error;
-  if (!data) return null;
-  return mapBusiness(data);
+  if (entries.length === 0) {
+    return getBusinessById(id, { includeInactive: true });
+  }
+
+  const setClauses = entries.map(([key]) => `${key} = ?`);
+  const values = entries.map(([, value]) => value);
+  setClauses.push("updated_at = CURRENT_TIMESTAMP");
+
+  const result = await executeResult(
+    `UPDATE businesses SET ${setClauses.join(", ")} WHERE id = ?`,
+    [...values, id]
+  );
+
+  if (!result.affectedRows) {
+    return null;
+  }
+
+  return getBusinessById(id, { includeInactive: true });
 }
 
 async function activateListing(id) {
@@ -450,174 +585,101 @@ async function rejectListing(id, reason) {
 }
 
 async function deleteBusiness(id) {
-  ensureAdminClient();
-  const { error, count } = await supabaseAdminClient
-    .from("businesses")
-    .delete({ count: "exact" })
-    .eq("id", id);
-
-  if (error) throw error;
-  return Boolean(count);
+  const result = await executeResult("DELETE FROM businesses WHERE id = ?", [id]);
+  return result.affectedRows > 0;
 }
 
 async function listReels(filters) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("reels")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-
-  const query = normalizeText(filters.q);
-  const city = normalizeText(filters.city);
-  const filtered = (data || []).filter((entry) => {
-    if (query) {
-      const haystack = `${entry.vendor_name} ${entry.description} ${entry.handle} ${entry.city}`.toLowerCase();
-      if (!haystack.includes(query)) return false;
-    }
-    if (city && normalizeText(entry.city) !== city) return false;
-    if (typeof filters.verified === "boolean" && Boolean(entry.verified) !== filters.verified) {
-      return false;
-    }
-    return true;
-  });
-
-  const paginated = paginate(filtered, filters.page, filters.limit);
-  return {
-    data: paginated.data.map(mapReel),
-    meta: paginated.meta,
-  };
+  const rows = await queryRows("SELECT * FROM reels ORDER BY created_at DESC");
+  const filtered = applyReelFilters(rows.map(mapReel), filters);
+  return paginate(filtered, filters.page, filters.limit);
 }
 
-async function listOffers(activeOnly) {
-  ensureAdminClient();
-  let query = supabaseAdminClient.from("offers").select("*").order("updated_at", {
-    ascending: false,
-  });
-
-  if (activeOnly) {
-    query = query.eq("active", true);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data || []).map(mapOffer);
+async function listOffers(activeOnly = true) {
+  const rows = await queryRows(
+    `SELECT * FROM offers ${activeOnly ? "WHERE active = 1" : ""} ORDER BY updated_at DESC`
+  );
+  return rows.map(mapOffer);
 }
 
 async function createLead(input) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("leads")
-    .insert({
-      business_id: input.businessId,
-      name: input.name,
-      phone: input.phone,
-      message: input.message,
-      source: input.source,
-    })
-    .select("*")
-    .single();
+  const id = randomUUID();
+  await executeResult(
+    `INSERT INTO leads (id, business_id, name, phone, message, source)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, input.businessId, input.name, input.phone, input.message, input.source]
+  );
 
-  if (error) throw error;
-  return mapLead(data);
-}
-
-async function listLeads(page, limit) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-  const paginated = paginate(data || [], page, limit);
-  return {
-    data: paginated.data.map(mapLead),
-    meta: paginated.meta,
-  };
-}
-
-async function listReviews(businessId, page, limit) {
-  ensureAdminClient();
-  let query = supabaseAdminClient
-    .from("reviews")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (businessId) {
-    query = query.eq("business_id", businessId);
+  const rows = await queryRows("SELECT * FROM leads WHERE id = ? LIMIT 1", [id]);
+  if (!rows[0]) {
+    throw new Error("Lead was created but could not be loaded.");
   }
 
-  const { data, error } = await query;
-  if (error) throw error;
+  return mapLead(rows[0]);
+}
 
-  const paginated = paginate(data || [], page, limit);
-  return {
-    data: paginated.data.map(mapReview),
-    meta: paginated.meta,
-  };
+async function listLeads(page = 1, limit = 20) {
+  const rows = await queryRows("SELECT * FROM leads ORDER BY created_at DESC");
+  return paginate(rows.map(mapLead), page, limit);
+}
+
+async function listReviews(businessId, page = 1, limit = 20) {
+  const rows = businessId
+    ? await queryRows(
+        `SELECT * FROM reviews WHERE business_id = ? ORDER BY created_at DESC`,
+        [businessId]
+      )
+    : await queryRows("SELECT * FROM reviews ORDER BY created_at DESC");
+
+  return paginate(rows.map(mapReview), page, limit);
 }
 
 async function createReview(input, userId) {
-  ensureAdminClient();
+  const id = randomUUID();
+  await executeResult(
+    `INSERT INTO reviews (id, business_id, user_id, reviewer_name, rating, comment)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, input.businessId, userId || null, input.reviewerName, input.rating, input.comment || null]
+  );
 
-  const { data, error } = await supabaseAdminClient
-    .from("reviews")
-    .insert({
-      business_id: input.businessId,
-      user_id: userId || null,
-      reviewer_name: input.reviewerName,
-      rating: input.rating,
-      comment: input.comment,
-    })
-    .select("*")
-    .single();
+  const ratingsRows = await queryRows(
+    `SELECT rating FROM reviews WHERE business_id = ?`,
+    [input.businessId]
+  );
+  const ratings = ratingsRows.map((row) => Number(row.rating || 0)).filter((value) => value > 0);
+  const total = ratings.length;
+  const average = total > 0 ? ratings.reduce((sum, value) => sum + value, 0) / total : 0;
 
-  if (error) throw error;
+  await executeResult(
+    `UPDATE businesses SET rating = ?, review_count = ? WHERE id = ?`,
+    [Number(average.toFixed(1)), total, input.businessId]
+  );
 
-  const { data: aggregate, error: aggregateError } = await supabaseAdminClient
-    .from("reviews")
-    .select("rating")
-    .eq("business_id", input.businessId);
-
-  if (!aggregateError) {
-    const ratings = (aggregate || []).map((row) => Number(row.rating || 0)).filter((n) => n > 0);
-    const total = ratings.length;
-    const avg = total > 0 ? ratings.reduce((a, b) => a + b, 0) / total : 0;
-
-    await supabaseAdminClient
-      .from("businesses")
-      .update({
-        rating: Number(avg.toFixed(1)),
-        review_count: total,
-      })
-      .eq("id", input.businessId);
+  const rows = await queryRows("SELECT * FROM reviews WHERE id = ? LIMIT 1", [id]);
+  if (!rows[0]) {
+    throw new Error("Review was created but could not be loaded.");
   }
 
-  return mapReview(data);
+  return mapReview(rows[0]);
 }
 
 async function getHomeSnapshot() {
-  const [businessesPayload, offersPayload] = await Promise.all([
+  const [businessPayload, offers] = await Promise.all([
     listBusinesses({ page: 1, limit: 1000, sort: "rating_desc", includeInactive: false }),
     listOffers(true),
   ]);
 
-  const featuredBusinesses = businessesPayload.data
+  const featuredBusinesses = [...businessPayload.data]
     .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
     .slice(0, 8);
 
-  const categoriesMap = new Map();
-  for (const business of businessesPayload.data) {
-    categoriesMap.set(
-      business.category,
-      (categoriesMap.get(business.category) || 0) + 1
-    );
+  const categoryCounter = new Map();
+  for (const business of businessPayload.data) {
+    categoryCounter.set(business.category, (categoryCounter.get(business.category) || 0) + 1);
   }
 
   const mergedCategories = new Map();
-  for (const [name, count] of categoriesMap.entries()) {
+  for (const [name, count] of categoryCounter.entries()) {
     const key = normalizeText(name);
     if (!key) continue;
     mergedCategories.set(key, { name, count });
@@ -631,12 +693,13 @@ async function getHomeSnapshot() {
     mergedCategories.set(key, { name: category, count: 0 });
   }
 
-  const categories = [...mergedCategories.values()]
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  const categories = [...mergedCategories.values()].sort(
+    (a, b) => b.count - a.count || a.name.localeCompare(b.name)
+  );
 
   return {
     featuredBusinesses,
-    offers: offersPayload.slice(0, 3),
+    offers: offers.slice(0, 3),
     categories,
     quickFilters: [
       "Plumber near me",
@@ -650,15 +713,10 @@ async function getHomeSnapshot() {
 }
 
 async function getSellerAnalytics(businessId) {
-  ensureAdminClient();
-
-  const [{ data: leadRows, error: leadError }, { data: reviewRows, error: reviewError }] = await Promise.all([
-    supabaseAdminClient.from("leads").select("id, source, created_at").eq("business_id", businessId),
-    supabaseAdminClient.from("reviews").select("id, rating, created_at").eq("business_id", businessId),
+  const [leadRows, reviewRows] = await Promise.all([
+    queryRows(`SELECT id, source, created_at FROM leads WHERE business_id = ?`, [businessId]),
+    queryRows(`SELECT id, rating, created_at FROM reviews WHERE business_id = ?`, [businessId]),
   ]);
-
-  if (leadError) throw leadError;
-  if (reviewError) throw reviewError;
 
   const leads = leadRows || [];
   const reviews = reviewRows || [];
@@ -670,12 +728,7 @@ async function getSellerAnalytics(businessId) {
   };
 
   const averageRating = reviews.length
-    ? Number(
-        (
-          reviews.reduce((sum, entry) => sum + Number(entry.rating || 0), 0) /
-          reviews.length
-        ).toFixed(1)
-      )
+    ? Number((reviews.reduce((sum, entry) => sum + Number(entry.rating || 0), 0) / reviews.length).toFixed(1))
     : 0;
 
   return {
@@ -688,47 +741,107 @@ async function getSellerAnalytics(businessId) {
   };
 }
 
-async function listDailyInquiryPosts(filterDate) {
-  ensureAdminClient();
-  let query = supabaseAdminClient
-    .from("daily_inquiry_posts")
-    .select("*")
-    .order("inquiry_date", { ascending: false })
-    .order("created_at", { ascending: false });
+async function listListingPlans() {
+  const rows = await queryRows(
+    "SELECT id, name, price_label, short_label, description, features FROM listing_plans ORDER BY name ASC"
+  );
+  return normalizeListingPlans(rows.map(mapListingPlan));
+}
 
-  if (filterDate) {
-    query = query.eq("inquiry_date", filterDate);
+async function createListingPlan(input) {
+  const next = normalizeListingPlan(input);
+  if (!next) {
+    throw new Error("Invalid listing plan payload.");
   }
 
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data || []).map(mapDailyInquiryPost);
+  await executeResult(
+    `INSERT INTO listing_plans (id, name, price_label, short_label, description, features)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       name = VALUES(name),
+       price_label = VALUES(price_label),
+       short_label = VALUES(short_label),
+       description = VALUES(description),
+       features = VALUES(features)`,
+    [next.id, next.name, next.priceLabel, next.shortLabel, next.description, JSON.stringify(next.features)]
+  );
+
+  return next;
+}
+
+async function updateListingPlan(id, input) {
+  const existingPlans = await listListingPlans();
+  const existing = existingPlans.find((plan) => plan.id === id);
+  if (!existing) {
+    return null;
+  }
+
+  const updated = normalizeListingPlan({ ...existing, ...input, id });
+  if (!updated) {
+    throw new Error("Invalid listing plan payload.");
+  }
+
+  await executeResult(
+    `UPDATE listing_plans
+     SET name = ?, price_label = ?, short_label = ?, description = ?, features = ?
+     WHERE id = ?`,
+    [
+      updated.name,
+      updated.priceLabel,
+      updated.shortLabel,
+      updated.description,
+      JSON.stringify(updated.features),
+      id,
+    ]
+  );
+
+  return updated;
+}
+
+async function listDailyInquiryPosts(filterDate) {
+  const rows = filterDate
+    ? await queryRows(
+        `SELECT id, inquiry_date, description, created_at, updated_at
+         FROM daily_inquiry_posts
+         WHERE inquiry_date = ?
+         ORDER BY inquiry_date DESC, created_at DESC`,
+        [filterDate]
+      )
+    : await queryRows(
+        `SELECT id, inquiry_date, description, created_at, updated_at
+         FROM daily_inquiry_posts
+         ORDER BY inquiry_date DESC, created_at DESC`
+      );
+
+  return rows.map(mapDailyInquiryPost);
 }
 
 async function createDailyInquiryPost(input) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("daily_inquiry_posts")
-    .insert({
-      inquiry_date: input.inquiryDate,
-      description: input.description,
-    })
-    .select("*")
-    .single();
+  const id = randomUUID();
+  await executeResult(
+    `INSERT INTO daily_inquiry_posts (id, inquiry_date, description)
+     VALUES (?, ?, ?)`,
+    [id, input.inquiryDate, input.description]
+  );
 
-  if (error) throw error;
-  return mapDailyInquiryPost(data);
+  const rows = await queryRows(
+    `SELECT id, inquiry_date, description, created_at, updated_at
+     FROM daily_inquiry_posts
+     WHERE id = ?
+     LIMIT 1`,
+    [id]
+  );
+
+  if (!rows[0]) {
+    throw new Error("Daily inquiry post was created but could not be loaded.");
+  }
+
+  return mapDailyInquiryPost(rows[0]);
 }
 
 async function deleteDailyInquiryPost(id) {
-  ensureAdminClient();
-  const { error, count } = await supabaseAdminClient
-    .from("daily_inquiry_posts")
-    .delete({ count: "exact" })
-    .eq("id", id);
-
-  if (error) throw error;
-  return Boolean(count);
+  const result = await executeResult("DELETE FROM daily_inquiry_posts WHERE id = ?", [id]);
+  return result.affectedRows > 0;
 }
 
 module.exports = {

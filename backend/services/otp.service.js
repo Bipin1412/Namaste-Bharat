@@ -1,18 +1,11 @@
 const crypto = require("crypto");
-const { supabaseAdminClient } = require("../config/supabase");
 const { env } = require("../config/env");
+const { executeResult, queryRows, toMysqlDateTime } = require("../lib/mysql");
+const { findOrCreateUserByPhone } = require("./mysql-auth");
 
 const OTP_EXPIRY_MINUTES = Number(process.env.OTP_EXPIRY_MINUTES || 5);
 const OTP_RESEND_COOLDOWN_SECONDS = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 45);
 const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 5);
-
-function ensureAdminClient() {
-  if (!supabaseAdminClient) {
-    const error = new Error("Server is missing SUPABASE_SERVICE_ROLE_KEY for custom OTP flow.");
-    error.status = 500;
-    throw error;
-  }
-}
 
 function getOtpSecret() {
   return env.otpSecret || env.appJwtSecret;
@@ -20,75 +13,19 @@ function getOtpSecret() {
 
 function hashOtp(phone, otp) {
   const secret = getOtpSecret();
-  return crypto
-    .createHash("sha256")
-    .update(`${phone}:${otp}:${secret}`)
-    .digest("hex");
+  return crypto.createHash("sha256").update(`${phone}:${otp}:${secret}`).digest("hex");
 }
 
 function generateOtp() {
   return String(crypto.randomInt(100000, 1000000));
 }
 
-async function getLatestOtpRow(phone) {
-  ensureAdminClient();
-  const { data, error } = await supabaseAdminClient
-    .from("phone_otps")
-    .select("*")
-    .eq("phone", phone)
-    .is("used_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data || null;
+function isTwilioConfigured() {
+  return Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER);
 }
 
-async function storeOtp(phone, otp) {
-  ensureAdminClient();
-  const otpHash = hashOtp(phone, otp);
-  const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
-
-  const { error } = await supabaseAdminClient.from("phone_otps").insert({
-    phone,
-    otp_hash: otpHash,
-    expires_at: expiresAt,
-    attempts: 0,
-    max_attempts: OTP_MAX_ATTEMPTS,
-  });
-
-  if (error) {
-    throw error;
-  }
-}
-
-async function incrementAttempts(rowId, nextAttempts) {
-  ensureAdminClient();
-  const update = { attempts: nextAttempts };
-  if (nextAttempts >= OTP_MAX_ATTEMPTS) {
-    update.used_at = new Date().toISOString();
-  }
-
-  const { error } = await supabaseAdminClient.from("phone_otps").update(update).eq("id", rowId);
-  if (error) {
-    throw error;
-  }
-}
-
-async function markOtpUsed(rowId) {
-  ensureAdminClient();
-  const { error } = await supabaseAdminClient
-    .from("phone_otps")
-    .update({ used_at: new Date().toISOString() })
-    .eq("id", rowId);
-
-  if (error) {
-    throw error;
-  }
+function shouldExposeOtpInResponse() {
+  return process.env.NODE_ENV !== "production";
 }
 
 function buildTwilioAuthHeader() {
@@ -98,10 +35,6 @@ function buildTwilioAuthHeader() {
     return null;
   }
   return `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`;
-}
-
-function isTwilioConfigured() {
-  return Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER);
 }
 
 async function sendOtpSms(phone, otp) {
@@ -143,14 +76,53 @@ async function sendOtpSms(phone, otp) {
   };
 }
 
-function shouldExposeOtpInResponse() {
-  return process.env.NODE_ENV !== "production";
+async function getLatestOtpRow(phone) {
+  const rows = await queryRows(
+    `SELECT *
+     FROM phone_otps
+     WHERE phone = ? AND used_at IS NULL
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [phone]
+  );
+
+  return rows[0] || null;
+}
+
+async function storeOtp(phone, otp) {
+  const otpHash = hashOtp(phone, otp);
+  const expiresAt = toMysqlDateTime(new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString());
+  await executeResult(
+    `INSERT INTO phone_otps (id, phone, otp_hash, expires_at, attempts, max_attempts)
+     VALUES (?, ?, ?, ?, 0, ?)`,
+    [crypto.randomUUID(), phone, otpHash, expiresAt, OTP_MAX_ATTEMPTS]
+  );
+}
+
+async function incrementAttempts(rowId, nextAttempts) {
+  const update = { attempts: nextAttempts };
+  if (nextAttempts >= OTP_MAX_ATTEMPTS) {
+    update.used_at = toMysqlDateTime(new Date().toISOString());
+  }
+
+  const sets = Object.keys(update).map((key) => `${key} = ?`);
+  await executeResult(
+    `UPDATE phone_otps SET ${sets.join(", ")} WHERE id = ?`,
+    [...Object.values(update), rowId]
+  );
+}
+
+async function markOtpUsed(rowId) {
+  await executeResult(`UPDATE phone_otps SET used_at = ? WHERE id = ?`, [
+    toMysqlDateTime(new Date().toISOString()),
+    rowId,
+  ]);
 }
 
 async function createAndSendOtp(phone) {
   const latest = await getLatestOtpRow(phone);
   if (latest) {
-    const createdAt = new Date(latest.created_at).getTime();
+    const createdAt = new Date(String(latest.created_at || "").replace(" ", "T")).getTime();
     const now = Date.now();
     const diffSeconds = Math.floor((now - createdAt) / 1000);
 
@@ -184,7 +156,7 @@ async function verifyOtp(phone, otp) {
     return { ok: false, message: "OTP has expired. Please request a new OTP." };
   }
 
-  if (latest.attempts >= OTP_MAX_ATTEMPTS) {
+  if (Number(latest.attempts || 0) >= OTP_MAX_ATTEMPTS) {
     return { ok: false, message: "Too many attempts. Please request a new OTP." };
   }
 
@@ -196,36 +168,6 @@ async function verifyOtp(phone, otp) {
 
   await markOtpUsed(latest.id);
   return { ok: true };
-}
-
-async function findOrCreateUserByPhone(phone) {
-  ensureAdminClient();
-  const usersResult = await supabaseAdminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  if (usersResult.error) {
-    throw usersResult.error;
-  }
-
-  const existing = (usersResult.data?.users || []).find(
-    (user) => String(user.phone || "") === phone
-  );
-
-  if (existing) {
-    return existing;
-  }
-
-  const created = await supabaseAdminClient.auth.admin.createUser({
-    phone,
-    phone_confirm: true,
-    user_metadata: {
-      phone,
-    },
-  });
-
-  if (created.error || !created.data.user) {
-    throw created.error || new Error("Could not create user for phone OTP.");
-  }
-
-  return created.data.user;
 }
 
 module.exports = {
