@@ -57,7 +57,7 @@ export default function StoriesPage() {
                     </div>
                   )}
 
-                  <div className="absolute bottom-4 left-4 right-4 z-10">
+                  <div className="absolute bottom-2 left-4 right-4 z-10">
                     <h2 className="max-w-[16rem] text-2xl font-semibold leading-tight text-slate-900 drop-shadow-none">
                       {story.title}
                     </h2>
