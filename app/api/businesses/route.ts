@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { jsonError, parseBooleanParam, parseNumberParam } from "@/lib/backend/http";
 import { createBusiness, listBusinesses } from "@/lib/backend/service";
 import { validateCreateBusinessPayload } from "@/lib/backend/validation";
-import { hasMysqlConfig } from "@/lib/server/mysql";
 import { requireAdminFromAuthHeader } from "@/lib/server/daily-inquiries";
 
 export const runtime = "nodejs";
@@ -80,21 +79,6 @@ export async function POST(request: NextRequest) {
           ...validation.data,
           verified: false,
         };
-
-    if (!hasMysqlConfig()) {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-      const upstream = await fetch(`${backendUrl}/api/businesses`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(createPayload),
-        cache: "no-store",
-      }).catch(() => null);
-
-      if (upstream && upstream.ok) {
-        const payload = await upstream.json();
-        return NextResponse.json(payload, { status: 201 });
-      }
-    }
 
     const created = await createBusiness(createPayload);
     return NextResponse.json(created, { status: 201 });
