@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { executeResult, hasMysqlConfig, queryRows, toIsoString } from "@/lib/server/mysql";
+import { executeResult, queryRows, toIsoString } from "@/lib/server/mysql";
 import { findProfileByUserId, resolveUserFromToken } from "@/lib/server/mysql-auth";
-import * as legacy from "./daily-inquiries-legacy";
 
 type DailyInquiryRow = {
   id: string;
@@ -31,10 +30,6 @@ function mapDailyInquiry(row: DailyInquiryRow) {
 }
 
 export async function requireAdminFromAuthHeader(authHeader: string) {
-  if (!hasMysqlConfig()) {
-    return legacy.requireAdminFromAuthHeader(authHeader);
-  }
-
   const token = authHeader.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length).trim()
     : "";
@@ -70,10 +65,6 @@ export async function requireAdminFromAuthHeader(authHeader: string) {
 }
 
 export async function listDailyInquiryPosts(filterDate: string | null) {
-  if (!hasMysqlConfig()) {
-    return legacy.listDailyInquiryPosts(filterDate);
-  }
-
   const rows = filterDate
     ? await queryRows<DailyInquiryRow>(
         `SELECT id, inquiry_date, description, created_at, updated_at
@@ -95,10 +86,6 @@ export async function createDailyInquiryPost(input: {
   inquiryDate: string;
   description: string;
 }) {
-  if (!hasMysqlConfig()) {
-    return legacy.createDailyInquiryPost(input);
-  }
-
   const id = randomUUID();
   await executeResult(
     `INSERT INTO daily_inquiry_posts (id, inquiry_date, description)
@@ -122,10 +109,6 @@ export async function createDailyInquiryPost(input: {
 }
 
 export async function deleteDailyInquiryPost(id: string) {
-  if (!hasMysqlConfig()) {
-    return legacy.deleteDailyInquiryPost(id);
-  }
-
   const result = await executeResult("DELETE FROM daily_inquiry_posts WHERE id = ?", [id]);
   return result.affectedRows > 0;
 }

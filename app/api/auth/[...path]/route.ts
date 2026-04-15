@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasMysqlConfig } from "@/lib/server/mysql";
 import {
   buildSessionPayload,
   createEmailUser,
@@ -10,7 +9,6 @@ import {
   sanitizeUser,
   toProfile,
 } from "@/lib/server/mysql-auth";
-import * as legacy from "./route-legacy";
 
 export const runtime = "nodejs";
 
@@ -192,10 +190,6 @@ async function routePostMysql(request: NextRequest, path: string[]) {
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  if (!hasMysqlConfig()) {
-    return legacy.GET(request, context);
-  }
-
   const { path } = await context.params;
   try {
     return await routeGetMysql(request, path);
@@ -205,10 +199,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
-  if (!hasMysqlConfig()) {
-    return legacy.POST(request, context);
-  }
-
   const { path } = await context.params;
   try {
     return await routePostMysql(request, path);
@@ -218,33 +208,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  if (!hasMysqlConfig()) {
-    return legacy.PATCH(request, context);
-  }
-
   return NextResponse.json({ error: { message: "Not found." } }, { status: 404 });
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  if (!hasMysqlConfig()) {
-    return legacy.PUT(request, context);
-  }
-
   return NextResponse.json({ error: { message: "Not found." } }, { status: 404 });
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  if (!hasMysqlConfig()) {
-    return legacy.DELETE(request, context);
-  }
-
   return NextResponse.json({ error: { message: "Not found." } }, { status: 404 });
 }
 
 export async function OPTIONS(request: NextRequest, context: RouteContext) {
-  if (!hasMysqlConfig()) {
-    return legacy.OPTIONS(request, context);
-  }
-
   return new NextResponse(null, { status: 204 });
 }
