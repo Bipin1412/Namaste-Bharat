@@ -57,15 +57,13 @@ export default function StoriesPage() {
                     </div>
                   )}
 
-                  <div className="absolute bottom-2 left-4 right-4 z-10">
-                    <h2 className="max-w-[16rem] text-2xl font-semibold leading-tight text-slate-900 drop-shadow-none">
-                      {story.title}
-                    </h2>
-                  </div>
                 </div>
 
                 <div className="p-5">
-                  <p className="text-sm leading-6 text-slate-600">{story.summary}</p>
+                  <h2 className="text-2xl font-semibold leading-tight text-slate-900">
+                    {story.title}
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{story.summary}</p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     {story.outcomes.map((outcome) => (
