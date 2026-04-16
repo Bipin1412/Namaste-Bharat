@@ -7,11 +7,12 @@ import rajCabServicesImage from "../../assests/stories/Raj car servies.jpeg";
 import saiElectricalsImage from "../../assests/stories/Shree Electrical.jpeg";
 import smartFixImage from "../../assests/stories/smart fix.jpeg";
 import spiceBowlImage from "../../assests/stories/Spice Boul.jpeg";
+import heroHealthcareImage from "../../assests/home_page-images/3.png";
 
 export type ShowcaseCard = {
   title: string;
   subtitle: string;
-  image: string;
+  image: string | StaticImageData;
   href: string;
 };
 
@@ -47,25 +48,25 @@ export const homeShowcaseCards: ShowcaseCard[] = [
   {
     title: "Home and Repairs",
     subtitle: "Electrician, plumber, AC service",
-    image: "/showcase/service-home.svg",
+    image: saiElectricalsImage,
     href: "/search?q=home%20repair",
   },
   {
     title: "Health and Wellness",
     subtitle: "Clinics, diagnostics, pharmacies",
-    image: "/showcase/service-health.svg",
+    image: heroHealthcareImage,
     href: "/search?q=clinic",
   },
   {
     title: "Food and Catering",
     subtitle: "Events, parties, bulk orders",
-    image: "/showcase/service-food.svg",
+    image: balajiKitchenImage,
     href: "/search?q=catering",
   },
   {
     title: "Business Services",
     subtitle: "CA, legal, consulting support",
-    image: "/showcase/service-professional.svg",
+    image: omPropertyImage,
     href: "/search?q=business",
   },
 ];

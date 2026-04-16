@@ -401,13 +401,15 @@ export default async function HomePage() {
                   href={item.href}
                   className="min-w-0 w-full overflow-hidden rounded-xl border border-slate-100 bg-slate-50 transition-colors hover:border-blue-200"
                 >
-                  <div className="relative h-28 w-full">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                    />
+                  <div className="h-28 w-full bg-gradient-to-br from-white to-slate-100 p-2">
+                    <div className="relative h-full w-full overflow-hidden rounded-lg">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-contain object-center"
+                      />
+                    </div>
                   </div>
                   <div className="min-w-0 p-2">
                     <p className="break-words text-sm font-semibold text-slate-800">{item.title}</p>
