@@ -27,6 +27,8 @@ const mysqlAvailabilityErrorCodes = new Set([
   "ER_BAD_DB_ERROR",
 ]);
 
+const mysqlFallbackTimeoutMs = 2500;
+
 function isMysqlAvailabilityError(error: unknown): boolean {
   if (!(error instanceof Error)) {
     return false;
@@ -54,13 +56,31 @@ async function withMysqlFallback<T>(
     return legacyFn();
   }
 
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
   try {
-    return await mysqlFn();
+    return await Promise.race([
+      mysqlFn(),
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          const timeoutError = new Error("MySQL request timed out.");
+          (timeoutError as Error & { code?: string }).code = "MYSQL_TIMEOUT";
+          reject(timeoutError);
+        }, mysqlFallbackTimeoutMs);
+      }),
+    ]);
   } catch (error) {
-    if (isMysqlAvailabilityError(error)) {
+    if (
+      isMysqlAvailabilityError(error) ||
+      (error instanceof Error && (error as Error & { code?: string }).code === "MYSQL_TIMEOUT")
+    ) {
       return legacyFn();
     }
     throw error;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
