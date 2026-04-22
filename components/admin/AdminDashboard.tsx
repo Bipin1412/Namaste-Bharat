@@ -105,6 +105,37 @@ export default function AdminDashboard() {
 
   const token = useMemo(() => getAuthToken(), []);
 
+  async function fetchAdminListingsPage(page: number) {
+    if (!token) {
+      return null;
+    }
+
+    const params = new URLSearchParams({
+      sort: "newest",
+      page: String(page),
+      limit: "50",
+      includeInactive: "true",
+    });
+
+    const response = await fetch(`/api/businesses?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    }).catch(() => null);
+
+    if (!response || !response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json().catch(() => null)) as
+      | { data?: Array<Record<string, unknown>>; meta?: { totalPages?: number } }
+      | null;
+
+    return {
+      data: Array.isArray(payload?.data) ? payload.data : [],
+      totalPages: Math.max(1, payload?.meta?.totalPages ?? 1),
+    };
+  }
+
   async function localPatchBusiness(id: string, body: Record<string, unknown>) {
     if (!token) {
       throw new Error("Missing auth token.");
@@ -147,21 +178,21 @@ export default function AdminDashboard() {
       return;
     }
 
-    const response = await fetch("/api/businesses?sort=newest&page=1&limit=500&includeInactive=true", {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (!response || !response.ok) {
+    const firstPage = await fetchAdminListingsPage(1);
+    if (!firstPage) {
       setListings([]);
       return;
     }
 
-    const localPayload = (await response.json().catch(() => null)) as
-      | { data?: Array<Record<string, unknown>> }
-      | null;
+    const additionalPages = await Promise.all(
+      Array.from({ length: firstPage.totalPages - 1 }, async (_, index) => {
+        const page = index + 2;
+        return fetchAdminListingsPage(page);
+      })
+    );
 
-    const localAll = (localPayload?.data || [])
+    const allEntries = [firstPage, ...additionalPages]
+      .flatMap((page) => page?.data ?? [])
       .map((entry) => ({
         id: String(entry.id || ""),
         name: String(entry.name || "Unnamed"),
@@ -198,7 +229,7 @@ export default function AdminDashboard() {
       }))
       .filter((entry) => entry.id);
 
-    setListings(localAll);
+    setListings(allEntries);
   }, [token]);
 
   const loadDailyInquiries = useCallback(async () => {
