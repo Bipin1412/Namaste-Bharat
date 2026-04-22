@@ -48,7 +48,7 @@ function isMysqlAvailabilityError(error: unknown): boolean {
   );
 }
 
-async function withMysqlFallback<T>(
+async function withMysqlReadFallback<T>(
   mysqlFn: () => Promise<T>,
   legacyFn: () => Promise<T>
 ): Promise<T> {
@@ -87,85 +87,96 @@ async function withMysqlFallback<T>(
   }
 }
 
+async function withMysqlWrite<T>(
+  mysqlFn: () => Promise<T>,
+  legacyFn: () => Promise<T>
+): Promise<T> {
+  if (!hasMysqlConfig()) {
+    return legacyFn();
+  }
+
+  return mysqlFn();
+}
+
 export async function listBusinesses(...args: Parameters<typeof mysqlService.listBusinesses>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.listBusinesses(...args),
     () => legacyService.listBusinesses(...args)
   );
 }
 
 export async function getBusinessById(...args: Parameters<typeof mysqlService.getBusinessById>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.getBusinessById(...args),
     () => legacyService.getBusinessById(...args)
   );
 }
 
 export async function createBusiness(...args: Parameters<typeof mysqlService.createBusiness>) {
-  return withMysqlFallback(
+  return withMysqlWrite(
     () => mysqlService.createBusiness(...args),
     () => legacyService.createBusiness(...args)
   );
 }
 
 export async function updateBusiness(...args: Parameters<typeof mysqlService.updateBusiness>) {
-  return withMysqlFallback(
+  return withMysqlWrite(
     () => mysqlService.updateBusiness(...args),
     () => legacyService.updateBusiness(...args)
   );
 }
 
 export async function deleteBusiness(...args: Parameters<typeof mysqlService.deleteBusiness>) {
-  return withMysqlFallback(
+  return withMysqlWrite(
     () => mysqlService.deleteBusiness(...args),
     () => legacyService.deleteBusiness(...args)
   );
 }
 
 export async function listReels(...args: Parameters<typeof mysqlService.listReels>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.listReels(...args),
     () => legacyService.listReels(...args)
   );
 }
 
 export async function listOffers(...args: Parameters<typeof mysqlService.listOffers>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.listOffers(...args),
     () => legacyService.listOffers(...args)
   );
 }
 
 export async function createLead(...args: Parameters<typeof mysqlService.createLead>) {
-  return withMysqlFallback(
+  return withMysqlWrite(
     () => mysqlService.createLead(...args),
     () => legacyService.createLead(...args)
   );
 }
 
 export async function listLeads(...args: Parameters<typeof mysqlService.listLeads>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.listLeads(...args),
     () => legacyService.listLeads(...args)
   );
 }
 
 export async function getHomeSnapshot(...args: Parameters<typeof mysqlService.getHomeSnapshot>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.getHomeSnapshot(...args),
     () => legacyService.getHomeSnapshot(...args)
   );
 }
 
 export async function getDatabaseStats(...args: Parameters<typeof mysqlService.getDatabaseStats>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.getDatabaseStats(...args),
     () => legacyService.getDatabaseStats(...args)
   );
 }
 
 export async function listListingPlans(...args: Parameters<typeof mysqlService.listListingPlans>) {
-  return withMysqlFallback(
+  return withMysqlReadFallback(
     () => mysqlService.listListingPlans(...args),
     () => legacyService.listListingPlans(...args)
   );
@@ -174,7 +185,7 @@ export async function listListingPlans(...args: Parameters<typeof mysqlService.l
 export async function createListingPlan(
   ...args: Parameters<typeof mysqlService.createListingPlan>
 ) {
-  return withMysqlFallback(
+  return withMysqlWrite(
     () => mysqlService.createListingPlan(...args),
     () => legacyService.createListingPlan(...args)
   );
@@ -183,7 +194,7 @@ export async function createListingPlan(
 export async function updateListingPlan(
   ...args: Parameters<typeof mysqlService.updateListingPlan>
 ) {
-  return withMysqlFallback(
+  return withMysqlWrite(
     () => mysqlService.updateListingPlan(...args),
     () => legacyService.updateListingPlan(...args)
   );
