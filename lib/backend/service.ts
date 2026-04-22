@@ -59,8 +59,11 @@ async function withMysqlFallback<T>(
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   try {
+    const mysqlPromise = mysqlFn();
+    mysqlPromise.catch(() => undefined);
+
     return await Promise.race([
-      mysqlFn(),
+      mysqlPromise,
       new Promise<T>((_, reject) => {
         timeoutId = setTimeout(() => {
           const timeoutError = new Error("MySQL request timed out.");
