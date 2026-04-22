@@ -25,7 +25,8 @@ export const metadata: Metadata = {
   applicationName: "Namaste Bharat",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icon.svg",
+    icon: "/branding/namaste-bharat-logo.jpeg",
+    apple: "/branding/namaste-bharat-logo.jpeg",
   },
   appleWebApp: {
     capable: true,
