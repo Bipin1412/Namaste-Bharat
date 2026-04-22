@@ -181,7 +181,15 @@ function pickIconForCategory(label: string): string {
 }
 
 export default async function HomePage() {
-  const snapshot = await getHomeSnapshot();
+  const [snapshot, vendorResult] = await Promise.all([
+    getHomeSnapshot(),
+    listBusinesses({
+      q: "vendor-card",
+      sort: "newest",
+      page: 1,
+      limit: 6,
+    }),
+  ]);
   const featuredBusinesses = snapshot.featuredBusinesses.slice(0, 4);
   const quickFilters = snapshot.quickFilters.slice(0, 8);
 
@@ -194,12 +202,6 @@ export default async function HomePage() {
     dynamicCategories.length > 0 ? dynamicCategories : fallbackCategories;
   const popularPreviewCategories = renderedCategories.slice(0, 6);
 
-  const vendorResult = await listBusinesses({
-    q: "vendor-card",
-    sort: "newest",
-    page: 1,
-    limit: 6,
-  });
   const vendorCards = buildVendorCardsFromBusinesses(vendorResult.data);
 
   return (

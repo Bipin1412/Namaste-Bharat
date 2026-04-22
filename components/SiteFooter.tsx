@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
-import { getHomeSnapshot } from "@/lib/backend/service";
+import masterCategories from "@/data/master-categories.json";
 
 const socialLinks = [
   {
@@ -87,10 +87,7 @@ const popularCities = [
 ];
 
 export default async function SiteFooter() {
-  const snapshot = await getHomeSnapshot();
-  const businessCategories = snapshot.categories
-    .filter((category) => category.count > 0)
-    .map((category) => category.name);
+  const businessCategories = masterCategories.slice(0, 24);
 
   return (
     <footer className="mt-10 min-h-screen w-full border-t border-teal-900/20 bg-[#0f4f4a] text-slate-100">
