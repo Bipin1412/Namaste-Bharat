@@ -17,6 +17,138 @@ type BusinessesApiResponse = {
   };
 };
 
+function normalizeSearchText(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function businessSearchText(business: BusinessCardData): string {
+  return normalizeSearchText(
+    [
+      business.name,
+      business.category,
+      business.locality,
+      business.city,
+      business.phone,
+      business.whatsappNumber,
+    ].join(" ")
+  );
+}
+
+function matchesBusinessQuery(business: BusinessCardData, rawQuery: string): boolean {
+  const query = normalizeSearchText(rawQuery);
+  if (!query) {
+    return true;
+  }
+
+  const haystack = businessSearchText(business);
+  if (!haystack) {
+    return false;
+  }
+
+  if (haystack.includes(query)) {
+    return true;
+  }
+
+  const tokens = query.split(" ").filter((token) => token.length >= 2);
+  return tokens.length > 0 && tokens.every((token) => haystack.includes(token));
+}
+
+function mergeBusinesses(primary: BusinessCardData[], fallback: BusinessCardData[]): BusinessCardData[] {
+  const merged = new Map<string, BusinessCardData>();
+
+  for (const business of primary) {
+    merged.set(business.id, business);
+  }
+
+  for (const business of fallback) {
+    if (!merged.has(business.id)) {
+      merged.set(business.id, business);
+    }
+  }
+
+  return [...merged.values()];
+}
+
+async function fetchAllActiveBusinesses(
+  signal: AbortSignal,
+  sort: "rating_desc" | "rating_asc" | "reviews_desc" | "newest",
+  filters: {
+    verified?: boolean;
+    openNow?: boolean;
+  } = {}
+): Promise<BusinessCardData[]> {
+  const firstParams = new URLSearchParams({
+    page: "1",
+    limit: "50",
+    sort,
+  });
+
+  if (typeof filters.verified === "boolean") {
+    firstParams.set("verified", filters.verified ? "true" : "false");
+  }
+
+  if (typeof filters.openNow === "boolean") {
+    firstParams.set("openNow", filters.openNow ? "true" : "false");
+  }
+
+  const firstResponse = await fetch(`/api/businesses?${firstParams.toString()}`, {
+    method: "GET",
+    signal,
+    cache: "no-store",
+  });
+
+  if (!firstResponse.ok) {
+    return [];
+  }
+
+  const firstPayload = (await firstResponse.json().catch(() => null)) as BusinessesApiResponse | null;
+  const firstPage = Array.isArray(firstPayload?.data) ? firstPayload.data : [];
+  const totalPages = Math.max(1, firstPayload?.meta?.totalPages ?? 1);
+
+  if (totalPages === 1) {
+    return firstPage;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, async (_, index) => {
+      const page = index + 2;
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: "50",
+        sort,
+      });
+
+      if (typeof filters.verified === "boolean") {
+        params.set("verified", filters.verified ? "true" : "false");
+      }
+
+      if (typeof filters.openNow === "boolean") {
+        params.set("openNow", filters.openNow ? "true" : "false");
+      }
+
+      const response = await fetch(`/api/businesses?${params.toString()}`, {
+        method: "GET",
+        signal,
+        cache: "no-store",
+      }).catch(() => null);
+
+      if (!response || !response.ok) {
+        return [] as BusinessCardData[];
+      }
+
+      const payload = (await response.json().catch(() => null)) as BusinessesApiResponse | null;
+      return Array.isArray(payload?.data) ? payload.data : [];
+    })
+  );
+
+  return [...firstPage, ...remainingPages.flat()];
+}
+
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -119,8 +251,22 @@ export default function SearchPage() {
         }
 
         const payload = (await response.json()) as BusinessesApiResponse;
-        setBusinesses(payload.data);
-        setResultCount(payload.meta.total);
+
+        if (query.trim()) {
+          const activeBusinesses = await fetchAllActiveBusinesses(controller.signal, urlSort, {
+            verified: urlVerified,
+            openNow: urlOpenNow,
+          });
+          const fallbackMatches = activeBusinesses.filter((business) =>
+            matchesBusinessQuery(business, query)
+          );
+          const merged = mergeBusinesses(payload.data, fallbackMatches);
+          setBusinesses(merged);
+          setResultCount(Math.max(payload.meta.total, merged.length));
+        } else {
+          setBusinesses(payload.data);
+          setResultCount(payload.meta.total);
+        }
       } catch (fetchError) {
         if (!controller.signal.aborted) {
           setError(
