@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { StaticImageData } from "next/image";
 import {
   Building2,
   BadgeCheck,
@@ -25,7 +26,7 @@ type VendorCard = {
   rating: number;
   reviewCount: number;
   isOpenNow: boolean;
-  image: string;
+  image: string | StaticImageData;
 };
 
 function toWebsiteUrl(value: string) {

@@ -4,6 +4,7 @@ import heroBusinessImage from "../assests/home_page-images/1.png";
 import heroDeliveryImage from "../assests/home_page-images/2.png";
 import heroHealthcareImage from "../assests/home_page-images/3.png";
 import heroExploreImage from "../assests/home_page-images/4.png";
+import type { StaticImageData } from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -11,20 +12,18 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
-import BusinessCard from "@/components/BusinessCard";
+import BusinessCard, { type BusinessCardData } from "@/components/BusinessCard";
 import CategorySection from "@/components/CategorySection";
 import OfferBannerSlot from "@/components/OfferBannerSlot";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-import VendorCardsSection, {
-  buildVendorCardsFromBusinesses,
-} from "@/components/VendorCardsSection";
-import { getHomeSnapshot, listBusinesses } from "@/lib/backend/service";
+import VendorCardsSection from "@/components/VendorCardsSection";
 import {
   getBusinessImage,
   homeShowcaseCards,
+  storyShowcaseCards,
 } from "@/lib/ui/showcase";
 
-export const revalidate = 300;
+export const dynamic = "force-static";
 
 type CategoryTile = {
   label: string;
@@ -52,6 +51,17 @@ const quickShortcuts = [
   { label: "Top Rated", href: "/search?sort=rating_desc" },
   { label: "Near Me", href: "/search?q=near me" },
   { label: "Verified Only", href: "/search?verified=true&sort=rating_desc" },
+];
+
+const staticQuickFilters = [
+  "Electrician",
+  "Plumber",
+  "AC Service",
+  "Clinic",
+  "Catering",
+  "Real Estate",
+  "Car Service",
+  "Legal",
 ];
 
 const heroServiceCards = [
@@ -126,6 +136,106 @@ const testimonials = [
   },
 ];
 
+const staticCategories: CategoryTile[] = [
+  { label: "Repairs", iconKey: "wrench", count: 84 },
+  { label: "Construction", iconKey: "hammer", count: 56 },
+  { label: "Healthcare", iconKey: "health", count: 73 },
+  { label: "Food", iconKey: "utensils", count: 61 },
+  { label: "Business", iconKey: "briefcase", count: 48 },
+  { label: "Education", iconKey: "education", count: 29 },
+  { label: "Transport", iconKey: "transport", count: 41 },
+  { label: "Hotels", iconKey: "hotel", count: 33 },
+  { label: "Auto", iconKey: "car", count: 50 },
+  { label: "Verified", iconKey: "store", count: 96 },
+];
+
+const staticFeaturedBusinesses: BusinessCardData[] = [
+  {
+    id: "b-1",
+    name: "Vyadeshwar Electricals",
+    category: "Electrical Services",
+    locality: "Sinhagad Road",
+    city: "Pune",
+    rating: 4.9,
+    reviewCount: 128,
+    isOpenNow: true,
+    verified: true,
+    phone: "+91 8459608568",
+    whatsappNumber: "+91 8459608568",
+  },
+  {
+    id: "b-4",
+    name: "Balaji Kitchen",
+    category: "Tiffin & Catering",
+    locality: "Kothrud",
+    city: "Pune",
+    rating: 4.8,
+    reviewCount: 94,
+    isOpenNow: true,
+    verified: true,
+    phone: "+91 8459608568",
+    whatsappNumber: "+91 8459608568",
+  },
+  {
+    id: "s-2",
+    name: "Neerai Clinic",
+    category: "Healthcare Services",
+    locality: "Karve Nagar",
+    city: "Pune",
+    rating: 4.7,
+    reviewCount: 71,
+    isOpenNow: false,
+    verified: true,
+    phone: "+91 8459608568",
+    whatsappNumber: "+91 8459608568",
+  },
+  {
+    id: "s-1",
+    name: "Raj Cab Services",
+    category: "Transport & Travel",
+    locality: "Pimpri",
+    city: "Pune",
+    rating: 4.8,
+    reviewCount: 63,
+    isOpenNow: true,
+    verified: false,
+    phone: "+91 8459608568",
+    whatsappNumber: "+91 8459608568",
+  },
+];
+
+type StaticVendorCard = {
+  id: string;
+  businessName: string;
+  mobileNumber: string;
+  whatsappNumber: string;
+  website: string;
+  locality: string;
+  city: string;
+  businessType: string;
+  verified: boolean;
+  rating: number;
+  reviewCount: number;
+  isOpenNow: boolean;
+  image: string | StaticImageData;
+};
+
+const staticVendorCards: StaticVendorCard[] = storyShowcaseCards.slice(0, 4).map((story, index) => ({
+  id: `story-${index + 1}`,
+  businessName: story.title,
+  mobileNumber: "8459608568",
+  whatsappNumber: "8459608568",
+  website: "",
+  locality: "Pune",
+  city: "Maharashtra",
+  businessType: story.category,
+  verified: true,
+  rating: 4.8,
+  reviewCount: 40 + index * 12,
+  isOpenNow: true,
+  image: story.image ?? getBusinessImage(`b-${index + 1}`),
+}));
+
 function pickIconForCategory(label: string): string {
   const normalized = label.toLowerCase();
   if (normalized.includes("beauty") || normalized.includes("dress") || normalized.includes("grooms")) {
@@ -180,29 +290,12 @@ function pickIconForCategory(label: string): string {
   return "store";
 }
 
-export default async function HomePage() {
-  const [snapshot, vendorResult] = await Promise.all([
-    getHomeSnapshot(),
-    listBusinesses({
-      q: "vendor-card",
-      sort: "newest",
-      page: 1,
-      limit: 6,
-    }),
-  ]);
-  const featuredBusinesses = snapshot.featuredBusinesses.slice(0, 4);
-  const quickFilters = snapshot.quickFilters.slice(0, 8);
-
-  const dynamicCategories = snapshot.categories.slice(0, 20).map((entry) => ({
-    label: entry.name,
-    iconKey: pickIconForCategory(entry.name),
-    count: entry.count,
-  }));
-  const renderedCategories =
-    dynamicCategories.length > 0 ? dynamicCategories : fallbackCategories;
+export default function HomePage() {
+  const renderedCategories = staticCategories.length > 0 ? staticCategories : fallbackCategories;
   const popularPreviewCategories = renderedCategories.slice(0, 6);
-
-  const vendorCards = buildVendorCardsFromBusinesses(vendorResult.data);
+  const quickFilters = staticQuickFilters;
+  const featuredBusinesses = staticFeaturedBusinesses;
+  const vendorCards = staticVendorCards;
 
   return (
     <div className="min-h-dvh bg-slate-50">
