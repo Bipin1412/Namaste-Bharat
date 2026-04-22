@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   description: "Modern MSME discovery platform for Bharat.",
   applicationName: "Namaste Bharat",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     title: "Namaste Bharat",
