@@ -53,8 +53,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let body: unknown;
+
   try {
-    const body = (await request.json()) as unknown;
+    body = (await request.json()) as unknown;
+  } catch {
+    return jsonError(400, "Request body must be valid JSON.");
+  }
+
+  try {
     const validation = validateCreateBusinessPayload(body);
 
     if (!validation.ok) {
@@ -90,10 +97,7 @@ export async function POST(request: NextRequest) {
       typeof (error as { status?: number }).status === "number"
         ? (error as { status: number }).status
         : 400;
-    const message =
-      error instanceof Error && status !== 400
-        ? error.message
-        : "Request body must be valid JSON.";
+    const message = error instanceof Error ? error.message : "Could not create business.";
     return jsonError(status, message);
   }
 }

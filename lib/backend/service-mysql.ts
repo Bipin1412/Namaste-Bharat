@@ -518,6 +518,25 @@ function toBusinessDbPayload(input: UpdateBusinessInput | CreateBusinessInput) {
   return payload;
 }
 
+function withCreateBusinessDefaults(
+  input: CreateBusinessInput
+): CreateBusinessInput {
+  return {
+    ...input,
+    serviceAreas: input.serviceAreas ?? [],
+    languages: input.languages ?? [],
+    keywords: input.keywords ?? [],
+    highlights: input.highlights ?? [],
+    services: input.services ?? [],
+    businessHours: input.businessHours ?? [],
+    media: input.media ?? {},
+    faqs: input.faqs ?? [],
+    policies: input.policies ?? {},
+    socialLinks: input.socialLinks ?? {},
+    verification: input.verification ?? {},
+  };
+}
+
 async function fetchAllBusinesses() {
   const rows = await queryRows<BusinessRow>("SELECT * FROM businesses");
   return rows.map(mapBusiness);
@@ -553,7 +572,7 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
     listingStatus === "active" ? input.activatedAt || now : null;
 
   const payload = toBusinessDbPayload({
-    ...input,
+    ...withCreateBusinessDefaults(input),
     verified,
     listingStatus,
     activatedAt,
