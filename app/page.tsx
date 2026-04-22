@@ -4,45 +4,10 @@ import heroBusinessImage from "../assests/home_page-images/1.png";
 import heroDeliveryImage from "../assests/home_page-images/2.png";
 import heroHealthcareImage from "../assests/home_page-images/3.png";
 import heroExploreImage from "../assests/home_page-images/4.png";
-import type { StaticImageData } from "next/image";
-import {
-  ArrowRight,
-  BadgeCheck,
-  MapPin,
-  Search,
-  Sparkles,
-} from "lucide-react";
-import BusinessCard, { type BusinessCardData } from "@/components/BusinessCard";
-import CategorySection from "@/components/CategorySection";
-import OfferBannerSlot from "@/components/OfferBannerSlot";
-import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-import VendorCardsSection from "@/components/VendorCardsSection";
-import {
-  getBusinessImage,
-  homeShowcaseCards,
-  storyShowcaseCards,
-} from "@/lib/ui/showcase";
+import { ArrowRight, MapPin, Search } from "lucide-react";
+import HomeMarketplaceFeed from "@/components/HomeMarketplaceFeed";
 
 export const dynamic = "force-static";
-
-type CategoryTile = {
-  label: string;
-  iconKey: string;
-  count?: number;
-};
-
-const fallbackCategories: CategoryTile[] = [
-  { label: "Repairs", iconKey: "wrench" },
-  { label: "Construction", iconKey: "hammer" },
-  { label: "Healthcare", iconKey: "health" },
-  { label: "Food", iconKey: "utensils" },
-  { label: "Business", iconKey: "briefcase" },
-  { label: "Education", iconKey: "education" },
-  { label: "Transport", iconKey: "transport" },
-  { label: "Hotels", iconKey: "hotel" },
-  { label: "Auto", iconKey: "car" },
-  { label: "Verified", iconKey: "store" },
-];
 
 const quickShortcuts = [
   { label: "B2B", href: "/search?q=B2B" },
@@ -51,17 +16,6 @@ const quickShortcuts = [
   { label: "Top Rated", href: "/search?sort=rating_desc" },
   { label: "Near Me", href: "/search?q=near me" },
   { label: "Verified Only", href: "/search?verified=true&sort=rating_desc" },
-];
-
-const staticQuickFilters = [
-  "Electrician",
-  "Plumber",
-  "AC Service",
-  "Clinic",
-  "Catering",
-  "Real Estate",
-  "Car Service",
-  "Legal",
 ];
 
 const heroServiceCards = [
@@ -88,215 +42,7 @@ const heroServiceCards = [
   },
 ];
 
-const testimonials = [
-  {
-    quote:
-      "Namaste Bharat Portal helped my business get genuine customer enquiries within days. After listing on Namaste Bharat, my business visibility increased a lot. I started getting calls from new customers regularly. Highly recommended for small business owners!",
-    name: "Vihang Agashe",
-    business: "Vyadeshwar Electricals",
-    location: "Pune",
-    highlight: "Excellent Lead Generation",
-    secondaryHighlight: "Great Online Visibility",
-  },
-  {
-    quote:
-      "Very affordable service compared to other platforms. Best part is we get real leads, not just views. The portal is simple and user-friendly. Creating my business profile was quick and hassle-free.",
-    name: "Mangesh Vaidya",
-    business: "Aatithya Agrovan Pvt Ltd",
-    location: "Guhagar",
-    highlight: "Affordable & Effective",
-    secondaryHighlight: "Easy to Use Platform",
-  },
-  {
-    quote:
-      "Namaste Bharat is becoming a trusted platform for business listings. Customers find us easily. The support team is very helpful and responsive. They guided me properly to grow my business online.",
-    name: "Harish Hajare",
-    business: "Neerai Interiors",
-    location: "Thane",
-    highlight: "Trusted Business Listings",
-    secondaryHighlight: "Good Customer Support",
-  },
-  {
-    quote:
-      "If you have a small or local business, Namaste Bharat is a great platform to get started with digital marketing. After joining Namaste Bharat, I noticed an increase in inquiries and sales. Very useful for business growth.",
-    name: "Mrs Jyoti Sharma",
-    business: "Jyoti's Kitchen",
-    location: "Nagpur",
-    highlight: "Great for Small Business",
-    secondaryHighlight: "Boost in Sales",
-  },
-  {
-    quote:
-      "Within a week of listing my business, I started getting enquiries. Really impressed with the results. My local business got more visibility in my area. Customers are now able to find me easily.",
-    name: "Ketan Tayde",
-    business: "Jodidar Matrimony",
-    location: "Nashik",
-    highlight: "Fast Enquiries",
-    secondaryHighlight: "Perfect for Local Reach",
-  },
-];
-
-const staticCategories: CategoryTile[] = [
-  { label: "Repairs", iconKey: "wrench", count: 84 },
-  { label: "Construction", iconKey: "hammer", count: 56 },
-  { label: "Healthcare", iconKey: "health", count: 73 },
-  { label: "Food", iconKey: "utensils", count: 61 },
-  { label: "Business", iconKey: "briefcase", count: 48 },
-  { label: "Education", iconKey: "education", count: 29 },
-  { label: "Transport", iconKey: "transport", count: 41 },
-  { label: "Hotels", iconKey: "hotel", count: 33 },
-  { label: "Auto", iconKey: "car", count: 50 },
-  { label: "Verified", iconKey: "store", count: 96 },
-];
-
-const staticFeaturedBusinesses: BusinessCardData[] = [
-  {
-    id: "b-1",
-    name: "Vyadeshwar Electricals",
-    category: "Electrical Services",
-    locality: "Sinhagad Road",
-    city: "Pune",
-    rating: 4.9,
-    reviewCount: 128,
-    isOpenNow: true,
-    verified: true,
-    phone: "+91 8459608568",
-    whatsappNumber: "+91 8459608568",
-  },
-  {
-    id: "b-4",
-    name: "Balaji Kitchen",
-    category: "Tiffin & Catering",
-    locality: "Kothrud",
-    city: "Pune",
-    rating: 4.8,
-    reviewCount: 94,
-    isOpenNow: true,
-    verified: true,
-    phone: "+91 8459608568",
-    whatsappNumber: "+91 8459608568",
-  },
-  {
-    id: "s-2",
-    name: "Neerai Clinic",
-    category: "Healthcare Services",
-    locality: "Karve Nagar",
-    city: "Pune",
-    rating: 4.7,
-    reviewCount: 71,
-    isOpenNow: false,
-    verified: true,
-    phone: "+91 8459608568",
-    whatsappNumber: "+91 8459608568",
-  },
-  {
-    id: "s-1",
-    name: "Raj Cab Services",
-    category: "Transport & Travel",
-    locality: "Pimpri",
-    city: "Pune",
-    rating: 4.8,
-    reviewCount: 63,
-    isOpenNow: true,
-    verified: false,
-    phone: "+91 8459608568",
-    whatsappNumber: "+91 8459608568",
-  },
-];
-
-type StaticVendorCard = {
-  id: string;
-  businessName: string;
-  mobileNumber: string;
-  whatsappNumber: string;
-  website: string;
-  locality: string;
-  city: string;
-  businessType: string;
-  verified: boolean;
-  rating: number;
-  reviewCount: number;
-  isOpenNow: boolean;
-  image: string | StaticImageData;
-};
-
-const staticVendorCards: StaticVendorCard[] = storyShowcaseCards.slice(0, 4).map((story, index) => ({
-  id: `story-${index + 1}`,
-  businessName: story.title,
-  mobileNumber: "8459608568",
-  whatsappNumber: "8459608568",
-  website: "",
-  locality: "Pune",
-  city: "Maharashtra",
-  businessType: story.category,
-  verified: true,
-  rating: 4.8,
-  reviewCount: 40 + index * 12,
-  isOpenNow: true,
-  image: story.image ?? getBusinessImage(`b-${index + 1}`),
-}));
-
-function pickIconForCategory(label: string): string {
-  const normalized = label.toLowerCase();
-  if (normalized.includes("beauty") || normalized.includes("dress") || normalized.includes("grooms")) {
-    return "scissors";
-  }
-  if (normalized.includes("repair") || normalized.includes("electrical")) return "wrench";
-  if (normalized.includes("fabrication") || normalized.includes("construction")) return "hammer";
-  if (
-    normalized.includes("clinic") ||
-    normalized.includes("health") ||
-    normalized.includes("doctor") ||
-    normalized.includes("dental")
-  ) {
-    return "health";
-  }
-  if (normalized.includes("catering") || normalized.includes("food")) return "utensils";
-  if (normalized.includes("education")) return "education";
-  if (
-    normalized.includes("logistics") ||
-    normalized.includes("transport") ||
-    normalized.includes("courier") ||
-    normalized.includes("travels")
-  ) {
-    return "transport";
-  }
-  if (normalized.includes("hotel") || normalized.includes("travel")) return "hotel";
-  if (normalized.includes("auto") || normalized.includes("garage")) return "car";
-  if (normalized.includes("finance") || normalized.includes("insurance") || normalized.includes("loan")) {
-    return "finance";
-  }
-  if (normalized.includes("interior") || normalized.includes("paint") || normalized.includes("waterproof")) {
-    return "paint";
-  }
-  if (normalized.includes("software") || normalized.includes("computer") || normalized.includes("mobile")) {
-    return "tech";
-  }
-  if (normalized.includes("lawyer") || normalized.includes("legal") || normalized.includes("accounting")) {
-    return "scale";
-  }
-  if (normalized.includes("flower") || normalized.includes("gardening") || normalized.includes("agriculture")) {
-    return "flower";
-  }
-  if (normalized.includes("pack") || normalized.includes("mover") || normalized.includes("dealer")) {
-    return "package";
-  }
-  if (normalized.includes("home")) {
-    return "house";
-  }
-  if (normalized.includes("business") || normalized.includes("service")) {
-    return "briefcase";
-  }
-  return "store";
-}
-
 export default function HomePage() {
-  const renderedCategories = staticCategories.length > 0 ? staticCategories : fallbackCategories;
-  const popularPreviewCategories = renderedCategories.slice(0, 6);
-  const quickFilters = staticQuickFilters;
-  const featuredBusinesses = staticFeaturedBusinesses;
-  const vendorCards = staticVendorCards;
-
   return (
     <div className="min-h-dvh bg-slate-50">
       <section className="mx-auto max-w-7xl space-y-4 px-4 pb-24 pt-3 md:px-6 lg:px-8">
@@ -395,7 +141,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
           {heroServiceCards.map((card) => (
             <div
               key={card.title}
@@ -430,144 +175,131 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-
-        <CategorySection categories={renderedCategories} />
-
-        <OfferBannerSlot
-          title="Offer Banner Slot"
-          subtitle="Use this area for festival campaigns, sponsored ads, or partner promotions."
+        <HomeMarketplaceFeed
+          fallbackCategories={[
+            { label: "Repairs", iconKey: "wrench" },
+            { label: "Construction", iconKey: "hammer" },
+            { label: "Healthcare", iconKey: "health" },
+            { label: "Food", iconKey: "utensils" },
+            { label: "Business", iconKey: "briefcase" },
+            { label: "Education", iconKey: "education" },
+            { label: "Transport", iconKey: "transport" },
+            { label: "Hotels", iconKey: "hotel" },
+            { label: "Auto", iconKey: "car" },
+            { label: "Verified", iconKey: "store" },
+          ]}
+          fallbackBusinesses={[
+            {
+              id: "b-1",
+              name: "Vyadeshwar Electricals",
+              category: "Electrical Services",
+              locality: "Sinhagad Road",
+              city: "Pune",
+              rating: 4.9,
+              reviewCount: 128,
+              isOpenNow: true,
+              verified: true,
+              phone: "+91 8459608568",
+              whatsappNumber: "+91 8459608568",
+            },
+            {
+              id: "b-4",
+              name: "Balaji Kitchen",
+              category: "Tiffin & Catering",
+              locality: "Kothrud",
+              city: "Pune",
+              rating: 4.8,
+              reviewCount: 94,
+              isOpenNow: true,
+              verified: true,
+              phone: "+91 8459608568",
+              whatsappNumber: "+91 8459608568",
+            },
+            {
+              id: "s-2",
+              name: "Neerai Clinic",
+              category: "Healthcare Services",
+              locality: "Karve Nagar",
+              city: "Pune",
+              rating: 4.7,
+              reviewCount: 71,
+              isOpenNow: false,
+              verified: true,
+              phone: "+91 8459608568",
+              whatsappNumber: "+91 8459608568",
+            },
+            {
+              id: "s-1",
+              name: "Raj Cab Services",
+              category: "Transport & Travel",
+              locality: "Pimpri",
+              city: "Pune",
+              rating: 4.8,
+              reviewCount: 63,
+              isOpenNow: true,
+              verified: false,
+              phone: "+91 8459608568",
+              whatsappNumber: "+91 8459608568",
+            },
+          ]}
+          fallbackQuickFilters={[
+            "Electrician",
+            "Plumber",
+            "AC Service",
+            "Clinic",
+            "Catering",
+            "Real Estate",
+            "Car Service",
+            "Legal",
+          ]}
+          testimonials={[
+            {
+              quote:
+                "Namaste Bharat Portal helped my business get genuine customer enquiries within days. After listing on Namaste Bharat, my business visibility increased a lot. I started getting calls from new customers regularly. Highly recommended for small business owners!",
+              name: "Vihang Agashe",
+              business: "Vyadeshwar Electricals",
+              location: "Pune",
+              highlight: "Excellent Lead Generation",
+              secondaryHighlight: "Great Online Visibility",
+            },
+            {
+              quote:
+                "Very affordable service compared to other platforms. Best part is we get real leads, not just views. The portal is simple and user-friendly. Creating my business profile was quick and hassle-free.",
+              name: "Mangesh Vaidya",
+              business: "Aatithya Agrovan Pvt Ltd",
+              location: "Guhagar",
+              highlight: "Affordable & Effective",
+              secondaryHighlight: "Easy to Use Platform",
+            },
+            {
+              quote:
+                "Namaste Bharat is becoming a trusted platform for business listings. Customers find us easily. The support team is very helpful and responsive. They guided me properly to grow my business online.",
+              name: "Harish Hajare",
+              business: "Neerai Interiors",
+              location: "Thane",
+              highlight: "Trusted Business Listings",
+              secondaryHighlight: "Good Customer Support",
+            },
+            {
+              quote:
+                "If you have a small or local business, Namaste Bharat is a great platform to get started with digital marketing. After joining Namaste Bharat, I noticed an increase in inquiries and sales. Very useful for business growth.",
+              name: "Mrs Jyoti Sharma",
+              business: "Jyoti's Kitchen",
+              location: "Nagpur",
+              highlight: "Great for Small Business",
+              secondaryHighlight: "Boost in Sales",
+            },
+            {
+              quote:
+                "Within a week of listing my business, I started getting enquiries. Really impressed with the results. My local business got more visibility in my area. Customers are now able to find me easily.",
+              name: "Ketan Tayde",
+              business: "Jodidar Matrimony",
+              location: "Nashik",
+              highlight: "Fast Enquiries",
+              secondaryHighlight: "Perfect for Local Reach",
+            },
+          ]}
         />
-
-        <VendorCardsSection vendors={vendorCards} />
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr,1fr]">
-          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-800">
-                Popular searches
-              </p>
-              <Link
-                href="/search"
-                className="text-xs font-medium text-blue-700 hover:text-blue-600"
-              >
-                See results
-              </Link>
-            </div>
-            <div className="flex flex-wrap gap-2 pb-1 md:no-scrollbar md:flex-nowrap md:overflow-x-auto">
-              {quickFilters.map((item) => (
-                <Link
-                  key={item}
-                  href={`/search?q=${encodeURIComponent(item)}`}
-                  className="whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                >
-                  {item}
-                </Link>
-              ))}
-            </div>
-            <div className="mt-4 grid gap-2 md:grid-cols-3">
-              {popularPreviewCategories.map(({ label, iconKey, count }) => (
-                <Link
-                  key={`popular-preview-${label}`}
-                  href={`/search?q=${encodeURIComponent(label)}`}
-                  className="rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors hover:border-blue-200 hover:bg-blue-50"
-                >
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                      {iconKey.slice(0, 2)}
-                    </span>
-                  </span>
-                  <p className="mt-3 text-sm font-semibold text-slate-800">{label}</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {count ? `${count} active listings` : "Explore top local options"}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4">
-            <p className="text-sm font-semibold text-slate-800">
-              Quick collections
-            </p>
-            <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-2">
-              {homeShowcaseCards.map((item) => (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  className="min-w-0 w-full overflow-hidden rounded-xl border border-slate-100 bg-slate-50 transition-colors hover:border-blue-200"
-                >
-                  <div className="h-28 w-full bg-gradient-to-br from-white to-slate-100 p-2">
-                    <div className="relative h-full w-full overflow-hidden rounded-lg">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-contain object-center"
-                      />
-                    </div>
-                  </div>
-                  <div className="min-w-0 p-2">
-                    <p className="break-words text-sm font-semibold text-slate-800">{item.title}</p>
-                    <p className="break-words text-xs text-slate-500">{item.subtitle}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-800">
-              Top picks near you
-            </p>
-            <Link
-              href="/search"
-              className="text-xs font-medium text-blue-700 hover:text-blue-600"
-            >
-              View all listings
-            </Link>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
-            {featuredBusinesses.map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-orange-500" aria-hidden />
-            <p className="text-sm font-semibold text-slate-800">Recent activity</p>
-          </div>
-          <div className="mt-3 grid gap-2 md:grid-cols-3">
-            {featuredBusinesses.slice(0, 3).map((business) => (
-              <div
-                key={`activity-${business.id}`}
-                className="rounded-xl border border-slate-100 bg-slate-50 p-3"
-              >
-                <div className="relative mb-2 h-24 w-full overflow-hidden rounded-lg">
-                  <Image
-                    src={business.media?.coverImages?.[0] || getBusinessImage(business.id)}
-                    alt={business.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <p className="text-sm font-semibold text-slate-800">{business.name}</p>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  {business.category} in {business.city}
-                </p>
-                <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                  <BadgeCheck className="h-3 w-3" aria-hidden />
-                  {business.verified ? "Verified" : "Active listing"}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <TestimonialsCarousel testimonials={testimonials} />
       </section>
     </div>
   );
