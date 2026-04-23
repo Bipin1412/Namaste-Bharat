@@ -67,7 +67,7 @@ function getPageAndLimit(input: PaginationInput): { page: number; limit: number 
     : 1;
   const limit =
     Number.isFinite(input.limit) && input.limit && input.limit > 0
-      ? Math.min(Math.floor(input.limit), 50)
+      ? Math.min(Math.floor(input.limit), 10000)
       : 12;
 
   return { page, limit };

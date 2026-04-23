@@ -1,6 +1,7 @@
 import { hasMysqlConfig } from "@/lib/server/mysql";
 import * as legacyService from "./service-legacy";
 import * as mysqlService from "./service-mysql";
+import type { Business } from "./types";
 
 export type {
   BusinessFilters,
@@ -28,6 +29,7 @@ const mysqlAvailabilityErrorCodes = new Set([
 ]);
 
 const mysqlFallbackTimeoutMs = 2500;
+const mergedBusinessFetchLimit = 10000;
 
 function isMysqlAvailabilityError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -98,11 +100,292 @@ async function withMysqlWrite<T>(
   return mysqlFn();
 }
 
-export async function listBusinesses(...args: Parameters<typeof mysqlService.listBusinesses>) {
-  return withMysqlReadFallback(
-    () => mysqlService.listBusinesses(...args),
-    () => legacyService.listBusinesses(...args)
+type BusinessFilters = Parameters<typeof legacyService.listBusinesses>[0];
+
+function normalizeText(value?: string): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function normalizeSearchText(value?: string): string {
+  return normalizeText(value).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function tokenizeQuery(query: string): string[] {
+  const tokens = normalizeSearchText(query).split(" ").filter((token) => token.length >= 2);
+  return [...new Set(tokens)];
+}
+
+function buildBusinessSearchText(entry: Business): string {
+  const servicesText =
+    entry.services?.flatMap((service) => [
+      service.name,
+      service.priceLabel ?? "",
+      service.description ?? "",
+    ]) ?? [];
+
+  const faqText = entry.faqs?.flatMap((faq) => [faq.question, faq.answer]) ?? [];
+  const hourText =
+    entry.businessHours?.map((slot) =>
+      slot.closed
+        ? `${slot.day} closed`
+        : `${slot.day} ${slot.open ?? ""} ${slot.close ?? ""}`
+    ) ?? [];
+
+  return [
+    entry.name,
+    entry.category,
+    entry.tagline ?? "",
+    entry.description ?? "",
+    entry.locality,
+    entry.city,
+    entry.addressLine1 ?? "",
+    entry.addressLine2 ?? "",
+    entry.pincode ?? "",
+    entry.ownerName ?? "",
+    entry.email ?? "",
+    entry.website ?? "",
+    ...(entry.serviceAreas ?? []),
+    ...(entry.languages ?? []),
+    ...(entry.keywords ?? []),
+    ...(entry.highlights ?? []),
+    ...(entry.policies?.paymentMethods ?? []),
+    entry.policies?.cancellationPolicy ?? "",
+    entry.verification?.gstNumber ?? "",
+    entry.verification?.licenseNumber ?? "",
+    ...servicesText,
+    ...faqText,
+    ...hourText,
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
+function scoreField(fieldValue: string, tokens: string[], weight: number): number {
+  const normalized = normalizeSearchText(fieldValue);
+  if (!normalized) return 0;
+  const words = normalized.split(" ").filter(Boolean);
+  let score = 0;
+
+  for (const token of tokens) {
+    if (words.some((word) => word === token)) {
+      score += weight * 3;
+      continue;
+    }
+    if (token.length <= 3) {
+      continue;
+    }
+    if (words.some((word) => word.startsWith(token))) {
+      score += weight * 2;
+      continue;
+    }
+    if (token.length >= 4 && normalized.includes(token)) {
+      score += weight;
+    }
+  }
+
+  return score;
+}
+
+function tokenMatchesEntry(entry: Business, token: string): boolean {
+  const fields = [
+    entry.name,
+    entry.category,
+    ...(entry.keywords ?? []),
+    ...(entry.highlights ?? []),
+    entry.tagline ?? "",
+    entry.description ?? "",
+    entry.locality,
+    entry.city,
+    entry.addressLine1 ?? "",
+    entry.addressLine2 ?? "",
+    entry.ownerName ?? "",
+  ];
+
+  return fields.some((field) => {
+    const normalized = normalizeSearchText(field);
+    if (!normalized) return false;
+    const words = normalized.split(" ").filter(Boolean);
+    if (words.some((word) => word === token)) {
+      return true;
+    }
+    if (token.length <= 3) {
+      return false;
+    }
+    if (words.some((word) => word.startsWith(token))) {
+      return true;
+    }
+    return token.length >= 4 && normalized.includes(token);
+  });
+}
+
+function getBusinessRelevanceScore(entry: Business, tokens: string[]): number {
+  const servicesText = entry.services?.map((service) => service.name).join(" ") ?? "";
+  return (
+    scoreField(entry.name, tokens, 8) +
+    scoreField(entry.category, tokens, 7) +
+    scoreField((entry.keywords ?? []).join(" "), tokens, 6) +
+    scoreField(servicesText, tokens, 5) +
+    scoreField((entry.highlights ?? []).join(" "), tokens, 4) +
+    scoreField(entry.tagline ?? "", tokens, 3) +
+    scoreField(entry.description ?? "", tokens, 2) +
+    scoreField(entry.locality, tokens, 2) +
+    scoreField(entry.city, tokens, 2) +
+    scoreField(entry.addressLine1 ?? "", tokens, 1) +
+    scoreField(entry.addressLine2 ?? "", tokens, 1) +
+    scoreField(entry.ownerName ?? "", tokens, 1)
   );
+}
+
+function compareBusinessesBySort(
+  a: Business,
+  b: Business,
+  sort: "rating_desc" | "rating_asc" | "reviews_desc" | "newest"
+): number {
+  if (sort === "rating_desc") {
+    return b.rating - a.rating;
+  }
+  if (sort === "rating_asc") {
+    return a.rating - b.rating;
+  }
+  if (sort === "reviews_desc") {
+    return b.reviewCount - a.reviewCount;
+  }
+  return b.createdAt.localeCompare(a.createdAt);
+}
+
+function getPageAndLimit(input: { page?: number; limit?: number }): { page: number; limit: number } {
+  const page = Number.isFinite(input.page) && input.page && input.page > 0
+    ? Math.floor(input.page)
+    : 1;
+  const limit =
+    Number.isFinite(input.limit) && input.limit && input.limit > 0
+      ? Math.min(Math.floor(input.limit), mergedBusinessFetchLimit)
+      : 12;
+
+  return { page, limit };
+}
+
+function paginate<T>(entries: T[], input: { page?: number; limit?: number }) {
+  const { page, limit } = getPageAndLimit(input);
+  const total = entries.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * limit;
+  const end = start + limit;
+
+  return {
+    data: entries.slice(start, end),
+    meta: {
+      page: safePage,
+      limit,
+      total,
+      totalPages,
+    },
+  };
+}
+
+function applyBusinessFilters(businesses: Business[], filters: BusinessFilters): Business[] {
+  const query = normalizeText(filters.q);
+  const queryTokens = tokenizeQuery(query);
+  const category = normalizeText(filters.category);
+  const city = normalizeText(filters.city);
+
+  const scored = businesses.flatMap((entry) => {
+    if (!filters.includeInactive && entry.listingStatus && entry.listingStatus !== "active") {
+      return [];
+    }
+
+    if (queryTokens.length > 0) {
+      const allTokensMatch = queryTokens.every((token) => tokenMatchesEntry(entry, token));
+      if (!allTokensMatch) {
+        return [];
+      }
+    }
+
+    if (query) {
+      const haystack = buildBusinessSearchText(entry);
+      if (!haystack.includes(query)) {
+        return [];
+      }
+    }
+
+    if (category && normalizeText(entry.category) !== category) {
+      return [];
+    }
+
+    if (city && normalizeText(entry.city) !== city) {
+      return [];
+    }
+
+    if (typeof filters.verified === "boolean" && entry.verified !== filters.verified) {
+      return [];
+    }
+
+    if (typeof filters.openNow === "boolean" && entry.isOpenNow !== filters.openNow) {
+      return [];
+    }
+
+    const relevanceScore =
+      queryTokens.length > 0 ? getBusinessRelevanceScore(entry, queryTokens) : 0;
+
+    if (queryTokens.length > 0 && relevanceScore < 3) {
+      return [];
+    }
+
+    return [{ entry, relevanceScore }];
+  });
+
+  const sort = filters.sort ?? "rating_desc";
+  const sorted = scored.sort((a, b) => {
+    if (queryTokens.length > 0 && b.relevanceScore !== a.relevanceScore) {
+      return b.relevanceScore - a.relevanceScore;
+    }
+    return compareBusinessesBySort(a.entry, b.entry, sort);
+  });
+
+  return sorted.map((item) => item.entry);
+}
+
+function mergeBusinesses(primary: Business[], secondary: Business[]): Business[] {
+  const merged = new Map<string, Business>();
+  for (const entry of primary) {
+    merged.set(entry.id, entry);
+  }
+  for (const entry of secondary) {
+    if (!merged.has(entry.id)) {
+      merged.set(entry.id, entry);
+    }
+  }
+  return [...merged.values()];
+}
+
+async function loadAllBusinessesFromStores(): Promise<Business[]> {
+  const [mysqlPayload, legacyPayload] = await Promise.all([
+    hasMysqlConfig()
+      ? mysqlService.listBusinesses({
+          page: 1,
+          limit: mergedBusinessFetchLimit,
+          includeInactive: true,
+          sort: "newest",
+        }).catch(() => null)
+      : Promise.resolve(null),
+    legacyService.listBusinesses({
+      page: 1,
+      limit: mergedBusinessFetchLimit,
+      includeInactive: true,
+      sort: "newest",
+    }),
+  ]);
+
+  const mysqlBusinesses = mysqlPayload?.data ?? [];
+  const legacyBusinesses = legacyPayload.data ?? [];
+  return mergeBusinesses(mysqlBusinesses, legacyBusinesses);
+}
+
+export async function listBusinesses(filters: BusinessFilters) {
+  const allBusinesses = await loadAllBusinessesFromStores();
+  const filtered = applyBusinessFilters(allBusinesses, filters);
+  return paginate(filtered, filters);
 }
 
 export async function getBusinessById(...args: Parameters<typeof mysqlService.getBusinessById>) {
@@ -161,18 +444,74 @@ export async function listLeads(...args: Parameters<typeof mysqlService.listLead
   );
 }
 
-export async function getHomeSnapshot(...args: Parameters<typeof mysqlService.getHomeSnapshot>) {
-  return withMysqlReadFallback(
-    () => mysqlService.getHomeSnapshot(...args),
-    () => legacyService.getHomeSnapshot(...args)
-  );
+export async function getHomeSnapshot() {
+  const [businessPayload, offers] = await Promise.all([
+    listBusinesses({ page: 1, limit: mergedBusinessFetchLimit, sort: "rating_desc" }),
+    withMysqlReadFallback(
+      () => mysqlService.listOffers({ activeOnly: true }),
+      () => legacyService.listOffers({ activeOnly: true })
+    ),
+  ]);
+
+  const featuredBusinesses = [...businessPayload.data]
+    .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
+    .slice(0, 8);
+
+  const categoryCounter = new Map<string, number>();
+  for (const business of businessPayload.data) {
+    categoryCounter.set(
+      business.category,
+      (categoryCounter.get(business.category) ?? 0) + 1
+    );
+  }
+
+  const mergedCategories = new Map<string, { name: string; count: number }>();
+  for (const [name, count] of categoryCounter.entries()) {
+    const key = normalizeText(name);
+    if (!key) continue;
+    mergedCategories.set(key, { name, count });
+  }
+
+  for (const category of ["Plumber near me", "Electrician", "Packers and Movers", "Clinic", "CA Office", "Hardware shop"]) {
+    const key = normalizeText(category);
+    if (!key || mergedCategories.has(key)) {
+      continue;
+    }
+    mergedCategories.set(key, { name: category, count: 0 });
+  }
+
+  const categories = [...mergedCategories.values()]
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+  return {
+    featuredBusinesses,
+    offers: offers.slice(0, 3),
+    categories,
+    quickFilters: [
+      "Plumber near me",
+      "Electrician",
+      "Packers and Movers",
+      "Clinic",
+      "CA Office",
+      "Hardware shop",
+    ],
+  };
 }
 
-export async function getDatabaseStats(...args: Parameters<typeof mysqlService.getDatabaseStats>) {
-  return withMysqlReadFallback(
-    () => mysqlService.getDatabaseStats(...args),
-    () => legacyService.getDatabaseStats(...args)
-  );
+export async function getDatabaseStats() {
+  const [businesses, stats] = await Promise.all([
+    listBusinesses({ page: 1, limit: mergedBusinessFetchLimit, includeInactive: true, sort: "newest" }),
+    withMysqlReadFallback(
+      () => mysqlService.getDatabaseStats(),
+      () => legacyService.getDatabaseStats()
+    ),
+  ]);
+
+  return {
+    ...stats,
+    businesses: businesses.meta.total,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 export async function listListingPlans(...args: Parameters<typeof mysqlService.listListingPlans>) {
