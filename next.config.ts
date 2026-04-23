@@ -7,6 +7,7 @@ const workspaceRoot = dirname(fileURLToPath(import.meta.url));
 const experimentalConfig = {
   optimizePackageImports: ["lucide-react"],
   cpus: 1,
+  webpackBuildWorker: false,
   staticGenerationMaxConcurrency: 1,
   staticGenerationMinPagesPerWorker: 1000,
 };
