@@ -30,6 +30,28 @@ const mysqlAvailabilityErrorCodes = new Set([
 
 const mysqlFallbackTimeoutMs = 2500;
 const mergedBusinessFetchLimit = 10000;
+const businessCacheTtlMs = 30000;
+const offerCacheTtlMs = 30000;
+
+let cachedMergedBusinesses: Business[] | null = null;
+let cachedMergedBusinessesAt = 0;
+let pendingMergedBusinesses: Promise<Business[]> | null = null;
+
+let cachedActiveOffers: Awaited<ReturnType<typeof legacyService.listOffers>> | null = null;
+let cachedActiveOffersAt = 0;
+let pendingActiveOffers: Promise<Awaited<ReturnType<typeof legacyService.listOffers>>> | null = null;
+
+function invalidateBusinessCache() {
+  cachedMergedBusinesses = null;
+  cachedMergedBusinessesAt = 0;
+  pendingMergedBusinesses = null;
+}
+
+function invalidateOfferCache() {
+  cachedActiveOffers = null;
+  cachedActiveOffersAt = 0;
+  pendingActiveOffers = null;
+}
 
 function isMysqlAvailabilityError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -362,26 +384,44 @@ function mergeBusinesses(primary: Business[], secondary: Business[]): Business[]
 }
 
 async function loadAllBusinessesFromStores(): Promise<Business[]> {
-  const [mysqlPayload, legacyPayload] = await Promise.all([
-    hasMysqlConfig()
-      ? mysqlService.listBusinesses({
-          page: 1,
-          limit: mergedBusinessFetchLimit,
-          includeInactive: true,
-          sort: "newest",
-        }).catch(() => null)
-      : Promise.resolve(null),
-    legacyService.listBusinesses({
-      page: 1,
-      limit: mergedBusinessFetchLimit,
-      includeInactive: true,
-      sort: "newest",
-    }),
-  ]);
+  const now = Date.now();
+  if (cachedMergedBusinesses && now - cachedMergedBusinessesAt < businessCacheTtlMs) {
+    return cachedMergedBusinesses;
+  }
 
-  const mysqlBusinesses = mysqlPayload?.data ?? [];
-  const legacyBusinesses = legacyPayload.data ?? [];
-  return mergeBusinesses(mysqlBusinesses, legacyBusinesses);
+  if (pendingMergedBusinesses) {
+    return pendingMergedBusinesses;
+  }
+
+  pendingMergedBusinesses = (async () => {
+    const [mysqlPayload, legacyPayload] = await Promise.all([
+      hasMysqlConfig()
+        ? mysqlService.listBusinesses({
+            page: 1,
+            limit: mergedBusinessFetchLimit,
+            includeInactive: true,
+            sort: "newest",
+          }).catch(() => null)
+        : Promise.resolve(null),
+      legacyService.listBusinesses({
+        page: 1,
+        limit: mergedBusinessFetchLimit,
+        includeInactive: true,
+        sort: "newest",
+      }),
+    ]);
+
+    const mysqlBusinesses = mysqlPayload?.data ?? [];
+    const legacyBusinesses = legacyPayload.data ?? [];
+    return mergeBusinesses(mysqlBusinesses, legacyBusinesses);
+  })().finally(() => {
+    pendingMergedBusinesses = null;
+  });
+
+  const merged = await pendingMergedBusinesses;
+  cachedMergedBusinesses = merged;
+  cachedMergedBusinessesAt = Date.now();
+  return merged;
 }
 
 export async function listBusinesses(filters: BusinessFilters) {
@@ -398,24 +438,30 @@ export async function getBusinessById(...args: Parameters<typeof mysqlService.ge
 }
 
 export async function createBusiness(...args: Parameters<typeof mysqlService.createBusiness>) {
-  return withMysqlWrite(
+  const result = await withMysqlWrite(
     () => mysqlService.createBusiness(...args),
     () => legacyService.createBusiness(...args)
   );
+  invalidateBusinessCache();
+  return result;
 }
 
 export async function updateBusiness(...args: Parameters<typeof mysqlService.updateBusiness>) {
-  return withMysqlWrite(
+  const result = await withMysqlWrite(
     () => mysqlService.updateBusiness(...args),
     () => legacyService.updateBusiness(...args)
   );
+  invalidateBusinessCache();
+  return result;
 }
 
 export async function deleteBusiness(...args: Parameters<typeof mysqlService.deleteBusiness>) {
-  return withMysqlWrite(
+  const result = await withMysqlWrite(
     () => mysqlService.deleteBusiness(...args),
     () => legacyService.deleteBusiness(...args)
   );
+  invalidateBusinessCache();
+  return result;
 }
 
 export async function listReels(...args: Parameters<typeof mysqlService.listReels>) {
@@ -426,10 +472,34 @@ export async function listReels(...args: Parameters<typeof mysqlService.listReel
 }
 
 export async function listOffers(...args: Parameters<typeof mysqlService.listOffers>) {
-  return withMysqlReadFallback(
+  const activeOnly = args[0]?.activeOnly ?? true;
+  if (!activeOnly) {
+    return withMysqlReadFallback(
+      () => mysqlService.listOffers(...args),
+      () => legacyService.listOffers(...args)
+    );
+  }
+
+  const now = Date.now();
+  if (cachedActiveOffers && now - cachedActiveOffersAt < offerCacheTtlMs) {
+    return cachedActiveOffers;
+  }
+
+  if (pendingActiveOffers) {
+    return pendingActiveOffers;
+  }
+
+  pendingActiveOffers = withMysqlReadFallback(
     () => mysqlService.listOffers(...args),
     () => legacyService.listOffers(...args)
-  );
+  ).finally(() => {
+    pendingActiveOffers = null;
+  });
+
+  const offers = await pendingActiveOffers;
+  cachedActiveOffers = offers;
+  cachedActiveOffersAt = Date.now();
+  return offers;
 }
 
 export async function createLead(...args: Parameters<typeof mysqlService.createLead>) {

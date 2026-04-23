@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { jsonError, parseBooleanParam, parseNumberParam } from "@/lib/backend/http";
 import { createBusiness, listBusinesses } from "@/lib/backend/service";
 import { validateCreateBusinessPayload } from "@/lib/backend/validation";
+import { hasMysqlConfig } from "@/lib/server/mysql";
+import * as mysqlBusinessService from "@/lib/backend/service-mysql";
 import { requireAdminFromAuthHeader } from "@/lib/server/daily-inquiries";
 
 export const runtime = "nodejs";
@@ -9,6 +11,11 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const authHeader = request.headers.get("authorization") || "";
+  const q = searchParams.get("q") ?? undefined;
+  const category = searchParams.get("category") ?? undefined;
+  const city = searchParams.get("city") ?? undefined;
+  const verified = parseBooleanParam(searchParams.get("verified"));
+  const openNow = parseBooleanParam(searchParams.get("openNow"));
 
   const page = parseNumberParam(searchParams.get("page"), 1, 1, 10000);
   const includeInactive = parseBooleanParam(searchParams.get("includeInactive")) === true;
@@ -36,12 +43,42 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const hasSearchFilters =
+    Boolean(q || category || city || typeof verified === "boolean" || typeof openNow === "boolean");
+  const isSimplePublicBrowse = !includeInactive && !hasSearchFilters;
+
+  if (isSimplePublicBrowse && hasMysqlConfig()) {
+    try {
+      const payload = await mysqlBusinessService.listBusinesses({
+        q: undefined,
+        category: undefined,
+        city: undefined,
+        verified: undefined,
+        openNow: undefined,
+        sort:
+          (searchParams.get("sort") as
+            | "rating_desc"
+            | "rating_asc"
+            | "reviews_desc"
+            | "newest"
+            | null) ?? "rating_desc",
+        includeInactive: false,
+        page,
+        limit,
+      });
+
+      return NextResponse.json(payload);
+    } catch {
+      // Fall back to the shared merged loader below.
+    }
+  }
+
   const payload = await listBusinesses({
-    q: searchParams.get("q") ?? undefined,
-    category: searchParams.get("category") ?? undefined,
-    city: searchParams.get("city") ?? undefined,
-    verified: parseBooleanParam(searchParams.get("verified")),
-    openNow: parseBooleanParam(searchParams.get("openNow")),
+    q,
+    category,
+    city,
+    verified,
+    openNow,
     sort:
       (searchParams.get("sort") as
         | "rating_desc"
