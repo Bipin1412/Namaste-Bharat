@@ -7,6 +7,7 @@ const workspaceRoot = dirname(fileURLToPath(import.meta.url));
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    webpackBuildWorker: false,
     staticGenerationMaxConcurrency: 1,
     staticGenerationMinPagesPerWorker: 1000,
   },
