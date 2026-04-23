@@ -5,7 +5,6 @@ import heroDeliveryImage from "../assests/home_page-images/2.png";
 import heroHealthcareImage from "../assests/home_page-images/3.png";
 import heroExploreImage from "../assests/home_page-images/4.png";
 import { ArrowRight, MapPin, Search } from "lucide-react";
-import HomeMarketplaceFeed from "@/components/HomeMarketplaceFeed";
 
 export const dynamic = "force-static";
 
@@ -175,131 +174,6 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        <HomeMarketplaceFeed
-          fallbackCategories={[
-            { label: "Repairs", iconKey: "wrench" },
-            { label: "Construction", iconKey: "hammer" },
-            { label: "Healthcare", iconKey: "health" },
-            { label: "Food", iconKey: "utensils" },
-            { label: "Business", iconKey: "briefcase" },
-            { label: "Education", iconKey: "education" },
-            { label: "Transport", iconKey: "transport" },
-            { label: "Hotels", iconKey: "hotel" },
-            { label: "Auto", iconKey: "car" },
-            { label: "Verified", iconKey: "store" },
-          ]}
-          fallbackBusinesses={[
-            {
-              id: "b-1",
-              name: "Vyadeshwar Electricals",
-              category: "Electrical Services",
-              locality: "Sinhagad Road",
-              city: "Pune",
-              rating: 4.9,
-              reviewCount: 128,
-              isOpenNow: true,
-              verified: true,
-              phone: "+91 8459608568",
-              whatsappNumber: "+91 8459608568",
-            },
-            {
-              id: "b-4",
-              name: "Balaji Kitchen",
-              category: "Tiffin & Catering",
-              locality: "Kothrud",
-              city: "Pune",
-              rating: 4.8,
-              reviewCount: 94,
-              isOpenNow: true,
-              verified: true,
-              phone: "+91 8459608568",
-              whatsappNumber: "+91 8459608568",
-            },
-            {
-              id: "s-2",
-              name: "Neerai Clinic",
-              category: "Healthcare Services",
-              locality: "Karve Nagar",
-              city: "Pune",
-              rating: 4.7,
-              reviewCount: 71,
-              isOpenNow: false,
-              verified: true,
-              phone: "+91 8459608568",
-              whatsappNumber: "+91 8459608568",
-            },
-            {
-              id: "s-1",
-              name: "Raj Cab Services",
-              category: "Transport & Travel",
-              locality: "Pimpri",
-              city: "Pune",
-              rating: 4.8,
-              reviewCount: 63,
-              isOpenNow: true,
-              verified: false,
-              phone: "+91 8459608568",
-              whatsappNumber: "+91 8459608568",
-            },
-          ]}
-          fallbackQuickFilters={[
-            "Electrician",
-            "Plumber",
-            "AC Service",
-            "Clinic",
-            "Catering",
-            "Real Estate",
-            "Car Service",
-            "Legal",
-          ]}
-          testimonials={[
-            {
-              quote:
-                "Namaste Bharat Portal helped my business get genuine customer enquiries within days. After listing on Namaste Bharat, my business visibility increased a lot. I started getting calls from new customers regularly. Highly recommended for small business owners!",
-              name: "Vihang Agashe",
-              business: "Vyadeshwar Electricals",
-              location: "Pune",
-              highlight: "Excellent Lead Generation",
-              secondaryHighlight: "Great Online Visibility",
-            },
-            {
-              quote:
-                "Very affordable service compared to other platforms. Best part is we get real leads, not just views. The portal is simple and user-friendly. Creating my business profile was quick and hassle-free.",
-              name: "Mangesh Vaidya",
-              business: "Aatithya Agrovan Pvt Ltd",
-              location: "Guhagar",
-              highlight: "Affordable & Effective",
-              secondaryHighlight: "Easy to Use Platform",
-            },
-            {
-              quote:
-                "Namaste Bharat is becoming a trusted platform for business listings. Customers find us easily. The support team is very helpful and responsive. They guided me properly to grow my business online.",
-              name: "Harish Hajare",
-              business: "Neerai Interiors",
-              location: "Thane",
-              highlight: "Trusted Business Listings",
-              secondaryHighlight: "Good Customer Support",
-            },
-            {
-              quote:
-                "If you have a small or local business, Namaste Bharat is a great platform to get started with digital marketing. After joining Namaste Bharat, I noticed an increase in inquiries and sales. Very useful for business growth.",
-              name: "Mrs Jyoti Sharma",
-              business: "Jyoti's Kitchen",
-              location: "Nagpur",
-              highlight: "Great for Small Business",
-              secondaryHighlight: "Boost in Sales",
-            },
-            {
-              quote:
-                "Within a week of listing my business, I started getting enquiries. Really impressed with the results. My local business got more visibility in my area. Customers are now able to find me easily.",
-              name: "Ketan Tayde",
-              business: "Jodidar Matrimony",
-              location: "Nashik",
-              highlight: "Fast Enquiries",
-              secondaryHighlight: "Perfect for Local Reach",
-            },
-          ]}
-        />
       </section>
     </div>
   );

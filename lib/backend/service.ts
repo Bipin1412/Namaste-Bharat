@@ -291,7 +291,9 @@ function applyBusinessFilters(businesses: Business[], filters: BusinessFilters):
   const city = normalizeText(filters.city);
 
   const scored = businesses.flatMap((entry) => {
-    if (!filters.includeInactive && entry.listingStatus && entry.listingStatus !== "active") {
+    const isPubliclyActive = entry.listingStatus === "active" || entry.verified === true;
+
+    if (!filters.includeInactive && !isPubliclyActive) {
       return [];
     }
 
