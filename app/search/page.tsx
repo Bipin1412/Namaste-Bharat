@@ -1,332 +1,313 @@
-"use client";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Clock3,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Search,
+} from "lucide-react";
+import { listBusinesses } from "@/lib/backend/service";
+import type { Business } from "@/lib/backend/types";
+import { getBusinessImage } from "@/lib/ui/showcase";
 
-import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import BusinessCard, { type BusinessCardData } from "@/components/BusinessCard";
-import BusinessCardSkeleton from "@/components/BusinessCardSkeleton";
-import OfferBannerSlot from "@/components/OfferBannerSlot";
-import SmartSearchBar from "@/components/SmartSearchBar";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-type BusinessesApiResponse = {
-  data: BusinessCardData[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+type SearchParams = Record<string, string | string[] | undefined>;
+
+type SearchPageProps = {
+  searchParams?: Promise<SearchParams>;
 };
 
-function normalizeSearchText(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function firstParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+  return value ?? "";
 }
 
-function businessSearchText(business: BusinessCardData): string {
-  return normalizeSearchText(
-    [
-      business.name,
-      business.category,
-      business.locality,
-      business.city,
-      business.phone,
-      business.whatsappNumber,
-    ].join(" ")
-  );
+function normalizeValue(value: string): string {
+  return value.trim();
 }
 
-function matchesBusinessQuery(business: BusinessCardData, rawQuery: string): boolean {
-  const query = normalizeSearchText(rawQuery);
-  if (!query) {
-    return true;
-  }
-
-  const haystack = businessSearchText(business);
-  if (!haystack) {
-    return false;
-  }
-
-  if (haystack.includes(query)) {
-    return true;
-  }
-
-  const tokens = query.split(" ").filter((token) => token.length >= 2);
-  return tokens.length > 0 && tokens.every((token) => haystack.includes(token));
+function toBoolean(value: string): boolean | undefined {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true" || normalized === "1") return true;
+  if (normalized === "false" || normalized === "0") return false;
+  return undefined;
 }
 
-function mergeBusinesses(primary: BusinessCardData[], fallback: BusinessCardData[]): BusinessCardData[] {
-  const merged = new Map<string, BusinessCardData>();
+function buildSearchUrl(
+  current: SearchParams,
+  updates: Record<string, string | boolean | undefined | null>
+): string {
+  const params = new URLSearchParams();
 
-  for (const business of primary) {
-    merged.set(business.id, business);
-  }
-
-  for (const business of fallback) {
-    if (!merged.has(business.id)) {
-      merged.set(business.id, business);
+  const keepKeys = ["q", "verified", "openNow", "sort", "category", "city"] as const;
+  for (const key of keepKeys) {
+    const currentValue = firstParam(current[key]);
+    if (currentValue) {
+      params.set(key, currentValue);
     }
   }
 
-  return [...merged.values()];
+  for (const [key, value] of Object.entries(updates)) {
+    if (value === undefined || value === null || value === "") {
+      params.delete(key);
+      continue;
+    }
+
+    if (typeof value === "boolean") {
+      if (value) params.set(key, "true");
+      else params.delete(key);
+      continue;
+    }
+
+    params.set(key, value);
+  }
+
+  const queryString = params.toString();
+  return queryString ? `/search?${queryString}` : "/search";
 }
 
-async function fetchAllActiveBusinesses(
-  signal: AbortSignal,
-  sort: "rating_desc" | "rating_asc" | "reviews_desc" | "newest",
-  filters: {
-    verified?: boolean;
-    openNow?: boolean;
-  } = {}
-): Promise<BusinessCardData[]> {
-  const firstParams = new URLSearchParams({
-    page: "1",
-    limit: "50",
-    sort,
-  });
-
-  if (typeof filters.verified === "boolean") {
-    firstParams.set("verified", filters.verified ? "true" : "false");
-  }
-
-  if (typeof filters.openNow === "boolean") {
-    firstParams.set("openNow", filters.openNow ? "true" : "false");
-  }
-
-  const firstResponse = await fetch(`/api/businesses?${firstParams.toString()}`, {
-    method: "GET",
-    signal,
-    cache: "no-store",
-  });
-
-  if (!firstResponse.ok) {
-    return [];
-  }
-
-  const firstPayload = (await firstResponse.json().catch(() => null)) as BusinessesApiResponse | null;
-  const firstPage = Array.isArray(firstPayload?.data) ? firstPayload.data : [];
-  const totalPages = Math.max(1, firstPayload?.meta?.totalPages ?? 1);
-
-  if (totalPages === 1) {
-    return firstPage;
-  }
-
-  const remainingPages = await Promise.all(
-    Array.from({ length: totalPages - 1 }, async (_, index) => {
-      const page = index + 2;
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: "50",
-        sort,
-      });
-
-      if (typeof filters.verified === "boolean") {
-        params.set("verified", filters.verified ? "true" : "false");
-      }
-
-      if (typeof filters.openNow === "boolean") {
-        params.set("openNow", filters.openNow ? "true" : "false");
-      }
-
-      const response = await fetch(`/api/businesses?${params.toString()}`, {
-        method: "GET",
-        signal,
-        cache: "no-store",
-      }).catch(() => null);
-
-      if (!response || !response.ok) {
-        return [] as BusinessCardData[];
-      }
-
-      const payload = (await response.json().catch(() => null)) as BusinessesApiResponse | null;
-      return Array.isArray(payload?.data) ? payload.data : [];
-    })
+function buildWhatsappUrl(number: string, businessName: string): string {
+  const sanitized = number.replace(/\D/g, "");
+  const message = encodeURIComponent(
+    `Namaste ${businessName}, I found you on Namaste Bharat and want to know more.`
   );
-
-  return [...firstPage, ...remainingPages.flat()];
+  return `https://wa.me/${sanitized}?text=${message}`;
 }
 
-export default function SearchPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const urlQuery = searchParams.get("q") ?? "";
-  const urlVerified = (searchParams.get("verified") ?? "").toLowerCase() === "true";
-  const urlOpenNow = (searchParams.get("openNow") ?? "").toLowerCase() === "true";
-  const urlSort =
-    (searchParams.get("sort") as
+function SearchResultCard({ business }: { business: Business }) {
+  const image = business.media?.coverImages?.[0] || getBusinessImage(business.id);
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] md:p-4">
+      <div className="grid grid-cols-[88px,1fr] gap-3 md:grid-cols-[112px,1fr] md:gap-4">
+        <div className="relative h-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 md:h-28">
+          <Image
+            src={image}
+            alt={business.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 88px, 112px"
+          />
+        </div>
+
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate text-base font-semibold leading-snug tracking-[0.01em] text-slate-900">
+                  {business.name}
+                </h3>
+                {business.verified ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                    Verified
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-sm tracking-[0.012em] text-slate-600">{business.category}</p>
+            </div>
+
+            <div className="shrink-0 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
+              {business.rating.toFixed(1)} ({business.reviewCount})
+            </div>
+          </div>
+
+          <div className="mt-2 space-y-1.5 text-sm text-slate-600">
+            <p className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+              <span className="truncate tracking-[0.012em]">
+                {business.locality}, {business.city}
+              </span>
+            </p>
+            <p className="flex items-center gap-2">
+              <Clock3 className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+              <span
+                className={`font-medium tracking-[0.012em] ${
+                  business.isOpenNow ? "text-emerald-700" : "text-rose-600"
+                }`}
+              >
+                {business.isOpenNow ? "Open now" : "Closed"}
+              </span>
+            </p>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <a
+              href={`tel:${business.phone}`}
+              aria-label={`Call ${business.name}`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            >
+              <Phone className="h-4 w-4" aria-hidden />
+              Call
+            </a>
+            <a
+              href={buildWhatsappUrl(business.whatsappNumber, business.name)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Chat with ${business.name} on WhatsApp`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-green-500 text-sm font-semibold text-white shadow-[0_10px_20px_-12px_rgba(21,128,61,0.6)] transition-colors hover:bg-green-600"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden />
+              WhatsApp
+            </a>
+          </div>
+
+          <Link
+            href={`/business/${business.id}`}
+            className="mt-2 inline-flex text-xs font-semibold text-blue-700 hover:text-blue-600"
+          >
+            View full profile
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function QuickFilterLink({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+        active
+          ? "border-blue-200 bg-blue-50 text-blue-700"
+          : "border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedParams = (await searchParams) ?? {};
+  const query = normalizeValue(firstParam(resolvedParams.q));
+  const verified = toBoolean(firstParam(resolvedParams.verified));
+  const openNow = toBoolean(firstParam(resolvedParams.openNow));
+  const sort =
+    (firstParam(resolvedParams.sort) as
       | "rating_desc"
       | "rating_asc"
       | "reviews_desc"
       | "newest"
-      | null) ?? "rating_desc";
+      | "") || "rating_desc";
+  const category = normalizeValue(firstParam(resolvedParams.category));
+  const city = normalizeValue(firstParam(resolvedParams.city));
 
-  const [query, setQuery] = useState(urlQuery);
-  const [businesses, setBusinesses] = useState<BusinessCardData[]>([]);
-  const [resultCount, setResultCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const resultLimit = query ? 10000 : 18;
+  const payload = await listBusinesses({
+    page: 1,
+    limit: resultLimit,
+    q: query || undefined,
+    verified,
+    openNow,
+    sort,
+    category: category || undefined,
+    city: city || undefined,
+  });
 
-  useEffect(() => {
-    setQuery((currentValue) => (currentValue === urlQuery ? currentValue : urlQuery));
-  }, [urlQuery]);
+  const businesses = payload.data;
+  const resultCount = payload.meta.total;
+  const hasFilters = Boolean(query || verified !== undefined || openNow !== undefined || category || city);
 
-  function syncQueryToUrl(nextQuery: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    const normalizedQuery = nextQuery.trim();
-
-    if (normalizedQuery) {
-      params.set("q", normalizedQuery);
-    } else {
-      params.delete("q");
-    }
-
-    const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
-      scroll: false,
-    });
-  }
-
-  function syncFilterToUrl(nextFilters: {
-    verified?: boolean;
-    openNow?: boolean;
-    sort?: "rating_desc" | "rating_asc" | "reviews_desc" | "newest";
-  }) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (typeof nextFilters.verified === "boolean") {
-      if (nextFilters.verified) params.set("verified", "true");
-      else params.delete("verified");
-    }
-
-    if (typeof nextFilters.openNow === "boolean") {
-      if (nextFilters.openNow) params.set("openNow", "true");
-      else params.delete("openNow");
-    }
-
-    if (nextFilters.sort) {
-      params.set("sort", nextFilters.sort);
-    }
-
-    const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
-      scroll: false,
-    });
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const params = new URLSearchParams({
-          page: "1",
-          limit: "18",
-          sort: urlSort,
-        });
-
-        if (query.trim()) {
-          params.set("q", query.trim());
-        }
-        if (urlVerified) {
-          params.set("verified", "true");
-        }
-        if (urlOpenNow) {
-          params.set("openNow", "true");
-        }
-
-        const response = await fetch(`/api/businesses?${params.toString()}`, {
-          method: "GET",
-          signal: controller.signal,
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error("Could not load business listings.");
-        }
-
-        const payload = (await response.json()) as BusinessesApiResponse;
-
-        if (query.trim()) {
-          const activeBusinesses = await fetchAllActiveBusinesses(controller.signal, urlSort, {
-            verified: urlVerified,
-            openNow: urlOpenNow,
-          });
-          const fallbackMatches = activeBusinesses.filter((business) =>
-            matchesBusinessQuery(business, query)
-          );
-          const merged = mergeBusinesses(payload.data, fallbackMatches);
-          setBusinesses(merged);
-          setResultCount(Math.max(payload.meta.total, merged.length));
-        } else {
-          setBusinesses(payload.data);
-          setResultCount(payload.meta.total);
-        }
-      } catch (fetchError) {
-        if (!controller.signal.aborted) {
-          setError(
-            fetchError instanceof Error
-              ? fetchError.message
-              : "Something went wrong while loading listings."
-          );
-          setBusinesses([]);
-          setResultCount(0);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    }, 220);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [query, urlOpenNow, urlSort, urlVerified]);
-
-  const statusText = useMemo(() => {
-    if (isLoading) {
-      return "Updating...";
-    }
-
-    if (error) {
-      return "Error";
-    }
-
-    return `${resultCount} found`;
-  }, [error, isLoading, resultCount]);
+  const quickFilters = [
+    { label: "Verified businesses", href: buildSearchUrl(resolvedParams, { verified: !verified }), active: verified === true },
+    { label: "Open now", href: buildSearchUrl(resolvedParams, { openNow: !openNow }), active: openNow === true },
+    { label: "Top rated", href: buildSearchUrl(resolvedParams, { sort: "rating_desc" }), active: sort === "rating_desc" },
+    { label: "WhatsApp available", href: buildSearchUrl(resolvedParams, { q: "whatsapp" }), active: query.toLowerCase() === "whatsapp" },
+  ];
 
   return (
     <div className="min-h-dvh bg-slate-50">
-      <SmartSearchBar
-        value={query}
-        onChange={setQuery}
-        onSubmit={(value) => {
-          setQuery(value);
-          syncQueryToUrl(value);
-        }}
-        onVoiceSearch={() => {
-          const voiceQuery = "repair";
-          setQuery(voiceQuery);
-          syncQueryToUrl(voiceQuery);
-        }}
-      />
+      <section className="mx-auto max-w-7xl space-y-4 px-4 pb-24 pt-3 md:px-6 lg:px-8">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_14px_30px_-24px_rgba(15,23,42,0.35)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Bharat Local Search
+          </p>
 
-      <section className="mx-auto max-w-7xl space-y-4 px-4 pb-24 pt-2 md:px-6 lg:px-8">
-        <OfferBannerSlot title="Search Results Offer Banner" />
+          <form
+            action="/search"
+            method="get"
+            className="mt-3 grid gap-2 md:grid-cols-[170px,1fr,120px]"
+          >
+            <div className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700">
+              <MapPin className="h-4 w-4 text-blue-700" aria-hidden />
+              Pune
+            </div>
+
+            <label className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-500">
+              <Search className="h-4 w-4 text-slate-400" aria-hidden />
+              <span className="sr-only">Search businesses</span>
+              <input
+                type="search"
+                name="q"
+                placeholder="Search for services, businesses, products..."
+                className="h-full w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                autoComplete="off"
+                enterKeyHint="search"
+                defaultValue={query}
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-orange-500 text-white transition-colors hover:bg-orange-600"
+              aria-label="Search now"
+            >
+              Search
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+
+            <input type="hidden" name="verified" value={verified === true ? "true" : ""} />
+            <input type="hidden" name="openNow" value={openNow === true ? "true" : ""} />
+            <input type="hidden" name="sort" value={sort} />
+            {category ? <input type="hidden" name="category" value={category} /> : null}
+            {city ? <input type="hidden" name="city" value={city} /> : null}
+          </form>
+
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
+            <QuickFilterLink href={buildSearchUrl(resolvedParams, { q: "B2B" })} label="B2B" />
+            <QuickFilterLink href={buildSearchUrl(resolvedParams, { q: "B2C" })} label="B2C" />
+            <QuickFilterLink
+              href={buildSearchUrl(resolvedParams, { openNow: true })}
+              label="Open Now"
+              active={openNow === true}
+            />
+            <QuickFilterLink
+              href={buildSearchUrl(resolvedParams, { sort: "rating_desc" })}
+              label="Top Rated"
+              active={sort === "rating_desc"}
+            />
+            <QuickFilterLink href={buildSearchUrl(resolvedParams, { q: "near me" })} label="Near Me" />
+            <QuickFilterLink
+              href={buildSearchUrl(resolvedParams, { verified: true })}
+              label="Verified Only"
+              active={verified === true}
+            />
+          </div>
+        </div>
 
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold tracking-[0.012em] text-slate-800">
             Search Results
           </p>
           <p className="text-xs text-slate-500">
-            {statusText}
+            {hasFilters ? `${resultCount} found` : "Browse listings"}
           </p>
         </div>
 
@@ -336,59 +317,41 @@ export default function SearchPage() {
               Quick Filters
             </p>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
-              <button
-                type="button"
-                onClick={() => syncFilterToUrl({ verified: !urlVerified })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+              <Link
+                href={buildSearchUrl(resolvedParams, { verified: !verified })}
+                className="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-blue-300 hover:bg-blue-50"
               >
-                {urlVerified ? "Verified businesses (On)" : "Verified businesses"}
-              </button>
-              <button
-                type="button"
-                onClick={() => syncFilterToUrl({ openNow: !urlOpenNow })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+                {verified ? "Verified businesses (On)" : "Verified businesses"}
+              </Link>
+              <Link
+                href={buildSearchUrl(resolvedParams, { openNow: !openNow })}
+                className="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-blue-300 hover:bg-blue-50"
               >
-                {urlOpenNow ? "Open now (On)" : "Open now"}
-              </button>
-              <button
-                type="button"
-                onClick={() => syncFilterToUrl({ sort: "rating_desc" })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+                {openNow ? "Open now (On)" : "Open now"}
+              </Link>
+              <Link
+                href={buildSearchUrl(resolvedParams, { sort: "rating_desc" })}
+                className="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-blue-300 hover:bg-blue-50"
               >
                 Top rated 4.5+
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("whatsapp");
-                  syncQueryToUrl("whatsapp");
-                }}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
+              </Link>
+              <Link
+                href={buildSearchUrl(resolvedParams, { q: "whatsapp" })}
+                className="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 hover:border-blue-300 hover:bg-blue-50"
               >
                 WhatsApp available
-              </button>
+              </Link>
             </div>
           </aside>
 
           <div className="space-y-3">
-            {isLoading ? (
-              <>
-                <BusinessCardSkeleton />
-                <BusinessCardSkeleton />
-                <BusinessCardSkeleton />
-              </>
-            ) : error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm leading-relaxed tracking-[0.012em] text-red-700">
-                {error}
-              </div>
-            ) : businesses.length > 0 ? (
+            {businesses.length > 0 ? (
               businesses.map((business) => (
-                <BusinessCard key={business.id} business={business} />
+                <SearchResultCard key={business.id} business={business} />
               ))
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm leading-relaxed tracking-[0.012em] text-slate-600">
-                No listings matched your search. Try category names like
-                plumber, clinic, or hardware.
+                No listings matched your search. Try category names like plumber, clinic, or hardware.
               </div>
             )}
           </div>
