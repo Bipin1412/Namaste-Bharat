@@ -11,8 +11,13 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization") || "";
 
   const page = parseNumberParam(searchParams.get("page"), 1, 1, 10000);
-  const limit = parseNumberParam(searchParams.get("limit"), 12, 1, 50);
   const includeInactive = parseBooleanParam(searchParams.get("includeInactive")) === true;
+  const limit = parseNumberParam(
+    searchParams.get("limit"),
+    12,
+    1,
+    includeInactive ? 10000 : 50
+  );
 
   if (includeInactive) {
     try {

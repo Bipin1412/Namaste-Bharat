@@ -113,7 +113,7 @@ export default function AdminDashboard() {
     const params = new URLSearchParams({
       sort: "newest",
       page: String(page),
-      limit: "50",
+      limit: "10000",
       includeInactive: "true",
     });
 
