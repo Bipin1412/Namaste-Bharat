@@ -1,262 +1,100 @@
-"use client";
+import { listBusinesses } from "@/lib/backend/service";
+import type { BusinessCardData } from "@/components/BusinessCard";
+import SearchPageView from "./SearchPageView";
 
-import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import BusinessCard, { type BusinessCardData } from "@/components/BusinessCard";
-import BusinessCardSkeleton from "@/components/BusinessCardSkeleton";
-import OfferBannerSlot from "@/components/OfferBannerSlot";
-import SmartSearchBar from "@/components/SmartSearchBar";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-type BusinessesApiResponse = {
-  data: BusinessCardData[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-};
+type SearchParamValue = string | string[] | undefined;
+type SearchParamsInput =
+  | Record<string, SearchParamValue>
+  | Promise<Record<string, SearchParamValue>>
+  | undefined;
 
-function normalizeSearchText(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+type SortOption = "rating_desc" | "rating_asc" | "reviews_desc" | "newest";
+
+function firstValue(value: SearchParamValue): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
 }
 
-export default function SearchPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const urlQuery = searchParams.get("q") ?? "";
-  const urlVerified = (searchParams.get("verified") ?? "").toLowerCase() === "true";
-  const urlOpenNow = (searchParams.get("openNow") ?? "").toLowerCase() === "true";
-  const urlSort =
-    (searchParams.get("sort") as
-      | "rating_desc"
-      | "rating_asc"
-      | "reviews_desc"
-      | "newest"
-      | null) ?? "rating_desc";
-
-  const [query, setQuery] = useState(urlQuery);
-  const [businesses, setBusinesses] = useState<BusinessCardData[]>([]);
-  const [resultCount, setResultCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setQuery((currentValue) => (currentValue === urlQuery ? currentValue : urlQuery));
-  }, [urlQuery]);
-
-  function syncQueryToUrl(nextQuery: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    const normalizedQuery = nextQuery.trim();
-
-    if (normalizedQuery) {
-      params.set("q", normalizedQuery);
-    } else {
-      params.delete("q");
-    }
-
-    const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
-      scroll: false,
-    });
+function parseBoolean(value?: string): boolean | undefined {
+  if (typeof value !== "string") {
+    return undefined;
   }
 
-  function syncFilterToUrl(nextFilters: {
-    verified?: boolean;
-    openNow?: boolean;
-    sort?: "rating_desc" | "rating_asc" | "reviews_desc" | "newest";
-  }) {
-    const params = new URLSearchParams(searchParams.toString());
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+  return undefined;
+}
 
-    if (typeof nextFilters.verified === "boolean") {
-      if (nextFilters.verified) params.set("verified", "true");
-      else params.delete("verified");
-    }
-
-    if (typeof nextFilters.openNow === "boolean") {
-      if (nextFilters.openNow) params.set("openNow", "true");
-      else params.delete("openNow");
-    }
-
-    if (nextFilters.sort) {
-      params.set("sort", nextFilters.sort);
-    }
-
-    const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
-      scroll: false,
-    });
+function parseSort(value?: string): SortOption {
+  if (
+    value === "rating_desc" ||
+    value === "rating_asc" ||
+    value === "reviews_desc" ||
+    value === "newest"
+  ) {
+    return value;
   }
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setIsLoading(true);
-      setError(null);
+  return "rating_desc";
+}
 
-      try {
-        const params = new URLSearchParams({
-          page: "1",
-          limit: "18",
-          sort: urlSort,
-        });
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams?: SearchParamsInput;
+}) {
+  const resolvedSearchParams = ((await searchParams) ?? {}) as Record<
+    string,
+    SearchParamValue
+  >;
 
-        if (query.trim()) {
-          params.set("q", query.trim());
-        }
-        if (urlVerified) {
-          params.set("verified", "true");
-        }
-        if (urlOpenNow) {
-          params.set("openNow", "true");
-        }
+  const query = firstValue(resolvedSearchParams.q) ?? "";
+  const verified = parseBoolean(firstValue(resolvedSearchParams.verified));
+  const openNow = parseBoolean(firstValue(resolvedSearchParams.openNow));
+  const sort = parseSort(firstValue(resolvedSearchParams.sort));
 
-        const response = await fetch(`/api/businesses?${params.toString()}`, {
-          method: "GET",
-          signal: controller.signal,
-          cache: "no-store",
-        });
+  let businesses: BusinessCardData[] = [];
+  let resultCount = 0;
+  let error: string | null = null;
 
-        if (!response.ok) {
-          throw new Error("Could not load business listings.");
-        }
+  try {
+    const payload = await listBusinesses({
+      q: query.trim() || undefined,
+      category: firstValue(resolvedSearchParams.category) ?? undefined,
+      city: firstValue(resolvedSearchParams.city) ?? undefined,
+      verified,
+      openNow,
+      sort,
+      includeInactive: false,
+      page: 1,
+      limit: 18,
+    });
 
-        const payload = (await response.json()) as BusinessesApiResponse;
-        setBusinesses(payload.data);
-        setResultCount(payload.meta.total);
-      } catch (fetchError) {
-        if (!controller.signal.aborted) {
-          setError(
-            fetchError instanceof Error
-              ? fetchError.message
-              : "Something went wrong while loading listings."
-          );
-          setBusinesses([]);
-          setResultCount(0);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    }, 220);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [query, urlOpenNow, urlSort, urlVerified]);
-
-  const statusText = useMemo(() => {
-    if (isLoading) {
-      return "Updating...";
-    }
-
-    if (error) {
-      return "Error";
-    }
-
-    return `${resultCount} found`;
-  }, [error, isLoading, resultCount]);
+    businesses = payload.data;
+    resultCount = payload.meta.total;
+  } catch (fetchError) {
+    error =
+      fetchError instanceof Error
+        ? fetchError.message
+        : "Could not load business listings.";
+  }
 
   return (
-    <div className="min-h-dvh bg-slate-50">
-      <SmartSearchBar
-        value={query}
-        onChange={setQuery}
-        onSubmit={(value) => {
-          setQuery(value);
-          syncQueryToUrl(value);
-        }}
-        onVoiceSearch={() => {
-          const voiceQuery = "repair";
-          setQuery(voiceQuery);
-          syncQueryToUrl(voiceQuery);
-        }}
-      />
-
-      <section className="mx-auto max-w-7xl space-y-4 px-4 pb-24 pt-2 md:px-6 lg:px-8">
-        <OfferBannerSlot title="Search Results Offer Banner" />
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold tracking-[0.012em] text-slate-800">
-            Search Results
-          </p>
-          <p className="text-xs text-slate-500">
-            {statusText}
-          </p>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[240px,1fr]">
-          <aside className="hidden h-fit rounded-2xl border border-slate-200 bg-white p-4 lg:block">
-            <p className="text-sm font-semibold tracking-[0.012em] text-slate-800">
-              Quick Filters
-            </p>
-            <div className="mt-3 space-y-2 text-sm text-slate-600">
-              <button
-                type="button"
-                onClick={() => syncFilterToUrl({ verified: !urlVerified })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
-              >
-                {urlVerified ? "Verified businesses (On)" : "Verified businesses"}
-              </button>
-              <button
-                type="button"
-                onClick={() => syncFilterToUrl({ openNow: !urlOpenNow })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
-              >
-                {urlOpenNow ? "Open now (On)" : "Open now"}
-              </button>
-              <button
-                type="button"
-                onClick={() => syncFilterToUrl({ sort: "rating_desc" })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
-              >
-                Top rated 4.5+
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("whatsapp");
-                  syncQueryToUrl("whatsapp");
-                }}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50"
-              >
-                WhatsApp available
-              </button>
-            </div>
-          </aside>
-
-          <div className="space-y-3">
-            {isLoading ? (
-              <>
-                <BusinessCardSkeleton />
-                <BusinessCardSkeleton />
-                <BusinessCardSkeleton />
-              </>
-            ) : error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm leading-relaxed tracking-[0.012em] text-red-700">
-                {error}
-              </div>
-            ) : businesses.length > 0 ? (
-              businesses.map((business) => (
-                <BusinessCard key={business.id} business={business} />
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm leading-relaxed tracking-[0.012em] text-slate-600">
-                No listings matched your search. Try category names like
-                plumber, clinic, or hardware.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
+    <SearchPageView
+      initialQuery={query}
+      initialVerified={verified ?? false}
+      initialOpenNow={openNow ?? false}
+      initialSort={sort}
+      businesses={businesses}
+      resultCount={resultCount}
+      error={error}
+    />
   );
 }
