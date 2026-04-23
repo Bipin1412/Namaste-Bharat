@@ -6,10 +6,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type SearchParamValue = string | string[] | undefined;
-type SearchParamsInput =
-  | Record<string, SearchParamValue>
-  | Promise<Record<string, SearchParamValue>>
-  | undefined;
+type SearchParamsInput = Promise<Record<string, SearchParamValue>> | undefined;
 
 type SortOption = "rating_desc" | "rating_asc" | "reviews_desc" | "newest";
 
