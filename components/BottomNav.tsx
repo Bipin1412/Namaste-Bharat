@@ -51,6 +51,7 @@ export default function BottomNav() {
             <li key={href} className="h-full min-w-0">
               <Link
                 href={href}
+                prefetch={false}
                 className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-center transition-colors [@media(min-width:360px)]:gap-1 ${
                   isActive
                     ? "text-blue-700"
