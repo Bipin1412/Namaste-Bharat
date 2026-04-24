@@ -5,6 +5,7 @@ import Script from "next/script";
 import BottomNav from "../components/BottomNav";
 import MarketplaceHeader from "../components/MarketplaceHeader";
 import SiteFooter from "../components/SiteFooter";
+import HydrationFix from "../components/HydrationFix";
 import "./globals.css";
 
 const notoSans = Noto_Sans({
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${notoSans.variable} ${notoSansDevanagari.variable}`}
     >
       <body className="min-h-dvh bg-slate-50 text-slate-900 antialiased [font-family:var(--font-sans-latin),var(--font-sans-devanagari),sans-serif]">
+        <HydrationFix />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-RJEY8WZQ7D"
           strategy="afterInteractive"
