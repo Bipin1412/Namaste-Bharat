@@ -6,7 +6,7 @@ import heroHealthcareImage from "../assests/home_page-images/3.png";
 import heroExploreImage from "../assests/home_page-images/4.png";
 import { ArrowRight, MapPin, Search } from "lucide-react";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 const quickShortcuts = [
   { label: "B2B", href: "/search?q=B2B" },
