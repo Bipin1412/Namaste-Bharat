@@ -394,15 +394,22 @@ async function loadAllBusinessesFromStores(): Promise<Business[]> {
   }
 
   pendingMergedBusinesses = (async () => {
-    const [mysqlPayload, legacyPayload] = await Promise.all([
-      hasMysqlConfig()
-        ? mysqlService.listBusinesses({
+    const mysqlQueryWithTimeout = hasMysqlConfig()
+      ? Promise.race([
+          mysqlService.listBusinesses({
             page: 1,
             limit: mergedBusinessFetchLimit,
             includeInactive: true,
             sort: "newest",
-          }).catch(() => null)
-        : Promise.resolve(null),
+          }),
+          new Promise<null>((resolve) =>
+            setTimeout(() => resolve(null), mysqlFallbackTimeoutMs)
+          ),
+        ]).catch(() => null)
+      : Promise.resolve(null);
+
+    const [mysqlPayload, legacyPayload] = await Promise.all([
+      mysqlQueryWithTimeout,
       legacyService.listBusinesses({
         page: 1,
         limit: mergedBusinessFetchLimit,
