@@ -11,12 +11,14 @@ const notoSans = Noto_Sans({
   subsets: ["latin"],
   variable: "--font-sans-latin",
   display: "swap",
+  preload: false,
 });
 
 const notoSansDevanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
   variable: "--font-sans-devanagari",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
