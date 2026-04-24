@@ -69,6 +69,7 @@ export default function MarketplaceHeader() {
                   <li key={href}>
                     <Link
                       href={href}
+                      prefetch={false}
                       className={`inline-flex h-9 items-center gap-1 rounded-lg px-2 text-xs font-medium transition-colors lg:h-10 lg:gap-2 lg:px-3 lg:text-sm ${
                         isActive
                           ? "bg-blue-50 text-blue-700"
