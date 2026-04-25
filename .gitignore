@@ -31,3 +31,7 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Runtime data — never overwrite live data on redeploy
+data/db.json
+data/auth.json

@@ -408,19 +408,23 @@ async function loadAllBusinessesFromStores(): Promise<Business[]> {
         ]).catch(() => null)
       : Promise.resolve(null);
 
-    const [mysqlPayload, legacyPayload] = await Promise.all([
-      mysqlQueryWithTimeout,
-      legacyService.listBusinesses({
-        page: 1,
-        limit: mergedBusinessFetchLimit,
-        includeInactive: true,
-        sort: "newest",
-      }),
-    ]);
+    // When MySQL responds successfully, use it exclusively.
+    // Only fall back to the JSON store if MySQL is unavailable/timed out.
+    const mysqlPayload = await mysqlQueryWithTimeout;
+    const mysqlResponded = mysqlPayload !== null;
 
-    const mysqlBusinesses = mysqlPayload?.data ?? [];
-    const legacyBusinesses = legacyPayload.data ?? [];
-    return mergeBusinesses(mysqlBusinesses, legacyBusinesses);
+    if (mysqlResponded) {
+      return mysqlPayload?.data ?? [];
+    }
+
+    const legacyPayload = await legacyService.listBusinesses({
+      page: 1,
+      limit: mergedBusinessFetchLimit,
+      includeInactive: true,
+      sort: "newest",
+    });
+
+    return legacyPayload.data ?? [];
   })().finally(() => {
     pendingMergedBusinesses = null;
   });

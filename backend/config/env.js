@@ -18,7 +18,7 @@ const env = {
   mysqlUser: process.env.MYSQL_USER || "",
   mysqlPassword: process.env.MYSQL_PASSWORD || "",
   mysqlConnectionLimit: Number(process.env.MYSQL_CONNECTION_LIMIT || 10),
-  appJwtSecret: process.env.APP_JWT_SECRET || "dev-app-jwt-secret-change-me",
+  appJwtSecret: process.env.APP_JWT_SECRET || "",
   otpSecret: process.env.OTP_SECRET || "",
 };
 

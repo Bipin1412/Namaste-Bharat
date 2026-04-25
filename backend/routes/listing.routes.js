@@ -31,7 +31,7 @@ router.get("/categories", categories);
 
 router.get("/businesses", businesses);
 router.get("/businesses/:id", businessById);
-router.post("/businesses", createBusinessHandler);
+router.post("/businesses", requireAuth, createBusinessHandler);
 router.patch("/businesses/:id", requireAuth, requireAdmin, updateBusinessHandler);
 router.delete("/businesses/:id", requireAuth, requireAdmin, deleteBusinessHandler);
 
