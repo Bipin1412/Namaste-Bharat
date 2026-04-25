@@ -4,7 +4,7 @@ import heroBusinessImage from "../assests/home_page-images/1.png";
 import heroDeliveryImage from "../assests/home_page-images/2.png";
 import heroHealthcareImage from "../assests/home_page-images/3.png";
 import heroExploreImage from "../assests/home_page-images/4.png";
-import { ArrowRight, MapPin, Search } from "lucide-react";
+import { ArrowRight, MapPin, Search, CalendarDays, Leaf, Briefcase, Palette, Plane, UtensilsCrossed, HeartPulse, Wrench, Banknote, Store, Calculator, Flower2, Car, Shield, GraduationCap, Droplets, Smartphone, Truck, Code, Scissors, MoreHorizontal, Scale } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,29 @@ const quickShortcuts = [
   { label: "Top Rated", href: "/search?sort=rating_desc" },
   { label: "Near Me", href: "/search?q=near me" },
   { label: "Verified Only", href: "/search?verified=true&sort=rating_desc" },
+];
+
+const categories = [
+  { label: "Doctor", icon: HeartPulse, color: "bg-rose-50 text-rose-600" },
+  { label: "Plumber", icon: Wrench, color: "bg-blue-50 text-blue-600" },
+  { label: "Lawyers", icon: Scale, color: "bg-purple-50 text-purple-600" },
+  { label: "Education", icon: GraduationCap, color: "bg-yellow-50 text-yellow-600" },
+  { label: "Tours & Travels", icon: Plane, color: "bg-sky-50 text-sky-600" },
+  { label: "Caterer / Hotel", icon: UtensilsCrossed, color: "bg-orange-50 text-orange-600" },
+  { label: "Car Servicing / Bike Servicing", icon: Car, color: "bg-slate-100 text-slate-600" },
+  { label: "Finance", icon: Banknote, color: "bg-green-50 text-green-600" },
+  { label: "Interior Design", icon: Palette, color: "bg-pink-50 text-pink-600" },
+  { label: "Computer / Mobile Sales & Services", icon: Smartphone, color: "bg-indigo-50 text-indigo-600" },
+  { label: "Agriculture Services", icon: Leaf, color: "bg-emerald-50 text-emerald-600" },
+  { label: "Event Management", icon: CalendarDays, color: "bg-violet-50 text-violet-600" },
+  { label: "Transport", icon: Truck, color: "bg-amber-50 text-amber-600" },
+  { label: "Insurance", icon: Shield, color: "bg-teal-50 text-teal-600" },
+  { label: "CA / Accounting Services", icon: Calculator, color: "bg-cyan-50 text-cyan-600" },
+  { label: "Software / Website Design", icon: Code, color: "bg-fuchsia-50 text-fuchsia-600" },
+  { label: "Gardening Services", icon: Flower2, color: "bg-lime-50 text-lime-600" },
+  { label: "Waterproofing", icon: Droplets, color: "bg-blue-50 text-blue-500" },
+  { label: "Dealer", icon: Store, color: "bg-orange-50 text-orange-500" },
+  { label: "Other", icon: MoreHorizontal, color: "bg-slate-100 text-slate-500" },
 ];
 
 const heroServiceCards = [
@@ -174,6 +197,31 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Browse by Category</p>
+              <h2 className="mt-1 text-xl font-semibold text-slate-900">What are you looking for?</h2>
+            </div>
+            <Link href="/search" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+              View all →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {categories.map((cat) => (
+              <Link
+                key={cat.label}
+                href={`/search?category=${encodeURIComponent(cat.label)}`}
+                className="flex flex-col items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-4 text-center transition-all hover:border-blue-200 hover:bg-blue-50 hover:shadow-sm"
+              >
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${cat.color}`}>
+                  <cat.icon className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-medium leading-tight text-slate-700">{cat.label}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
       </section>
     </div>
   );
