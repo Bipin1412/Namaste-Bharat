@@ -20,6 +20,7 @@ export type BusinessCardData = {
   whatsappNumber: string;
   media?: {
     coverImages?: string[];
+    gallery?: string[];
   };
 };
 
@@ -38,7 +39,10 @@ function formatWhatsappUrl(number: string, businessName: string) {
 
 export default function BusinessCard({ business }: BusinessCardProps) {
   const whatsappUrl = formatWhatsappUrl(business.whatsappNumber, business.name);
-  const cardImage = business.media?.coverImages?.[0] || getBusinessImage(business.id);
+  const cardImage =
+    business.media?.coverImages?.[0] ||
+    business.media?.gallery?.[0] ||
+    getBusinessImage(business.id);
 
   function captureLead(source: "search" | "profile") {
     void fetch("/api/leads", {

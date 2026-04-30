@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Check, CheckCircle2, Loader2 } from "lucide-react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Check, CheckCircle2, ImagePlus, Loader2, X } from "lucide-react";
 import { getAuthToken } from "@/lib/auth-client";
 import { useListingPlans } from "@/lib/ui/use-listing-plans";
 import { useListingTaxonomy } from "@/lib/ui/use-listing-taxonomy";
@@ -18,10 +18,23 @@ type ListingPayload = {
   verified: boolean;
   phone: string;
   whatsappNumber: string;
+  media?: {
+    coverImages?: string[];
+    gallery?: string[];
+  };
   policies: {
     listingPlan: string;
   };
 };
+
+type SelectedShopImage = {
+  id: string;
+  file: File;
+  previewUrl: string;
+};
+
+const MAX_SHOP_IMAGES = 5;
+const MAX_SHOP_IMAGE_SIZE = 5 * 1024 * 1024;
 
 type FreeListingFormProps = {
   adminMode?: boolean;
@@ -60,6 +73,8 @@ export default function FreeListingForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [shopImages, setShopImages] = useState<SelectedShopImage[]>([]);
+  const [shopImageError, setShopImageError] = useState("");
   const categoryMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -74,6 +89,14 @@ export default function FreeListingForm({
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      for (const image of shopImages) {
+        URL.revokeObjectURL(image.previewUrl);
+      }
+    };
+  }, [shopImages]);
 
   const selectedCategoryText = useMemo(() => {
     if (selectedCategories.length === 0) {
@@ -110,6 +133,64 @@ export default function FreeListingForm({
     setSelectedPlan(listingPlans[0].id);
   }, [listingPlans, selectedPlan]);
 
+  function handleShopImageSelection(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const remainingSlots = MAX_SHOP_IMAGES - shopImages.length;
+    if (remainingSlots <= 0) {
+      setShopImageError(`You can upload up to ${MAX_SHOP_IMAGES} shop images.`);
+      return;
+    }
+
+    const acceptedFiles: SelectedShopImage[] = [];
+    const rejectedFiles: string[] = [];
+
+    for (const file of files.slice(0, remainingSlots)) {
+      if (!file.type.startsWith("image/")) {
+        rejectedFiles.push(file.name);
+        continue;
+      }
+
+      if (file.size > MAX_SHOP_IMAGE_SIZE) {
+        rejectedFiles.push(file.name);
+        continue;
+      }
+
+      acceptedFiles.push({
+        id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+    }
+
+    if (acceptedFiles.length > 0) {
+      setShopImages((current) => [...current, ...acceptedFiles]);
+      setShopImageError("");
+    }
+
+    if (files.length > remainingSlots) {
+      rejectedFiles.push("extra files");
+    }
+
+    if (rejectedFiles.length > 0) {
+      setShopImageError(
+        `Only image files up to 5 MB are allowed. You can add ${remainingSlots} more photo${
+          remainingSlots === 1 ? "" : "s"
+        }.`
+      );
+    }
+  }
+
+  function removeShopImage(id: string) {
+    setShopImages((current) => current.filter((image) => image.id !== id));
+    setShopImageError("");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit || isSubmitting) {
@@ -119,8 +200,53 @@ export default function FreeListingForm({
     setIsSubmitting(true);
     setMessage("");
     setIsSuccess(false);
+    setShopImageError("");
 
     const phone = normalizeIndianPhone(mobile);
+    let uploadedImageUrls: string[] = [];
+
+    try {
+      if (shopImages.length > 0) {
+        const uploadFormData = new FormData();
+        for (const image of shopImages) {
+          uploadFormData.append("images", image.file);
+        }
+
+        const uploadResponse = await fetch("/api/uploads/business-images", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorPayload = (await uploadResponse.json().catch(() => null)) as
+            | { error?: { message?: string } }
+            | null;
+          throw new Error(
+            errorPayload?.error?.message ?? "Could not upload shop images."
+          );
+        }
+
+        const uploadPayload = (await uploadResponse.json()) as {
+          data?: Array<{ url?: string }>;
+        };
+
+        uploadedImageUrls =
+          uploadPayload.data?.map((item) => item.url).filter((url): url is string => Boolean(url)) ??
+          [];
+
+        if (uploadedImageUrls.length !== shopImages.length) {
+          throw new Error("Some shop images could not be saved.");
+        }
+      }
+    } catch (error) {
+      setIsSubmitting(false);
+      setIsSuccess(false);
+      setMessage(
+        error instanceof Error ? error.message : "Could not upload shop images."
+      );
+      return;
+    }
+
     const payload: ListingPayload = {
       name: businessName.trim(),
       category: selectedCategories.join(", "),
@@ -133,6 +259,14 @@ export default function FreeListingForm({
       phone,
       whatsappNumber: phone,
       email: email.trim(),
+      ...(uploadedImageUrls.length > 0
+        ? {
+            media: {
+              coverImages: uploadedImageUrls,
+              gallery: uploadedImageUrls,
+            },
+          }
+        : {}),
       policies: {
         listingPlan: selectedPlan,
       },
@@ -172,6 +306,8 @@ export default function FreeListingForm({
       setSelectedCategories([]);
       setLocality("");
       setSelectedPlan(listingPlans[0]?.id || "basic");
+      setShopImages([]);
+      setShopImageError("");
       await onSuccess?.();
     } catch (error) {
       setIsSuccess(false);
@@ -257,6 +393,72 @@ export default function FreeListingForm({
             placeholder="Area / Locality"
             className="h-11 rounded-lg border border-slate-300 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
           />
+        </div>
+
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Shop images</p>
+              <p className="text-xs text-slate-500">
+                Optional. Upload up to {MAX_SHOP_IMAGES} photos, each up to 5 MB.
+              </p>
+            </div>
+            <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-white px-3 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-200 transition-colors hover:bg-blue-50">
+              <ImagePlus className="h-4 w-4" aria-hidden />
+              Add images
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleShopImageSelection}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {shopImages.length > 0 ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {shopImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+                >
+                  <div className="relative h-32 w-full bg-slate-100">
+                    <img
+                      src={image.previewUrl}
+                      alt={image.file.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeShopImage(image.id)}
+                    className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/80 text-white opacity-90 transition-opacity hover:opacity-100"
+                    aria-label={`Remove ${image.file.name}`}
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                  <div className="border-t border-slate-100 px-3 py-2">
+                    <p className="truncate text-xs font-medium text-slate-700">
+                      {image.file.name}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {(image.file.size / (1024 * 1024)).toFixed(1)} MB
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">
+              Add storefront, menu, product, or shop-front photos to make the listing
+              stronger.
+            </p>
+          )}
+
+          {shopImageError ? (
+            <p className="mt-2 text-xs font-medium text-rose-600">{shopImageError}</p>
+          ) : null}
         </div>
         <div ref={categoryMenuRef} className="relative">
           <button

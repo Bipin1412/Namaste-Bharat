@@ -13,6 +13,7 @@ export async function GET() {
       home: "/api/home",
       businesses: "/api/businesses",
       businessById: "/api/businesses/:id",
+      businessImageUpload: "/api/uploads/business-images",
       reels: "/api/reels",
       offers: "/api/offers",
       categories: "/api/categories",

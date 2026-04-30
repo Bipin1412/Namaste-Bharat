@@ -51,10 +51,14 @@ export default async function BusinessProfilePage({
   const relatedBusinesses = relatedResult.data.filter((entry) => entry.id !== business.id);
 
   const whatsappUrl = formatWhatsappUrl(business.whatsappNumber, business.name);
-  const coverImage = business.media?.coverImages?.[0] ?? getBusinessImage(business.id);
-  const galleryImages =
-    business.media?.gallery && business.media.gallery.length > 0
-      ? business.media.gallery.slice(0, 6)
+  const coverImage =
+    business.media?.coverImages?.[0] ??
+    business.media?.gallery?.[0] ??
+    getBusinessImage(business.id);
+  const galleryImages = business.media?.gallery?.length
+    ? business.media.gallery.slice(0, 6)
+    : business.media?.coverImages?.length
+      ? business.media.coverImages.slice(0, 6)
       : [coverImage, "/showcase/service-home.svg", "/showcase/offer-growth.svg"];
 
   const keywords = business.keywords ?? [];
